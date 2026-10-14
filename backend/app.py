@@ -1,22 +1,25 @@
 """
-Backend REST API & Banco de Dados Centralizado - Marmoraria Marmobraz SaaS (Etapa 4)
-Armazenamento relacional e persistente com SQLite + FastAPI
+Backend REST API & Banco de Dados Centralizado - Marmoraria SaaS Multi-Tenant
+Arquitetura Database-per-Tenant com isolamento total por subdomínio
 """
 import os
+import re
 import json
+import shutil
 import sqlite3
 from datetime import datetime
 from typing import List, Optional, Any, Dict
-from fastapi import FastAPI, HTTPException, Body
+from contextvars import ContextVar
+from fastapi import FastAPI, HTTPException, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
 app = FastAPI(
-    title="Marmoraria Marmobraz SaaS API",
-    description="API centralizada em nuvem para orçamentos, catálogo e fila de fábrica em tempo real",
-    version="2.0.0"
+    title="Marmoraria SaaS Multi-Tenant API",
+    description="API centralizada em nuvem com isolamento completo de banco de dados por marmoraria",
+    version="3.0.0"
 )
 
 app.add_middleware(
@@ -27,29 +30,85 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Caminho do banco de dados e arquivos estáticos
+# Caminho dos bancos de dados e arquivos estáticos
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
-os.makedirs(DATA_DIR, exist_ok=True)
-DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(DATA_DIR, "marmoraria.db"))
+TENANTS_DIR = os.path.join(DATA_DIR, "tenants")
+os.makedirs(TENANTS_DIR, exist_ok=True)
 
+MASTER_DB_PATH = os.path.join(DATA_DIR, "master.db")
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 INDEX_PATH = os.path.join(FRONTEND_DIR, "index.html")
 if not os.path.exists(INDEX_PATH):
     INDEX_PATH = os.path.join(BASE_DIR, "index.html")
 
-def get_db():
-    conn = sqlite3.connect(DB_PATH, timeout=30.0)
+ADMIN_PATH = os.path.join(FRONTEND_DIR, "admin.html")
+if not os.path.exists(ADMIN_PATH):
+    ADMIN_PATH = os.path.join(BASE_DIR, "admin.html")
+
+# ContextVar para isolamento concorrente por requisição
+current_tenant_var: ContextVar[str] = ContextVar("current_tenant", default="marmobraz")
+
+def get_master_db():
+    conn = sqlite3.connect(MASTER_DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode = WAL;")
-    conn.execute("PRAGMA busy_timeout = 30000;")
     return conn
 
-def init_db():
-    conn = get_db()
+def init_master_db():
+    conn = get_master_db()
     cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS tenants (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        telefone TEXT,
+        documento TEXT,
+        email TEXT,
+        status TEXT DEFAULT 'active',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    );
+    """)
+    # Tenant padrão inicial
+    cursor.execute("SELECT COUNT(*) as total FROM tenants;")
+    if cursor.fetchone()["total"] == 0:
+        agora = datetime.now().isoformat()
+        cursor.execute("""
+        INSERT INTO tenants (id, name, telefone, documento, email, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+        """, ("marmobraz", "Marmoraria Marmobraz", "(11) 99999-9999", "", "contato@marmobraz.com.br", "active", agora, agora))
+    conn.commit()
+    conn.close()
+
+def extract_subdomain(host: str) -> str:
+    if not host:
+        return "marmobraz"
+    host = host.split(":")[0].lower()
+    parts = host.split(".")
+    # Reconhece subdomínio em mnservice.net.br
+    if len(parts) >= 3 and parts[-2] == "mnservice" and parts[-1] == "net.br":
+        return parts[0]
+    # Reconhece subdomínio genérico
+    if len(parts) >= 2 and parts[0] not in ("www", "mnservice", "localhost", "127", "179"):
+        return parts[0]
+    return "marmobraz"
+
+def get_tenant_db_path(tenant_id: str) -> str:
+    clean = re.sub(r"[^a-zA-Z0-9_-]", "", tenant_id).lower()
+    if not clean or clean in ("admin", "master", "www"):
+        clean = "marmobraz"
     
-    # Tabela principal de Orçamentos
+    db_file = os.path.join(TENANTS_DIR, f"{clean}.db")
+    # Migração automática do banco legado para o tenant marmobraz
+    legacy_db = os.path.join(DATA_DIR, "marmoraria.db")
+    if clean == "marmobraz" and not os.path.exists(db_file) and os.path.exists(legacy_db):
+        shutil.copy2(legacy_db, db_file)
+        
+    return db_file
+
+def init_tenant_db_schema(conn, tenant_name: str = "Marmoraria"):
+    cursor = conn.cursor()
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS orcamentos (
         id TEXT PRIMARY KEY,
@@ -69,7 +128,6 @@ def init_db():
     );
     """)
 
-    # Tabela de Catálogos (materiais, cubas, acabamentos, regras_lados, modalidades_logistica)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS catalogos (
         tipo TEXT PRIMARY KEY,
@@ -78,7 +136,6 @@ def init_db():
     );
     """)
 
-    # Tabela de Clientes & CRM (Passo 3)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS clientes (
         id TEXT PRIMARY KEY,
@@ -94,7 +151,6 @@ def init_db():
     );
     """)
 
-    # Tabela de Agenda & Prazos (Passo 4)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS agenda (
         id TEXT PRIMARY KEY,
@@ -102,18 +158,17 @@ def init_db():
         cliente_nome TEXT NOT NULL,
         cliente_fone TEXT,
         endereco TEXT,
-        tipo TEXT NOT NULL, -- 'medicao' ou 'instalacao'
-        data TEXT NOT NULL, -- YYYY-MM-DD
-        turno TEXT DEFAULT 'comercial', -- 'manha', 'tarde', 'comercial'
+        tipo TEXT NOT NULL,
+        data TEXT NOT NULL,
+        turno TEXT DEFAULT 'comercial',
         responsavel TEXT,
-        status TEXT DEFAULT 'agendado', -- 'agendado', 'realizado', 'cancelado'
+        status TEXT DEFAULT 'agendado',
         observacoes TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
     );
     """)
 
-    # Tabela de Contas Bancárias & Caixas (Módulo Financeiro)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS bancos (
         id TEXT PRIMARY KEY,
@@ -131,7 +186,6 @@ def init_db():
     );
     """)
 
-    # Seed inicial de bancos se estiver vazio
     cursor.execute("SELECT COUNT(*) as total FROM bancos;")
     if cursor.fetchone()["total"] == 0:
         agora = datetime.now().isoformat()
@@ -139,16 +193,62 @@ def init_db():
         INSERT INTO bancos (id, nome, tipo, agencia, conta, titular, cor, saldo_inicial, padrao, ativo, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """, [
-            ("banco_itau", "Banco Itaú PJ", "corrente", "1234", "56789-0", "Marmoraria Marmobraz Ltda", "#f97316", 0.0, 1, 1, agora, agora),
-            ("banco_sicoob", "Sicoob Cooperativa", "corrente", "3040", "12890-1", "Marmoraria Marmobraz Ltda", "#0284c7", 0.0, 0, 1, agora, agora),
-            ("banco_caixa_fisico", "Caixa Físico / Gaveta", "carteira_fisica", "-", "-", "Balcão da Marmoraria", "#10b981", 0.0, 0, 1, agora, agora)
+            ("banco_itau", "Banco Itaú PJ", "corrente", "1234", "56789-0", f"{tenant_name} Ltda", "#f97316", 0.0, 1, 1, agora, agora),
+            ("banco_sicoob", "Sicoob Cooperativa", "corrente", "3040", "12890-1", f"{tenant_name} Ltda", "#0284c7", 0.0, 0, 1, agora, agora),
+            ("banco_caixa_fisico", "Caixa Físico / Gaveta", "carteira_fisica", "-", "-", f"Balcão {tenant_name}", "#10b981", 0.0, 0, 1, agora, agora)
         ])
 
     conn.commit()
-    conn.close()
 
-# Inicializa banco de dados ao carregar
-init_db()
+def get_db(tenant_id: Optional[str] = None):
+    if not tenant_id:
+        tenant_id = current_tenant_var.get()
+    path = get_tenant_db_path(tenant_id)
+    is_new = not os.path.exists(path)
+    
+    conn = sqlite3.connect(path, timeout=30.0)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode = WAL;")
+    conn.execute("PRAGMA busy_timeout = 30000;")
+    
+    if is_new:
+        company_name = tenant_id.capitalize()
+        try:
+            mconn = get_master_db()
+            mcur = mconn.cursor()
+            mcur.execute("SELECT name FROM tenants WHERE id = ?;", (tenant_id,))
+            row = mcur.fetchone()
+            if row:
+                company_name = row["name"]
+            mconn.close()
+        except Exception:
+            pass
+        init_tenant_db_schema(conn, company_name)
+        
+    return conn
+
+# Inicializa banco mestre
+init_master_db()
+
+# Middleware de Injeção de Tenant
+@app.middleware("http")
+async def tenant_middleware(request: Request, call_next):
+    host = request.headers.get("host", "")
+    subdomain = extract_subdomain(host)
+
+    # Permite override via cabeçalho para testes ou visualização admin
+    header_tenant = request.headers.get("x-tenant-id")
+    if header_tenant:
+        subdomain = header_tenant.strip().lower()
+
+    token = current_tenant_var.set(subdomain)
+    try:
+        response = await call_next(request)
+        response.headers["X-Tenant-ID"] = subdomain
+        return response
+    finally:
+        current_tenant_var.reset(token)
+
 
 # --- MODELOS PYDANTIC ---
 class StatusUpdateRequest(BaseModel):
@@ -751,12 +851,163 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
         "total_bancos": len(todos_ban)
     }
 
-# Servir Frontend
+# --- ROTAS MULTI-TENANT & SUPERADMIN ---
+
+class TenantCreateRequest(BaseModel):
+    id: str
+    name: str
+    telefone: Optional[str] = ""
+    documento: Optional[str] = ""
+    email: Optional[str] = ""
+    status: Optional[str] = "active"
+
+class TenantStatusRequest(BaseModel):
+    status: str
+
+@app.get("/api/tenant/info")
+def get_tenant_info():
+    """Retorna dados da marmoraria conectada nesta URL/subdomínio"""
+    tenant_id = current_tenant_var.get()
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tenants WHERE id = ?;", (tenant_id,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        return {
+            "id": tenant_id,
+            "name": f"Marmoraria {tenant_id.capitalize()}",
+            "status": "active",
+            "registered": False
+        }
+    
+    return {
+        "id": row["id"],
+        "name": row["name"],
+        "telefone": row["telefone"],
+        "documento": row["documento"],
+        "email": row["email"],
+        "status": row["status"],
+        "registered": True
+    }
+
+@app.get("/api/admin/tenants")
+def list_tenants():
+    """Lista todas as marmorarias e métricas de banco"""
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tenants ORDER BY created_at DESC;")
+    tenants = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    
+    for t in tenants:
+        t_id = t["id"]
+        db_path = get_tenant_db_path(t_id)
+        size_kb = round(os.path.getsize(db_path) / 1024, 1) if os.path.exists(db_path) else 0
+        total_orc = 0
+        
+        if os.path.exists(db_path):
+            try:
+                tconn = sqlite3.connect(db_path, timeout=5.0)
+                tconn.row_factory = sqlite3.Row
+                tcur = tconn.cursor()
+                tcur.execute("SELECT COUNT(*) as total FROM orcamentos;")
+                total_orc = tcur.fetchone()["total"]
+                tconn.close()
+            except Exception:
+                pass
+                
+        t["db_size_kb"] = size_kb
+        t["total_orcamentos"] = total_orc
+        
+    return tenants
+
+@app.post("/api/admin/tenants")
+def create_tenant(payload: TenantCreateRequest):
+    """Cria uma nova marmoraria e inicializa seu banco isolado"""
+    slug = re.sub(r"[^a-zA-Z0-9_-]", "", payload.id).lower()
+    if not slug or len(slug) < 2:
+        raise HTTPException(status_code=400, detail="Subdomínio inválido. Use apenas letras e números.")
+        
+    if slug in ("admin", "master", "api", "www"):
+        raise HTTPException(status_code=400, detail="Este subdomínio é reservado do sistema.")
+        
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM tenants WHERE id = ?;", (slug,))
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="Já existe uma marmoraria cadastrada com este subdomínio.")
+        
+    agora = datetime.now().isoformat()
+    cursor.execute("""
+    INSERT INTO tenants (id, name, telefone, documento, email, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+    """, (
+        slug,
+        payload.name,
+        payload.telefone or "",
+        payload.documento or "",
+        payload.email or "",
+        payload.status or "active",
+        agora,
+        agora
+    ))
+    conn.commit()
+    conn.close()
+    
+    # Inicializa o banco de dados isolado da nova marmoraria
+    tconn = get_db(slug)
+    tconn.close()
+    
+    return {"status": "created", "id": slug, "name": payload.name, "url": f"https://{slug}.mnservice.net.br"}
+
+@app.put("/api/admin/tenants/{tenant_id}/status")
+def update_tenant_status(tenant_id: str, payload: TenantStatusRequest):
+    """Bloqueia ou libera acesso de uma marmoraria"""
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE tenants SET status = ?, updated_at = ? WHERE id = ?;", (
+        payload.status,
+        datetime.now().isoformat(),
+        tenant_id
+    ))
+    conn.commit()
+    conn.close()
+    return {"status": "updated", "id": tenant_id, "new_status": payload.status}
+
+@app.get("/api/admin/tenants/{tenant_id}/backup")
+def backup_tenant_db(tenant_id: str):
+    """Download do banco SQLite completo do cliente"""
+    db_path = get_tenant_db_path(tenant_id)
+    if not os.path.exists(db_path):
+        raise HTTPException(status_code=404, detail="Banco de dados da marmoraria não encontrado.")
+    return FileResponse(db_path, filename=f"backup_{tenant_id}.db", media_type="application/x-sqlite3")
+
+# --- ROTAS DE SERVIÇO DE FRONTEND ---
+
+@app.get("/admin")
+def serve_admin():
+    """Painel SuperAdmin"""
+    if os.path.exists(ADMIN_PATH):
+        return FileResponse(ADMIN_PATH)
+    return {"message": "Admin admin.html não encontrado"}
+
 @app.get("/")
-def serve_index():
+def serve_index(request: Request):
+    """Serve a aplicação para o cliente ou admin dependendo do subdomínio"""
+    host = request.headers.get("host", "")
+    sub = extract_subdomain(host)
+    
+    # Se o subdomínio for admin, exibe o painel de controle
+    if sub == "admin" and os.path.exists(ADMIN_PATH):
+        return FileResponse(ADMIN_PATH)
+        
     if os.path.exists(INDEX_PATH):
         return FileResponse(INDEX_PATH)
     return {"message": "Frontend index.html não encontrado"}
 
 if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
