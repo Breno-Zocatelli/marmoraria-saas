@@ -317,6 +317,12 @@
           <span class="font-semibold text-[11px] truncate max-w-[120px]" id="nome_usuario_logado">Usuário</span>
         </div>
 
+        <!-- Botão Usuários & Equipe Topbar -->
+        <button onclick="abrirModalGerenciarUsuarios()" class="h-9 px-3 text-xs font-bold rounded-xl bg-slate-200/90 hover:bg-slate-300 text-slate-800 transition flex items-center gap-1.5 border border-slate-300 cursor-pointer shadow-2xs" title="Gerenciar Usuários & Equipe da Empresa">
+          <span>👥</span>
+          <span class="hidden sm:inline">Usuários & Equipe</span>
+        </button>
+
         <button onclick="realizarLogoutTenant()" class="h-9 px-2.5 text-xs text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition flex items-center gap-1 border border-transparent hover:border-rose-200 cursor-pointer" title="Sair da conta">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         </button>
@@ -10990,7 +10996,7 @@
   <!-- ============================================================ -->
   <!-- MODAL DE LOGIN DO CLIENTE / MARMORARIA                      -->
   <!-- ============================================================ -->
-  <div id="modal_login_tenant" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+  <div id="modal_login_tenant" class="fixed inset-0 bg-slate-950/98 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 text-center animate-in fade-in duration-200">
       <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/25 text-2xl font-black text-white" id="login_logo_box">
         M
@@ -11023,7 +11029,7 @@
   <!-- ============================================================ -->
   <!-- MODAL GERENCIAR USUÁRIOS & EQUIPE                            -->
   <!-- ============================================================ -->
-  <div id="modal_gerenciar_usuarios" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-40 flex items-center justify-center p-3 sm:p-4 hidden">
+  <div id="modal_gerenciar_usuarios" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9990] flex items-center justify-center p-3 sm:p-4 hidden">
     <div class="bg-white rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl space-y-4 text-left border border-slate-200 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-200">
         <div class="flex items-center gap-3">
@@ -11122,6 +11128,9 @@
       document.getElementById('modal_login_tenant').classList.remove('hidden');
       return false;
     }
+
+    // Executa verificação inicial imediata de autenticação
+    verificarAutenticacaoTenant();
 
     function aplicarUsuarioLogado(usr) {
       if (!usr) return;

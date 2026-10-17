@@ -82,14 +82,41 @@ def init_master_db():
     );
     """)
 
-    # Inicializa Senha Mestre do SuperAdmin se não existir
-    cursor.execute("SELECT valor FROM config WHERE chave = 'admin_password_hash';")
+    # Tabela de Administradores Master do SaaS
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS admin_users (
+        id TEXT PRIMARY KEY,
+        nome TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        senha_hash TEXT NOT NULL,
+        cargo TEXT DEFAULT 'SuperAdmin',
+        ativo INTEGER DEFAULT 1,
+        primeiro_acesso INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    );
+    """)
+
+    # Usuário SuperAdmin Master do Breno Zocatelli
+    cursor.execute("SELECT id FROM admin_users WHERE email = 'breno.zocatelli@hotmail.com';")
     if not cursor.fetchone():
         agora = datetime.now().isoformat()
-        # Senha inicial padrão: admin123 (pode ser trocada na tela)
-        h = hash_password("admin123")
-        cursor.execute("INSERT INTO config (chave, valor, updated_at) VALUES ('admin_password_hash', ?, ?);", (h, agora))
-        cursor.execute("INSERT OR IGNORE INTO config (chave, valor, updated_at) VALUES ('primeiro_acesso', '1', ?);", (agora,))
+        u_id = f"adm_{secrets.token_hex(6)}"
+        u_hash = hash_password("admin123")
+        cursor.execute("""
+        INSERT INTO admin_users (id, nome, email, senha_hash, cargo, ativo, primeiro_acesso, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'SuperAdmin Master', 1, 1, ?, ?);
+        """, (u_id, "Breno Zocatelli", "breno.zocatelli@hotmail.com", u_hash, agora, agora))
+
+    # Tabela de sessões de admins do SuperAdmin
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS admin_sessions (
+        token TEXT PRIMARY KEY,
+        admin_id TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(admin_id) REFERENCES admin_users(id)
+    );
+    """)
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS tenants (
@@ -944,11 +971,25 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
 # --- MODELOS PYDANTIC PARA AUTENTICAÇÃO & USUÁRIOS ---
 
 class AdminLoginRequest(BaseModel):
+    email: str
     senha: str
 
 class AdminChangePasswordRequest(BaseModel):
     senha_atual: str
     nova_senha: str
+
+class AdminUserCreateRequest(BaseModel):
+    nome: str
+    email: str
+    senha: str
+    cargo: Optional[str] = "SuperAdmin"
+
+class AdminUserUpdateRequest(BaseModel):
+    nome: str
+    email: str
+    senha: Optional[str] = None
+    cargo: Optional[str] = "SuperAdmin"
+    ativo: Optional[int] = 1
 
 class TenantCreateRequest(BaseModel):
     id: str
@@ -985,48 +1026,84 @@ class UsuarioUpdateRequest(BaseModel):
 
 # --- ROTAS DE AUTENTICAÇÃO DO SUPERADMIN ---
 
+def verificar_autenticacao_admin(request: Request) -> dict:
+    """Verifica se a requisição ao SuperAdmin possui uma sessão ativa válida"""
+    token_cliente = request.headers.get("x-admin-token") or request.query_params.get("token")
+    if not token_cliente:
+        raise HTTPException(status_code=401, detail="Acesso não autorizado ao SuperAdmin.")
+        
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT s.token, u.id, u.nome, u.email, u.cargo, u.ativo, u.primeiro_acesso
+    FROM admin_sessions s
+    JOIN admin_users u ON s.admin_id = u.id
+    WHERE s.token = ?;
+    """, (token_cliente,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row or not row["ativo"]:
+        raise HTTPException(status_code=401, detail="Sessão do SuperAdmin expirada ou inválida.")
+        
+    return dict(row)
+
 @app.post("/api/admin/login")
 def admin_login(payload: AdminLoginRequest):
-    """Autentica o SuperAdmin Master"""
+    """Autentica o Administrador do SuperAdmin Master por Email e Senha"""
+    email_clean = payload.email.strip().lower()
     conn = get_master_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT valor FROM config WHERE chave = 'admin_password_hash';")
-    row = cursor.fetchone()
-    
-    cursor.execute("SELECT valor FROM config WHERE chave = 'primeiro_acesso';")
-    pa_row = cursor.fetchone()
-    primeiro_acesso = (pa_row and pa_row["valor"] == "1")
-    conn.close()
+    cursor.execute("SELECT * FROM admin_users WHERE email = ?;", (email_clean,))
+    user = cursor.fetchone()
 
-    if not row or not verify_password(payload.senha, row["valor"]):
-        raise HTTPException(status_code=401, detail="Senha mestre incorreta.")
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=401, detail="E-mail ou senha incorretos.")
 
-    token = secrets.token_hex(24)
-    # Guarda token na master config (válido para sessão)
+    if not user["ativo"]:
+        conn.close()
+        raise HTTPException(status_code=403, detail="Este administrador está desativado.")
+
+    if not verify_password(payload.senha, user["senha_hash"]):
+        conn.close()
+        raise HTTPException(status_code=401, detail="E-mail ou senha incorretos.")
+
+    token = secrets.token_hex(32)
     agora = datetime.now().isoformat()
-    conn = get_master_db()
-    cursor = conn.cursor()
-    cursor.execute("INSERT OR REPLACE INTO config (chave, valor, updated_at) VALUES ('session_token', ?, ?);", (token, agora))
+    cursor.execute("INSERT OR REPLACE INTO admin_sessions (token, admin_id, created_at) VALUES (?, ?, ?);", (token, user["id"], agora))
     conn.commit()
     conn.close()
 
     return {
         "status": "authenticated",
         "token": token,
-        "primeiro_acesso": bool(primeiro_acesso),
+        "primeiro_acesso": bool(user["primeiro_acesso"]),
+        "admin": {
+            "id": user["id"],
+            "nome": user["nome"],
+            "email": user["email"],
+            "cargo": user["cargo"]
+        },
         "message": "Login realizado com sucesso."
     }
 
+@app.get("/api/admin/me")
+def admin_me(request: Request):
+    """Retorna dados do administrador SuperAdmin logado"""
+    admin_logado = verificar_autenticacao_admin(request)
+    return admin_logado
+
 @app.post("/api/admin/change-password")
-def admin_change_password(payload: AdminChangePasswordRequest, x_admin_token: Optional[str] = Header(None)):
-    """Altera a Senha Mestre do SuperAdmin"""
+def admin_change_password(payload: AdminChangePasswordRequest, request: Request):
+    """Altera a Senha do Administrador logado no SuperAdmin"""
+    admin_logado = verificar_autenticacao_admin(request)
+    
     conn = get_master_db()
     cursor = conn.cursor()
-    
-    # Valida senha atual
-    cursor.execute("SELECT valor FROM config WHERE chave = 'admin_password_hash';")
+    cursor.execute("SELECT senha_hash FROM admin_users WHERE id = ?;", (admin_logado["id"],))
     row = cursor.fetchone()
-    if not row or not verify_password(payload.senha_atual, row["valor"]):
+    if not row or not verify_password(payload.senha_atual, row["senha_hash"]):
         conn.close()
         raise HTTPException(status_code=400, detail="A senha atual está incorreta.")
 
@@ -1036,27 +1113,100 @@ def admin_change_password(payload: AdminChangePasswordRequest, x_admin_token: Op
 
     novo_hash = hash_password(payload.nova_senha)
     agora = datetime.now().isoformat()
-    cursor.execute("UPDATE config SET valor = ?, updated_at = ? WHERE chave = 'admin_password_hash';", (novo_hash, agora))
-    cursor.execute("UPDATE config SET valor = '0', updated_at = ? WHERE chave = 'primeiro_acesso';", (agora,))
+    cursor.execute("UPDATE admin_users SET senha_hash = ?, primeiro_acesso = 0, updated_at = ? WHERE id = ?;", (novo_hash, agora, admin_logado["id"]))
     conn.commit()
     conn.close()
 
     return {"status": "success", "message": "Senha mestre atualizada com sucesso!"}
 
-def verificar_autenticacao_admin(request: Request):
-    """Verifica se a requisição ao SuperAdmin possui o token correto"""
-    token_cliente = request.headers.get("x-admin-token") or request.query_params.get("token")
-    if not token_cliente:
-        raise HTTPException(status_code=401, detail="Acesso não autorizado ao SuperAdmin.")
-        
+@app.get("/api/admin/users")
+def list_admin_users(request: Request):
+    """Lista todos os administradores cadastrados no SuperAdmin"""
+    verificar_autenticacao_admin(request)
     conn = get_master_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT valor FROM config WHERE chave = 'session_token';")
-    row = cursor.fetchone()
+    cursor.execute("SELECT id, nome, email, cargo, ativo, primeiro_acesso, created_at, updated_at FROM admin_users ORDER BY created_at ASC;")
+    users = [dict(r) for r in cursor.fetchall()]
     conn.close()
-    
-    if not row or row["valor"] != token_cliente:
-        raise HTTPException(status_code=401, detail="Sessão do SuperAdmin expirada ou inválida.")
+    return users
+
+@app.post("/api/admin/users")
+def create_admin_user(payload: AdminUserCreateRequest, request: Request):
+    """Cadastra um novo administrador no SuperAdmin"""
+    verificar_autenticacao_admin(request)
+    email_clean = payload.email.strip().lower()
+    if not email_clean or not payload.nome:
+        raise HTTPException(status_code=400, detail="Nome e e-mail são obrigatórios.")
+    if not payload.senha or len(payload.senha) < 6:
+        raise HTTPException(status_code=400, detail="A senha deve ter no mínimo 6 caracteres.")
+
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM admin_users WHERE email = ?;", (email_clean,))
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="Já existe um administrador cadastrado com este e-mail.")
+
+    agora = datetime.now().isoformat()
+    u_id = f"adm_{secrets.token_hex(6)}"
+    u_hash = hash_password(payload.senha)
+    cursor.execute("""
+    INSERT INTO admin_users (id, nome, email, senha_hash, cargo, ativo, primeiro_acesso, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, 1, 1, ?, ?);
+    """, (u_id, payload.nome.strip(), email_clean, u_hash, payload.cargo or "SuperAdmin", agora, agora))
+    conn.commit()
+    conn.close()
+    return {"status": "created", "id": u_id, "nome": payload.nome, "email": email_clean}
+
+@app.put("/api/admin/users/{user_id}")
+def update_admin_user(user_id: str, payload: AdminUserUpdateRequest, request: Request):
+    """Atualiza dados de um administrador do SuperAdmin"""
+    verificar_autenticacao_admin(request)
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM admin_users WHERE id = ?;", (user_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Administrador não encontrado.")
+
+    agora = datetime.now().isoformat()
+    if payload.senha and len(payload.senha) >= 6:
+        u_hash = hash_password(payload.senha)
+        cursor.execute("""
+        UPDATE admin_users 
+        SET nome = ?, email = ?, cargo = ?, senha_hash = ?, ativo = ?, updated_at = ?
+        WHERE id = ?;
+        """, (payload.nome.strip(), payload.email.strip().lower(), payload.cargo or "SuperAdmin", u_hash, payload.ativo, agora, user_id))
+    else:
+        cursor.execute("""
+        UPDATE admin_users 
+        SET nome = ?, email = ?, cargo = ?, ativo = ?, updated_at = ?
+        WHERE id = ?;
+        """, (payload.nome.strip(), payload.email.strip().lower(), payload.cargo or "SuperAdmin", payload.ativo, agora, user_id))
+
+    conn.commit()
+    conn.close()
+    return {"status": "updated", "id": user_id}
+
+@app.delete("/api/admin/users/{user_id}")
+def delete_admin_user(user_id: str, request: Request):
+    """Remove um administrador do SuperAdmin"""
+    admin_logado = verificar_autenticacao_admin(request)
+    if admin_logado["id"] == user_id:
+        raise HTTPException(status_code=400, detail="Você não pode excluir sua própria conta logada.")
+
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) as total FROM admin_users WHERE ativo = 1;")
+    if cursor.fetchone()["total"] <= 1:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Não é possível remover o único administrador ativo do sistema.")
+
+    cursor.execute("DELETE FROM admin_sessions WHERE admin_id = ?;", (user_id,))
+    cursor.execute("DELETE FROM admin_users WHERE id = ?;", (user_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "deleted", "id": user_id}
 
 # --- ROTAS DE GESTÃO DE TENANTS (SUPERADMIN) ---
 
@@ -1340,7 +1490,7 @@ def delete_usuario(usuario_id: str):
 def serve_admin():
     """Painel SuperAdmin"""
     if os.path.exists(ADMIN_PATH):
-        return FileResponse(ADMIN_PATH)
+        return FileResponse(ADMIN_PATH, headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
     return {"message": "Admin admin.html não encontrado"}
 
 @app.get("/")
@@ -1351,10 +1501,10 @@ def serve_index(request: Request):
     
     # Se o subdomínio for admin, exibe o painel de controle
     if sub == "admin" and os.path.exists(ADMIN_PATH):
-        return FileResponse(ADMIN_PATH)
+        return FileResponse(ADMIN_PATH, headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
         
     if os.path.exists(INDEX_PATH):
-        return FileResponse(INDEX_PATH)
+        return FileResponse(INDEX_PATH, headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
     return {"message": "Frontend index.html não encontrado"}
 
 if os.path.exists(FRONTEND_DIR):

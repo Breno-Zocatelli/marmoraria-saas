@@ -18,24 +18,29 @@
   <!-- ============================================================ -->
   <!-- MODAL DE LOGIN MASTER (SUPERADMIN GATEWAY)                   -->
   <!-- ============================================================ -->
-  <div id="modal_login_master" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+  <div id="modal_login_master" class="fixed inset-0 bg-slate-950/98 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 text-center animate-in fade-in duration-200">
       <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-sky-500/25 text-2xl font-black text-white">
         🛡️
       </div>
       <div>
         <h2 class="text-2xl font-extrabold text-white tracking-tight">SuperAdmin Master</h2>
-        <p class="text-xs text-slate-400 mt-1">Acesso exclusivo do mantenedor do SaaS Marmoraria</p>
+        <p class="text-xs text-slate-400 mt-1">Acesso exclusivo à gestão do SaaS Marmoraria</p>
       </div>
 
       <form id="form_login_master" onsubmit="realizarLoginMaster(event)" class="space-y-4 text-left">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Senha Mestre de Acesso</label>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">E-mail de Acesso</label>
+          <input type="email" id="inp_master_email" required value="breno.zocatelli@hotmail.com" placeholder="seuemail@mnservice.net.br" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500 transition">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Senha Mestre</label>
           <div class="relative">
-            <input type="password" id="inp_master_pwd" required placeholder="Digite a senha mestre..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500 transition font-mono pr-10">
+            <input type="password" id="inp_master_pwd" required value="admin123" placeholder="Digite sua senha..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500 transition font-mono pr-10">
             <button type="button" onclick="alternarVisibilidadeSenha('inp_master_pwd')" class="absolute right-3 top-3 text-slate-400 hover:text-white text-xs">👁️</button>
           </div>
-          <p class="text-[11px] text-slate-500 mt-1.5">Senha inicial padrão: <span class="font-mono text-sky-400">admin123</span></p>
+          <p class="text-[11px] text-slate-500 mt-1.5">Acesso inicial padrão: <span class="font-mono text-sky-400">admin123</span></p>
         </div>
 
         <div id="msg_login_erro" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl"></div>
@@ -55,7 +60,7 @@
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
           <h3 class="text-lg font-bold text-white flex items-center gap-2">
-            <span>🔑</span> <span>Alterar Senha Mestre</span>
+            <span>🔑</span> <span>Alterar Minha Senha</span>
           </h3>
           <p class="text-xs text-slate-400 mt-0.5">Defina sua nova chave de segurança do SuperAdmin</p>
         </div>
@@ -89,6 +94,68 @@
   </div>
 
   <!-- ============================================================ -->
+  <!-- MODAL GERENCIAR ADMINS MASTER                                -->
+  <!-- ============================================================ -->
+  <div id="modal_gerenciar_admins" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg font-bold">
+            👥
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white">Equipe SuperAdmin Master</h3>
+            <p class="text-xs text-slate-400">Usuários com acesso ao painel de gestão de bancos e marmorarias</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="abrirFormNovoAdmin()" class="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold transition flex items-center gap-1 shadow-xs cursor-pointer">
+            <span>+</span> <span>Novo Admin</span>
+          </button>
+          <button onclick="fecharModalGerenciarAdmins()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
+        </div>
+      </div>
+
+      <!-- Formulário Novo / Editar Admin -->
+      <div id="container_form_admin" class="hidden p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+        <h4 class="text-xs font-bold text-sky-400 uppercase tracking-wider" id="titulo_form_admin">Novo Administrador</h4>
+        <form id="form_admin_user" onsubmit="salvarAdminUser(event)" class="space-y-3">
+          <input type="hidden" id="inp_admin_user_id" value="">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Nome Completo</label>
+              <input type="text" id="inp_adm_nome" required placeholder="Ex: Lucas Suporte" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500 transition">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">E-mail de Login</label>
+              <input type="email" id="inp_adm_email" required placeholder="admin@mnservice.net.br" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500 transition">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Cargo / Função</label>
+              <input type="text" id="inp_adm_cargo" value="SuperAdmin" placeholder="Ex: SuperAdmin, Suporte Técnico" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500 transition">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1" id="lbl_adm_senha">Senha de Acesso</label>
+              <input type="password" id="inp_adm_senha" minlength="6" placeholder="Mínimo 6 caracteres" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500 transition font-mono">
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <button type="button" onclick="fecharFormNovoAdmin()" class="px-3 py-1.5 text-xs text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">Cancelar</button>
+            <button type="submit" id="btn_salvar_adm" class="px-4 py-1.5 bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold rounded-lg shadow transition">Salvar Administrador</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Lista de Administradores -->
+      <div id="lista_admins_container" class="divide-y divide-slate-800 max-h-80 overflow-y-auto">
+        <div class="p-6 text-center text-xs text-slate-500">Carregando administradores...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
   <!-- BARRA DE NAVEGAÇÃO SUPERIOR                                  -->
   <!-- ============================================================ -->
   <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-30">
@@ -105,12 +172,28 @@
           <p class="text-xs text-slate-400">Gestão Multi-Tenant & Bancos de Dados</p>
         </div>
       </div>
-      <div class="flex items-center gap-3">
-        <button onclick="abrirModalAlterarSenha()" class="text-xs bg-slate-800/80 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1.5 cursor-pointer" title="Trocar a senha mestre do painel">
-          <span>🔑</span>
-          <span>Trocar Senha</span>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Badge Admin Logado -->
+        <div id="badge_admin_logado" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-slate-200">
+          <span class="w-6 h-6 rounded-lg bg-sky-500 text-white font-bold text-[10px] flex items-center justify-center" id="avatar_admin_logado">B</span>
+          <div class="leading-tight text-left">
+            <span class="font-bold block text-[11px]" id="nome_admin_logado">Breno Zocatelli</span>
+            <span class="text-[10px] text-sky-400" id="cargo_admin_logado">SuperAdmin Master</span>
+          </div>
+        </div>
+
+        <!-- Botão Gerenciar Admins Master -->
+        <button onclick="abrirModalGerenciarAdmins()" class="text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 px-2.5 sm:px-3 py-2 rounded-lg border border-indigo-500/30 transition flex items-center gap-1.5 cursor-pointer" title="Gerenciar administradores com acesso ao SuperAdmin">
+          <span>👥</span>
+          <span class="hidden sm:inline">Admins Master</span>
         </button>
-        <button onclick="realizarLogoutMaster()" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-2 rounded-lg border border-rose-500/30 transition flex items-center gap-1.5 cursor-pointer" title="Sair do painel SuperAdmin">
+
+        <button onclick="abrirModalAlterarSenha()" class="text-xs bg-slate-800/80 hover:bg-slate-700 text-slate-300 px-2.5 sm:px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1.5 cursor-pointer" title="Trocar minha senha">
+          <span>🔑</span>
+          <span class="hidden sm:inline">Trocar Senha</span>
+        </button>
+
+        <button onclick="realizarLogoutMaster()" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-2.5 sm:px-3 py-2 rounded-lg border border-rose-500/30 transition flex items-center gap-1.5 cursor-pointer" title="Sair do painel SuperAdmin">
           <span>Sair</span>
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         </button>
@@ -282,19 +365,41 @@
   <script>
     let tenantsData = [];
     let adminToken = localStorage.getItem('saas_admin_token') || '';
+    let adminUser = null;
+    try {
+      adminUser = JSON.parse(localStorage.getItem('saas_admin_user') || 'null');
+    } catch(e) {}
 
     // Autenticação SuperAdmin
-    function verificarSessaoMaster() {
+    async function verificarSessaoMaster() {
       if (!adminToken) {
         document.getElementById('modal_login_master').classList.remove('hidden');
       } else {
         document.getElementById('modal_login_master').classList.add('hidden');
-        carregarTenants();
+        if (adminUser) {
+          aplicarAdminLogado(adminUser);
+        }
+        await carregarTenants();
+      }
+    }
+
+    function aplicarAdminLogado(user) {
+      if (!user) return;
+      const badge = document.getElementById('badge_admin_logado');
+      const nomeEl = document.getElementById('nome_admin_logado');
+      const cargoEl = document.getElementById('cargo_admin_logado');
+      const avatarEl = document.getElementById('avatar_admin_logado');
+      if (badge && nomeEl && cargoEl && avatarEl) {
+        badge.classList.remove('hidden');
+        nomeEl.textContent = user.nome || 'Administrador';
+        cargoEl.textContent = user.cargo || 'SuperAdmin Master';
+        avatarEl.textContent = (user.nome || 'B').charAt(0).toUpperCase();
       }
     }
 
     async function realizarLoginMaster(e) {
       e.preventDefault();
+      const email = document.getElementById('inp_master_email').value;
       const senha = document.getElementById('inp_master_pwd').value;
       const btn = document.getElementById('btn_login_master');
       const msgErro = document.getElementById('msg_login_erro');
@@ -307,13 +412,17 @@
         const res = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ senha })
+          body: JSON.stringify({ email, senha })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Senha incorreta');
+        if (!res.ok) throw new Error(data.detail || 'E-mail ou senha incorretos');
 
         adminToken = data.token;
+        adminUser = data.admin;
         localStorage.setItem('saas_admin_token', adminToken);
+        localStorage.setItem('saas_admin_user', JSON.stringify(adminUser));
+        
+        aplicarAdminLogado(adminUser);
         document.getElementById('modal_login_master').classList.add('hidden');
 
         // Se for primeiro acesso, convida para alterar senha
@@ -321,7 +430,7 @@
           abrirModalAlterarSenha(true);
         }
 
-        carregarTenants();
+        await carregarTenants();
       } catch (err) {
         msgErro.textContent = err.message;
         msgErro.classList.remove('hidden');
@@ -333,7 +442,9 @@
 
     function realizarLogoutMaster() {
       localStorage.removeItem('saas_admin_token');
+      localStorage.removeItem('saas_admin_user');
       adminToken = '';
+      adminUser = null;
       location.reload();
     }
 
@@ -376,13 +487,155 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Erro ao alterar senha');
 
-        alert('Senha mestre alterada com sucesso! Utilize a nova senha nos próximos logins.');
+        alert('Sua senha mestre foi alterada com sucesso!');
         fecharModalAlterarSenha();
       } catch (err) {
         alert('Erro: ' + err.message);
       } finally {
         btn.disabled = false;
         btn.textContent = 'Atualizar Senha';
+      }
+    }
+
+    // Gestão de Administradores Master
+    async function abrirModalGerenciarAdmins() {
+      document.getElementById('modal_gerenciar_admins').classList.remove('hidden');
+      fecharFormNovoAdmin();
+      await carregarAdminsMaster();
+    }
+
+    function fecharModalGerenciarAdmins() {
+      document.getElementById('modal_gerenciar_admins').classList.add('hidden');
+    }
+
+    function abrirFormNovoAdmin() {
+      document.getElementById('form_admin_user').reset();
+      document.getElementById('inp_admin_user_id').value = '';
+      document.getElementById('titulo_form_admin').textContent = 'Novo Administrador';
+      document.getElementById('inp_adm_senha').required = true;
+      document.getElementById('lbl_adm_senha').textContent = 'Senha Inicial';
+      document.getElementById('container_form_admin').classList.remove('hidden');
+    }
+
+    function fecharFormNovoAdmin() {
+      document.getElementById('container_form_admin').classList.add('hidden');
+    }
+
+    async function carregarAdminsMaster() {
+      const container = document.getElementById('lista_admins_container');
+      try {
+        const res = await fetch('/api/admin/users', {
+          headers: { 'x-admin-token': adminToken }
+        });
+        if (!res.ok) throw new Error('Falha ao carregar administradores');
+        const admins = await res.json();
+
+        if (!admins || admins.length === 0) {
+          container.innerHTML = '<div class="p-6 text-center text-xs text-slate-500">Nenhum administrador encontrado.</div>';
+          return;
+        }
+
+        container.innerHTML = admins.map(adm => {
+          const isMe = adminUser && adminUser.id === adm.id;
+          return `
+            <div class="py-3 px-2 flex items-center justify-between gap-3 text-xs hover:bg-slate-800/40 rounded-xl transition">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs shrink-0">
+                  ${(adm.nome || 'A').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-white text-sm">${adm.nome}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${adm.cargo || 'SuperAdmin'}</span>
+                    ${isMe ? '<span class="text-[10px] text-sky-400 font-bold">(Você)</span>' : ''}
+                  </div>
+                  <div class="text-slate-400 text-[11px] font-mono mt-0.5">${adm.email}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="editarAdminUser('${adm.id}', '${encodeURIComponent(adm.nome)}', '${adm.email}', '${encodeURIComponent(adm.cargo || '')}')" class="px-2.5 py-1 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition cursor-pointer">
+                  Editar
+                </button>
+                ${!isMe ? `
+                  <button onclick="excluirAdminUser('${adm.id}', '${encodeURIComponent(adm.nome)}')" class="px-2.5 py-1 text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg border border-rose-500/20 transition cursor-pointer">
+                    Excluir
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-rose-400">${err.message}</div>`;
+      }
+    }
+
+    function editarAdminUser(id, nomeEnc, email, cargoEnc) {
+      const nome = decodeURIComponent(nomeEnc);
+      const cargo = decodeURIComponent(cargoEnc);
+      document.getElementById('inp_admin_user_id').value = id;
+      document.getElementById('inp_adm_nome').value = nome;
+      document.getElementById('inp_adm_email').value = email;
+      document.getElementById('inp_adm_cargo').value = cargo;
+      document.getElementById('inp_adm_senha').value = '';
+      document.getElementById('inp_adm_senha').required = false;
+      document.getElementById('lbl_adm_senha').textContent = 'Nova Senha (opcional)';
+      document.getElementById('titulo_form_admin').textContent = 'Editar Administrador';
+      document.getElementById('container_form_admin').classList.remove('hidden');
+    }
+
+    async function salvarAdminUser(e) {
+      e.preventDefault();
+      const id = document.getElementById('inp_admin_user_id').value;
+      const nome = document.getElementById('inp_adm_nome').value;
+      const email = document.getElementById('inp_adm_email').value;
+      const cargo = document.getElementById('inp_adm_cargo').value;
+      const senha = document.getElementById('inp_adm_senha').value;
+      const btn = document.getElementById('btn_salvar_adm');
+
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+
+      try {
+        const url = id ? `/api/admin/users/${id}` : '/api/admin/users';
+        const method = id ? 'PUT' : 'POST';
+        const body = { nome, email, cargo };
+        if (senha) body.senha = senha;
+
+        const res = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': adminToken
+          },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Falha ao salvar administrador');
+
+        fecharFormNovoAdmin();
+        await carregarAdminsMaster();
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Salvar Administrador';
+      }
+    }
+
+    async function excluirAdminUser(id, nomeEnc) {
+      const nome = decodeURIComponent(nomeEnc);
+      if (!confirm(`Deseja realmente remover o administrador "${nome}"?`)) return;
+      try {
+        const res = await fetch(`/api/admin/users/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-token': adminToken }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Falha ao excluir');
+        await carregarAdminsMaster();
+      } catch (err) {
+        alert('Erro: ' + err.message);
       }
     }
 
