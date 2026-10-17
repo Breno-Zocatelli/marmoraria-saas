@@ -251,18 +251,6 @@ def init_tenant_db_schema(conn, tenant_id: str = "marmobraz", tenant_name: str =
     );
     """)
 
-    cursor.execute("SELECT COUNT(*) as total FROM bancos;")
-    if cursor.fetchone()["total"] == 0:
-        agora = datetime.now().isoformat()
-        cursor.executemany("""
-        INSERT INTO bancos (id, nome, tipo, agencia, conta, titular, cor, saldo_inicial, padrao, ativo, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, [
-            ("banco_itau", "Banco Itaú PJ", "corrente", "1234", "56789-0", f"{tenant_name} Ltda", "#f97316", 0.0, 1, 1, agora, agora),
-            ("banco_sicoob", "Sicoob Cooperativa", "corrente", "3040", "12890-1", f"{tenant_name} Ltda", "#0284c7", 0.0, 0, 1, agora, agora),
-            ("banco_caixa_fisico", "Caixa Físico / Gaveta", "carteira_fisica", "-", "-", f"Balcão {tenant_name}", "#10b981", 0.0, 0, 1, agora, agora)
-        ])
-
     # Tabela de Usuários & Equipe (Autenticação e Permissões do Tenant)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS usuarios (

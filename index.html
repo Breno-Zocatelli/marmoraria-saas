@@ -2323,11 +2323,8 @@
         orcamentosSalvos = [];
       }
 
-      const precisaResetar = !orcamentosSalvos || orcamentosSalvos.length === 0 || 
-        (orcamentosSalvos.length === 1 && (!orcamentosSalvos[0].totalVista || orcamentosSalvos[0].totalVista === 0));
-
-      if (precisaResetar) {
-        orcamentosSalvos = orcamentosIniciaisRicos;
+      if (!orcamentosSalvos || !Array.isArray(orcamentosSalvos)) {
+        orcamentosSalvos = [];
       }
 
       // Calcula e garante totais de todos os orçamentos
@@ -3602,51 +3599,12 @@
         }
       }
 
-      if (!bancosContas || bancosContas.length === 0) {
-        bancosContas = [
-          {
-            id: "banco_itau",
-            nome: "Banco Itaú PJ",
-            tipo: "corrente",
-            agencia: "1234",
-            conta: "56789-0",
-            titular: "Marmoraria Marmobraz Ltda",
-            cor: "#f97316",
-            saldoInicial: 5000.00,
-            padrao: true,
-            ativo: true
-          },
-          {
-            id: "banco_sicoob",
-            nome: "Sicoob Cooperativa",
-            tipo: "corrente",
-            agencia: "3045",
-            conta: "12984-7",
-            titular: "Marmoraria Marmobraz Ltda",
-            cor: "#003641",
-            saldoInicial: 2500.00,
-            padrao: false,
-            ativo: true
-          },
-          {
-            id: "banco_caixa_fisico",
-            nome: "Caixa Físico / Gaveta",
-            tipo: "carteira_fisica",
-            agencia: "-",
-            conta: "Dinheiro Balcão",
-            titular: "Marmoraria Marmobraz",
-            cor: "#059669",
-            saldoInicial: 450.00,
-            padrao: false,
-            ativo: true
-          }
-        ].filter(b => !bancosExcluidos.includes(b.id));
-
+      if (!bancosContas || !Array.isArray(bancosContas)) {
+        bancosContas = [];
         salvarBancosContas(false);
-      } else {
-        popularSelectsBancos();
-        renderizarCardsBancos();
       }
+      popularSelectsBancos();
+      renderizarCardsBancos();
     }
 
     function salvarBancosContas(sincronizar = true) {
@@ -4306,77 +4264,8 @@
         contasPagar = [];
       }
 
-      if (!contasPagar || contasPagar.length === 0) {
-        contasPagar = [
-          {
-            id: "cp_01",
-            descricao: "Compra de 2 Chapas - Granito Preto São Gabriel 2cm",
-            fornecedor: "Mineração Vitória Ltda",
-            categoria: "chapas",
-            valor: 2450.00,
-            vencimento: "2026-10-15",
-            status: "pendente",
-            formaPrevista: "boleto",
-            numDoc: "NF-e 18492",
-            obs: "Chapas reservadas para produção dos orçamentos confirmados"
-          },
-          {
-            id: "cp_02",
-            descricao: "Discos de Corte Diamantados 350mm + Lixas D'água",
-            fornecedor: "Abrasivos & Ferramentas Diamantadas",
-            categoria: "insumos",
-            valor: 680.00,
-            vencimento: "2026-10-05",
-            status: "pago",
-            formaPrevista: "pix",
-            numDoc: "Pedido 5420",
-            obs: "Insumos para a serra e acabamento fino",
-            dataPagamento: "2026-10-05",
-            valorPago: 680.00,
-            formaPaga: "pix",
-            comprovante: "PIX Banco Itaú Aut. 88392"
-          },
-          {
-            id: "cp_03",
-            descricao: "Energia Elétrica (Ponte de Serra & Compressor da Oficina)",
-            fornecedor: "EDP Distribuição de Energia",
-            categoria: "fixas",
-            valor: 1120.50,
-            vencimento: "2026-10-20",
-            status: "pendente",
-            formaPrevista: "boleto",
-            numDoc: "Fat. 993821",
-            obs: "Conta de consumo mensal da oficina"
-          },
-          {
-            id: "cp_04",
-            descricao: "Lote de 5 Cubas Inox Tramontina Nº 2 (40x34cm)",
-            fornecedor: "Tramontina Distribuidora Sul",
-            categoria: "cubas",
-            valor: 890.00,
-            vencimento: "2026-10-02",
-            status: "pago",
-            formaPrevista: "boleto",
-            numDoc: "NF-e 7412",
-            obs: "Cubas de embutir para pias de cozinha",
-            dataPagamento: "2026-10-02",
-            valorPago: 890.00,
-            formaPaga: "boleto",
-            comprovante: "Boleto Bradesco Aut. 44102"
-          },
-          {
-            id: "cp_05",
-            descricao: "Adiantamento Quinzenal - Equipe de Acabamento & Corte",
-            fornecedor: "Marcos & Carlos (Oficina)",
-            categoria: "mao_de_obra",
-            valor: 1400.00,
-            vencimento: "2026-10-10",
-            status: "pendente",
-            formaPrevista: "pix",
-            numDoc: "Recibo Interno",
-            obs: "1ª quinzena de produção"
-          }
-        ];
+      if (!contasPagar || !Array.isArray(contasPagar)) {
+        contasPagar = [];
         salvarContasPagar();
       }
 
