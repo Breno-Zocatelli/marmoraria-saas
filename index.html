@@ -11108,7 +11108,11 @@
       const parts = host.split('.');
       let tenantId = 'default';
       if (parts.length > 2 && parts[0] !== 'admin' && parts[0] !== 'www') {
-        tenantId = parts[0];
+        let sub = parts[0];
+        if (sub.startsWith('suporte-')) {
+          sub = sub.replace('suporte-', '');
+        }
+        tenantId = sub;
       } else if (window.TENANT_INFO && window.TENANT_INFO.id) {
         tenantId = window.TENANT_INFO.id;
       }
@@ -11119,6 +11123,7 @@
       const modal = document.getElementById('modal_login_tenant');
       const urlParams = new URLSearchParams(window.location.search);
       const impersonateToken = urlParams.get('impersonate_token');
+      const isSupportDomain = window.location.hostname.startsWith('suporte-') || window.location.pathname.startsWith('/suporte');
 
       // Limpeza de segurança: remove qualquer sessão de suporte que tenha ficado gravada em localStorage
       try {
@@ -11146,7 +11151,7 @@
             const data = await resp.json();
             if (data.status === 'authenticated' && data.usuario) {
               currentAuthUser = data.usuario;
-              // Salva EXCLUSIVAMENTE no sessionStorage desta aba (NUNCA no localStorage permanente)
+              // Salva EXCLUSIVAMENTE no sessionStorage desta aba
               sessionStorage.setItem(getTenantAuthStorageKey() + '_support', JSON.stringify(currentAuthUser));
               aplicarUsuarioLogado(currentAuthUser);
               if (modal) modal.classList.add('hidden');
@@ -11162,7 +11167,6 @@
         } catch (err) {
           console.warn("Falha ao validar login direto SuperAdmin:", err);
         }
-        if (modal) modal.classList.remove('hidden');
       }
 
       // 2. Se for uma aba de suporte já autenticada nesta sessão de navegação (permite F5 sem deslogar)
@@ -11178,7 +11182,26 @@
         }
       }
 
-      // 3. Verificação de sessão normal do colaborador da marmoraria (salva em localStorage)
+      // 3. Se estiver no subdomínio suporte-* e NÃO tiver token/sessão válida de SuperAdmin: BLOQUEIA
+      if (isSupportDomain) {
+        if (modal) modal.classList.add('hidden');
+        document.body.innerHTML = `
+          <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #090d16; color: white; font-family: sans-serif; text-align: center; padding: 24px;">
+            <div style="width: 72px; height: 72px; border-radius: 24px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 20px;">🛡️</div>
+            <h1 style="font-size: 24px; font-weight: 800; margin-bottom: 10px;">Acesso Restrito ao Suporte SuperAdmin</h1>
+            <p style="color: #94a3b8; max-width: 480px; font-size: 14px; line-height: 1.6; margin-bottom: 28px;">
+              Este endereço de suporte (<code>${window.location.hostname}</code>) é reservado para conexões autorizadas iniciadas exclusivamente a partir do Painel SuperAdmin.
+            </p>
+            <a href="https://admin.mnservice.net.br" style="display: inline-flex; align-items: center; gap: 8px; background: #4f46e5; color: white; font-weight: 700; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
+              <span>Abrir Painel SuperAdmin</span>
+              <span>→</span>
+            </a>
+          </div>
+        `;
+        return false;
+      }
+
+      // 4. Verificação de sessão normal do colaborador da marmoraria no link padrão (salva em localStorage)
       const saved = localStorage.getItem(getTenantAuthStorageKey());
       if (saved) {
         try {
@@ -11216,6 +11239,31 @@
           avatarEl.classList.remove('bg-blue-600');
           avatarEl.classList.add('bg-indigo-600');
           badge.title = 'Sessão de Suporte Master (SuperAdmin)';
+
+          // Cria ou atualiza a barra superior de suporte visual
+          let banner = document.getElementById('banner_suporte_master_top');
+          if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'banner_suporte_master_top';
+            banner.className = 'bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 text-white px-4 py-2 border-b border-indigo-500/40 flex items-center justify-between text-xs sticky top-0 z-[100] shadow-md';
+            banner.innerHTML = `
+              <div class="flex items-center gap-2">
+                <span class="text-sm">🛡️</span>
+                <span class="font-bold text-indigo-300">MODO SUPORTE SUPERADMIN ATIVO:</span>
+                <span class="text-slate-300 font-medium">Operando como <strong class="text-white">${usr.nome || 'SuperAdmin'}</strong></span>
+                <span class="hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono">Auditado</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <a href="https://admin.mnservice.net.br" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold transition flex items-center gap-1">
+                  Painel Admin ↗
+                </a>
+                <button onclick="realizarLogoutTenant()" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-[11px] font-bold transition cursor-pointer">
+                  Encerrar Suporte ✕
+                </button>
+              </div>
+            `;
+            document.body.prepend(banner);
+          }
         }
       }
     }

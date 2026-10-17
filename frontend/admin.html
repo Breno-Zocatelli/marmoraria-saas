@@ -695,15 +695,15 @@
 
       tbody.innerHTML = lista.map(t => {
         const isAtivo = t.status === 'active';
-        const urlTenant = `https://${t.id}.mnservice.net.br`;
-        const urlTenantAcesso = `${urlTenant}/?impersonate_token=${encodeURIComponent(adminToken)}`;
+        const urlTenantNormal = `https://${t.id}.mnservice.net.br`;
+        const urlTenantSuporte = `https://suporte-${t.id}.mnservice.net.br/?impersonate_token=${encodeURIComponent(adminToken)}`;
         return `
           <tr class="hover:bg-slate-800/40 transition">
             <td class="px-6 py-4">
               <div class="font-bold text-white">${t.name}</div>
-              <a href="${urlTenantAcesso}" target="_blank" class="text-xs text-sky-400 hover:text-sky-300 font-mono inline-flex items-center gap-1 mt-0.5">
+              <a href="${urlTenantNormal}" target="_blank" class="text-xs text-slate-400 hover:text-sky-300 font-mono inline-flex items-center gap-1 mt-0.5" title="Link público do cliente">
                 <span>${t.id}.mnservice.net.br</span>
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
               </a>
             </td>
             <td class="px-6 py-4 text-xs">
@@ -735,8 +735,8 @@
               }
             </td>
             <td class="px-6 py-4 text-right space-x-2">
-              <a href="${urlTenantAcesso}" target="_blank" class="inline-flex items-center gap-1.5 text-xs bg-gradient-to-r from-sky-500/20 to-blue-600/20 hover:from-sky-500/30 hover:to-blue-600/30 text-sky-300 font-bold px-3 py-1.5 rounded-lg border border-sky-500/40 transition shadow-xs" title="Acessar diretamente o sistema da marmoraria como SuperAdmin sem senha">
-                <span>🛡️</span> <span>Acessar</span>
+              <a href="${urlTenantSuporte}" target="_blank" class="inline-flex items-center gap-1.5 text-xs bg-gradient-to-r from-indigo-500/20 to-purple-600/20 hover:from-indigo-500/30 hover:to-purple-600/30 text-indigo-300 font-bold px-3 py-1.5 rounded-lg border border-indigo-500/40 transition shadow-xs" title="Acessar diretamente como SuperAdmin pelo link seguro de suporte (suporte-${t.id}.mnservice.net.br)">
+                <span>🛡️</span> <span>Suporte</span>
               </a>
               <button onclick="alternarStatus('${t.id}', '${isAtivo ? 'suspended' : 'active'}')" class="inline-flex items-center text-xs ${isAtivo ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'} px-2.5 py-1.5 rounded-lg border transition">
                 ${isAtivo ? 'Bloquear' : 'Liberar'}

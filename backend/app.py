@@ -146,13 +146,18 @@ def extract_subdomain(host: str) -> str:
         return "marmobraz"
     host = host.split(":")[0].lower()
     parts = host.split(".")
+    sub = "marmobraz"
     # Reconhece subdomínio em mnservice.net.br
     if len(parts) >= 3 and parts[-2] == "mnservice" and parts[-1] == "net.br":
-        return parts[0]
+        sub = parts[0]
     # Reconhece subdomínio genérico
-    if len(parts) >= 2 and parts[0] not in ("www", "mnservice", "localhost", "127", "179"):
-        return parts[0]
-    return "marmobraz"
+    elif len(parts) >= 2 and parts[0] not in ("www", "mnservice", "localhost", "127", "179"):
+        sub = parts[0]
+    
+    # Se for subdomínio de suporte dedicado (ex: suporte-marmobraz)
+    if sub.startswith("suporte-"):
+        sub = sub[len("suporte-"):]
+    return sub or "marmobraz"
 
 def get_tenant_db_path(tenant_id: str) -> str:
     clean = re.sub(r"[^a-zA-Z0-9_-]", "", tenant_id).lower()
@@ -1551,6 +1556,7 @@ def serve_admin():
     return {"message": "Admin admin.html não encontrado"}
 
 @app.get("/")
+@app.get("/suporte")
 def serve_index(request: Request):
     """Serve a aplicação para o cliente ou admin dependendo do subdomínio"""
     host = request.headers.get("host", "")
