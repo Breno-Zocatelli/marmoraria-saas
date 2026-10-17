@@ -11120,9 +11120,22 @@
       const urlParams = new URLSearchParams(window.location.search);
       const impersonateToken = urlParams.get('impersonate_token');
 
+      // Limpeza de segurança: remove qualquer sessão de suporte que tenha ficado gravada em localStorage
+      try {
+        const rawSaved = localStorage.getItem(getTenantAuthStorageKey());
+        if (rawSaved) {
+          const parsedSaved = JSON.parse(rawSaved);
+          if (parsedSaved && (parsedSaved.is_impersonated || (parsedSaved.nome && parsedSaved.nome.includes('Suporte Master')))) {
+            localStorage.removeItem(getTenantAuthStorageKey());
+          }
+        }
+      } catch (e) {
+        localStorage.removeItem(getTenantAuthStorageKey());
+      }
+
       // 1. Se recebido token de personificação do SuperAdmin Master
       if (impersonateToken) {
-        if (modal) modal.classList.add('hidden'); // Oculta imediatamente para experiência fluida sem piscar
+        if (modal) modal.classList.add('hidden'); // Oculta imediatamente para não piscar tela de login
         try {
           const resp = await fetch('/api/auth/impersonate', {
             method: 'POST',
@@ -11133,7 +11146,8 @@
             const data = await resp.json();
             if (data.status === 'authenticated' && data.usuario) {
               currentAuthUser = data.usuario;
-              localStorage.setItem(getTenantAuthStorageKey(), JSON.stringify(currentAuthUser));
+              // Salva EXCLUSIVAMENTE no sessionStorage desta aba (NUNCA no localStorage permanente)
+              sessionStorage.setItem(getTenantAuthStorageKey() + '_support', JSON.stringify(currentAuthUser));
               aplicarUsuarioLogado(currentAuthUser);
               if (modal) modal.classList.add('hidden');
 
@@ -11151,14 +11165,30 @@
         if (modal) modal.classList.remove('hidden');
       }
 
-      // 2. Verificação de sessão salva localmente
-      const saved = localStorage.getItem(getTenantAuthStorageKey());
-      if (saved) {
+      // 2. Se for uma aba de suporte já autenticada nesta sessão de navegação (permite F5 sem deslogar)
+      const supportSession = sessionStorage.getItem(getTenantAuthStorageKey() + '_support');
+      if (supportSession) {
         try {
-          currentAuthUser = JSON.parse(saved);
+          currentAuthUser = JSON.parse(supportSession);
           aplicarUsuarioLogado(currentAuthUser);
           if (modal) modal.classList.add('hidden');
           return true;
+        } catch (e) {
+          sessionStorage.removeItem(getTenantAuthStorageKey() + '_support');
+        }
+      }
+
+      // 3. Verificação de sessão normal do colaborador da marmoraria (salva em localStorage)
+      const saved = localStorage.getItem(getTenantAuthStorageKey());
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && !parsed.is_impersonated) {
+            currentAuthUser = parsed;
+            aplicarUsuarioLogado(currentAuthUser);
+            if (modal) modal.classList.add('hidden');
+            return true;
+          }
         } catch (e) {
           localStorage.removeItem(getTenantAuthStorageKey());
         }
@@ -11226,6 +11256,7 @@
     function realizarLogoutTenant() {
       if (confirm('Deseja realmente sair da sua conta?')) {
         localStorage.removeItem(getTenantAuthStorageKey());
+        sessionStorage.removeItem(getTenantAuthStorageKey() + '_support');
         currentAuthUser = null;
         location.reload();
       }
