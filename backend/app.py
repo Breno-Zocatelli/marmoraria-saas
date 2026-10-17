@@ -1009,6 +1009,9 @@ class TenantLoginRequest(BaseModel):
     email: str
     senha: str
 
+class ImpersonateRequest(BaseModel):
+    token: str
+
 class UsuarioCreateRequest(BaseModel):
     nome: str
     email: str
@@ -1398,6 +1401,59 @@ def tenant_login(payload: TenantLoginRequest):
             "cargo": user["cargo"] or "Administrador",
             "telefone": user["telefone"] or ""
         }
+    }
+
+@app.post("/api/auth/impersonate")
+def tenant_impersonate(payload: ImpersonateRequest):
+    """Permite acesso direto à marmoraria por administradores autenticados no SuperAdmin Master"""
+    token_mestre = payload.token.strip()
+    if not token_mestre:
+        raise HTTPException(status_code=401, detail="Token mestre não fornecido.")
+
+    mconn = get_master_db()
+    mcur = mconn.cursor()
+    mcur.execute("""
+    SELECT s.token, u.id, u.nome, u.email, u.cargo, u.ativo
+    FROM admin_sessions s
+    JOIN admin_users u ON s.admin_id = u.id
+    WHERE s.token = ?;
+    """, (token_mestre,))
+    admin_row = mcur.fetchone()
+    mconn.close()
+
+    if not admin_row or not admin_row["ativo"]:
+        raise HTTPException(status_code=401, detail="Sessão SuperAdmin inválida ou expirada.")
+
+    # Busca o administrador local deste tenant
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM usuarios WHERE ativo = 1 ORDER BY created_at ASC LIMIT 1;")
+    user = cursor.fetchone()
+    conn.close()
+
+    if user:
+        usuario_retorno = {
+            "id": user["id"],
+            "nome": f"{admin_row['nome']} (Suporte Master)",
+            "email": admin_row["email"],
+            "cargo": "SuperAdmin Master",
+            "telefone": user["telefone"] or "",
+            "is_impersonated": True
+        }
+    else:
+        usuario_retorno = {
+            "id": f"usr_master_{admin_row['id']}",
+            "nome": f"{admin_row['nome']} (Suporte Master)",
+            "email": admin_row["email"],
+            "cargo": "SuperAdmin Master",
+            "telefone": "",
+            "is_impersonated": True
+        }
+
+    return {
+        "status": "authenticated",
+        "token": secrets.token_hex(24),
+        "usuario": usuario_retorno
     }
 
 @app.get("/api/usuarios")

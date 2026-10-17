@@ -11104,23 +11104,67 @@
     let currentAuthUser = null;
 
     function getTenantAuthStorageKey() {
-      const tenantId = window.TENANT_INFO ? window.TENANT_INFO.id : 'default';
+      const host = window.location.hostname;
+      const parts = host.split('.');
+      let tenantId = 'default';
+      if (parts.length > 2 && parts[0] !== 'admin' && parts[0] !== 'www') {
+        tenantId = parts[0];
+      } else if (window.TENANT_INFO && window.TENANT_INFO.id) {
+        tenantId = window.TENANT_INFO.id;
+      }
       return `saas_tenant_user_${tenantId}`;
     }
 
-    function verificarAutenticacaoTenant() {
+    async function verificarAutenticacaoTenant() {
+      const modal = document.getElementById('modal_login_tenant');
+      const urlParams = new URLSearchParams(window.location.search);
+      const impersonateToken = urlParams.get('impersonate_token');
+
+      // 1. Se recebido token de personificação do SuperAdmin Master
+      if (impersonateToken) {
+        if (modal) modal.classList.add('hidden'); // Oculta imediatamente para experiência fluida sem piscar
+        try {
+          const resp = await fetch('/api/auth/impersonate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: impersonateToken })
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.status === 'authenticated' && data.usuario) {
+              currentAuthUser = data.usuario;
+              localStorage.setItem(getTenantAuthStorageKey(), JSON.stringify(currentAuthUser));
+              aplicarUsuarioLogado(currentAuthUser);
+              if (modal) modal.classList.add('hidden');
+
+              // Remove o token da barra de endereço de forma limpa
+              urlParams.delete('impersonate_token');
+              const queryRestante = urlParams.toString();
+              const urlLimpa = window.location.pathname + (queryRestante ? '?' + queryRestante : '') + window.location.hash;
+              window.history.replaceState({}, document.title, urlLimpa);
+              return true;
+            }
+          }
+        } catch (err) {
+          console.warn("Falha ao validar login direto SuperAdmin:", err);
+        }
+        if (modal) modal.classList.remove('hidden');
+      }
+
+      // 2. Verificação de sessão salva localmente
       const saved = localStorage.getItem(getTenantAuthStorageKey());
       if (saved) {
         try {
           currentAuthUser = JSON.parse(saved);
           aplicarUsuarioLogado(currentAuthUser);
-          document.getElementById('modal_login_tenant').classList.add('hidden');
+          if (modal) modal.classList.add('hidden');
           return true;
         } catch (e) {
           localStorage.removeItem(getTenantAuthStorageKey());
         }
       }
-      document.getElementById('modal_login_tenant').classList.remove('hidden');
+
+      if (modal) modal.classList.remove('hidden');
       return false;
     }
 
@@ -11136,6 +11180,13 @@
         badge.classList.remove('hidden');
         nomeEl.textContent = usr.nome || 'Colaborador';
         avatarEl.textContent = (usr.nome || 'U').charAt(0).toUpperCase();
+        if (usr.is_impersonated) {
+          badge.classList.remove('bg-slate-200/80', 'border-slate-300', 'text-slate-800');
+          badge.classList.add('bg-indigo-100', 'border-indigo-300', 'text-indigo-900');
+          avatarEl.classList.remove('bg-blue-600');
+          avatarEl.classList.add('bg-indigo-600');
+          badge.title = 'Sessão de Suporte Master (SuperAdmin)';
+        }
       }
     }
 
