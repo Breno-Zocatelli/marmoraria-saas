@@ -11239,31 +11239,6 @@
           avatarEl.classList.remove('bg-blue-600');
           avatarEl.classList.add('bg-indigo-600');
           badge.title = 'Sessão de Suporte Master (SuperAdmin)';
-
-          // Cria ou atualiza a barra superior de suporte visual
-          let banner = document.getElementById('banner_suporte_master_top');
-          if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'banner_suporte_master_top';
-            banner.className = 'bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 text-white px-4 py-2 border-b border-indigo-500/40 flex items-center justify-between text-xs sticky top-0 z-[100] shadow-md';
-            banner.innerHTML = `
-              <div class="flex items-center gap-2">
-                <span class="text-sm">🛡️</span>
-                <span class="font-bold text-indigo-300">MODO SUPORTE SUPERADMIN ATIVO:</span>
-                <span class="text-slate-300 font-medium">Operando como <strong class="text-white">${usr.nome || 'SuperAdmin'}</strong></span>
-                <span class="hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono">Auditado</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <a href="https://admin.mnservice.net.br" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold transition flex items-center gap-1">
-                  Painel Admin ↗
-                </a>
-                <button onclick="realizarLogoutTenant()" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-[11px] font-bold transition cursor-pointer">
-                  Encerrar Suporte ✕
-                </button>
-              </div>
-            `;
-            document.body.prepend(banner);
-          }
         }
       }
     }
