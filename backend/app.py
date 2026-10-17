@@ -140,7 +140,7 @@ def get_tenant_db_path(tenant_id: str) -> str:
         
     return db_file
 
-def init_tenant_db_schema(conn, tenant_name: str = "Marmoraria"):
+def init_tenant_db_schema(conn, tenant_id: str = "marmobraz", tenant_name: str = "Marmoraria"):
     cursor = conn.cursor()
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS orcamentos (
@@ -251,7 +251,8 @@ def init_tenant_db_schema(conn, tenant_name: str = "Marmoraria"):
     if cursor.fetchone()["total"] == 0:
         agora = datetime.now().isoformat()
         u_id = f"usr_{secrets.token_hex(6)}"
-        u_email = f"admin@{re.sub(r'[^a-zA-Z0-9]', '', tenant_name).lower() or 'marmoraria'}.com.br"
+        clean_slug = re.sub(r'[^a-zA-Z0-9]', '', tenant_id).lower() or 'marmoraria'
+        u_email = f"admin@{clean_slug}.com.br"
         # Senha padrão inicial para a marmoraria: 123456
         u_hash = hash_password("123456")
         cursor.execute("""
@@ -261,18 +262,19 @@ def init_tenant_db_schema(conn, tenant_name: str = "Marmoraria"):
 
     conn.commit()
 
+initialized_tenants = set()
+
 def get_db(tenant_id: Optional[str] = None):
     if not tenant_id:
         tenant_id = current_tenant_var.get()
     path = get_tenant_db_path(tenant_id)
-    is_new = not os.path.exists(path)
     
     conn = sqlite3.connect(path, timeout=30.0)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode = WAL;")
     conn.execute("PRAGMA busy_timeout = 30000;")
     
-    if is_new:
+    if tenant_id not in initialized_tenants:
         company_name = tenant_id.capitalize()
         try:
             mconn = get_master_db()
@@ -284,12 +286,34 @@ def get_db(tenant_id: Optional[str] = None):
             mconn.close()
         except Exception:
             pass
-        init_tenant_db_schema(conn, company_name)
+        init_tenant_db_schema(conn, tenant_id, company_name)
+        initialized_tenants.add(tenant_id)
         
     return conn
 
-# Inicializa banco mestre
+def init_all_tenants():
+    try:
+        mconn = get_master_db()
+        mcur = mconn.cursor()
+        mcur.execute("SELECT id, name FROM tenants;")
+        rows = mcur.fetchall()
+        mconn.close()
+        for r in rows:
+            t_id = r["id"]
+            t_name = r["name"]
+            path = get_tenant_db_path(t_id)
+            conn = sqlite3.connect(path, timeout=15.0)
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA journal_mode = WAL;")
+            init_tenant_db_schema(conn, t_id, t_name)
+            conn.close()
+            initialized_tenants.add(t_id)
+    except Exception as e:
+        print(f"Aviso ao inicializar tenants existentes: {e}")
+
+# Inicializa banco mestre e schemas de todos os tenants
 init_master_db()
+init_all_tenants()
 
 # Middleware de Injeção de Tenant
 @app.middleware("http")
@@ -1146,15 +1170,19 @@ def create_tenant(payload: TenantCreateRequest, request: Request):
 
     # Atualiza ou insere o admin inicial configurado
     tcursor.execute("SELECT id FROM usuarios WHERE email = ?;", (admin_email,))
-    if not tcursor.fetchone():
+    row_user = tcursor.fetchone()
+    u_hash = hash_password(admin_senha)
+    if not row_user:
         u_id = f"usr_{secrets.token_hex(6)}"
-        u_hash = hash_password(admin_senha)
         tcursor.execute("""
         INSERT INTO usuarios (id, nome, email, senha_hash, cargo, telefone, ativo, created_at, updated_at)
         VALUES (?, ?, ?, ?, 'Administrador', ?, 1, ?, ?);
         """, (u_id, admin_nome, admin_email, u_hash, payload.telefone or "", agora, agora))
-        tconn.commit()
-    
+    else:
+        tcursor.execute("""
+        UPDATE usuarios SET nome = ?, senha_hash = ?, telefone = ?, updated_at = ? WHERE id = ?;
+        """, (admin_nome, u_hash, payload.telefone or "", agora, row_user["id"]))
+    tconn.commit()
     tconn.close()
     
     return {
