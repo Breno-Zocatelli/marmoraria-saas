@@ -259,6 +259,11 @@
             <span class="text-sm shrink-0">🚰</span>
             <span class="sidebar-label truncate">Cubas & Acessórios</span>
           </button>
+
+          <button onclick="abrirModalGerenciarUsuarios()" class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-medium group cursor-pointer sidebar-item-container" title="Gerenciar Colaboradores e Acessos">
+            <span class="text-sm shrink-0">👥</span>
+            <span class="sidebar-label truncate">Usuários & Equipe</span>
+          </button>
         </div>
       </div>
 
@@ -306,6 +311,16 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <!-- Badge Usuário Logado -->
+        <div id="badge_usuario_logado" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-200/80 border border-slate-300 text-xs text-slate-800">
+          <span class="w-6 h-6 rounded-lg bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center" id="avatar_usuario_logado">U</span>
+          <span class="font-semibold text-[11px] truncate max-w-[120px]" id="nome_usuario_logado">Usuário</span>
+        </div>
+
+        <button onclick="realizarLogoutTenant()" class="h-9 px-2.5 text-xs text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition flex items-center gap-1 border border-transparent hover:border-rose-200 cursor-pointer" title="Sair da conta">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </button>
+
         <!-- Botão Novo Orçamento Principal -->
         <button id="btn_novo_orcamento" onclick="iniciarNovoOrcamento()" class="h-9 px-3.5 text-xs sm:text-sm font-bold rounded-xl border border-emerald-600 bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm flex items-center gap-1.5 cursor-pointer" title="Criar um novo orçamento em branco">
           <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -10972,8 +10987,330 @@
     </div>
   </div>
 
+  <!-- ============================================================ -->
+  <!-- MODAL DE LOGIN DO CLIENTE / MARMORARIA                      -->
+  <!-- ============================================================ -->
+  <div id="modal_login_tenant" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 text-center animate-in fade-in duration-200">
+      <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/25 text-2xl font-black text-white" id="login_logo_box">
+        M
+      </div>
+      <div>
+        <h2 class="text-2xl font-extrabold text-white tracking-tight" id="login_empresa_titulo">Marmoraria</h2>
+        <p class="text-xs text-slate-400 mt-1">Acesso ao Sistema de Gestão & Orçamentos</p>
+      </div>
+
+      <form id="form_login_tenant" onsubmit="realizarLoginTenant(event)" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">E-mail de Acesso</label>
+          <input type="email" id="inp_login_email" required placeholder="seuemail@empresa.com" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Senha</label>
+          <input type="password" id="inp_login_senha" required placeholder="Digite sua senha..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition font-mono">
+        </div>
+
+        <div id="msg_login_tenant_erro" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl"></div>
+
+        <button type="submit" id="btn_submit_login_tenant" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-500/25 text-sm transition active:scale-95 cursor-pointer">
+          Entrar no Sistema
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL GERENCIAR USUÁRIOS & EQUIPE                            -->
+  <!-- ============================================================ -->
+  <div id="modal_gerenciar_usuarios" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-40 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl space-y-4 text-left border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-black shrink-0">
+            👥
+          </div>
+          <div>
+            <h3 class="text-base font-black text-slate-900">Usuários & Equipe da Empresa</h3>
+            <p class="text-xs text-slate-500">Cadastre colaboradores para acesso ao sistema desta marmoraria</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="abrirFormNovoUsuario()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-1 shadow-xs cursor-pointer">
+            <span>+</span> <span>Novo Colaborador</span>
+          </button>
+          <button onclick="fecharModalGerenciarUsuarios()" class="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer">✕</button>
+        </div>
+      </div>
+
+      <!-- Formulário de Cadastro / Edição de Usuário (colapsável) -->
+      <div id="container_form_usuario" class="hidden p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider" id="titulo_form_usuario">Novo Colaborador</h4>
+        <form id="form_usuario" onsubmit="salvarUsuarioTenant(event)" class="space-y-3">
+          <input type="hidden" id="inp_usuario_edit_id" value="">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nome Completo</label>
+              <input type="text" id="inp_usr_nome" required placeholder="Ex: Roberto Gomes" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">E-mail de Login</label>
+              <input type="email" id="inp_usr_email" required placeholder="roberto@empresa.com" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Cargo / Função</label>
+              <select id="inp_usr_cargo" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500">
+                <option value="Administrador">Administrador</option>
+                <option value="Vendedor">Vendedor</option>
+                <option value="Fábrica / Corte">Fábrica / Corte</option>
+                <option value="Financeiro">Financeiro</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Telefone / WhatsApp</label>
+              <input type="text" id="inp_usr_telefone" placeholder="(11) 98765-4321" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1" id="lbl_usr_senha">Senha de Acesso</label>
+              <input type="password" id="inp_usr_senha" required placeholder="Senha..." class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 font-mono">
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+            <button type="button" onclick="fecharFormNovoUsuario()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition">Cancelar</button>
+            <button type="submit" id="btn_salvar_usr" class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition">Salvar Colaborador</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Lista de Usuários Cadastrados -->
+      <div id="lista_usuarios_container" class="space-y-2 max-h-96 overflow-y-auto">
+        <div class="p-6 text-center text-xs text-slate-400">Carregando colaboradores...</div>
+      </div>
+
+      <div class="flex items-center justify-end pt-3 border-t border-slate-200">
+        <button type="button" onclick="fecharModalGerenciarUsuarios()" class="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Injeção Dinâmica de Marca & Multi-Tenant White-Label
+    // Injeção Dinâmica de Marca & Multi-Tenant White-Label & Autenticação
+    let currentAuthUser = null;
+
+    function getTenantAuthStorageKey() {
+      const tenantId = window.TENANT_INFO ? window.TENANT_INFO.id : 'default';
+      return `saas_tenant_user_${tenantId}`;
+    }
+
+    function verificarAutenticacaoTenant() {
+      const saved = localStorage.getItem(getTenantAuthStorageKey());
+      if (saved) {
+        try {
+          currentAuthUser = JSON.parse(saved);
+          aplicarUsuarioLogado(currentAuthUser);
+          document.getElementById('modal_login_tenant').classList.add('hidden');
+          return true;
+        } catch (e) {
+          localStorage.removeItem(getTenantAuthStorageKey());
+        }
+      }
+      document.getElementById('modal_login_tenant').classList.remove('hidden');
+      return false;
+    }
+
+    function aplicarUsuarioLogado(usr) {
+      if (!usr) return;
+      const badge = document.getElementById('badge_usuario_logado');
+      const nomeEl = document.getElementById('nome_usuario_logado');
+      const avatarEl = document.getElementById('avatar_usuario_logado');
+      if (badge && nomeEl && avatarEl) {
+        badge.classList.remove('hidden');
+        nomeEl.textContent = usr.nome || 'Colaborador';
+        avatarEl.textContent = (usr.nome || 'U').charAt(0).toUpperCase();
+      }
+    }
+
+    async function realizarLoginTenant(e) {
+      e.preventDefault();
+      const email = document.getElementById('inp_login_email').value;
+      const senha = document.getElementById('inp_login_senha').value;
+      const btn = document.getElementById('btn_submit_login_tenant');
+      const msgErro = document.getElementById('msg_login_tenant_erro');
+
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+      msgErro.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, senha })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Falha ao autenticar');
+
+        currentAuthUser = data.usuario;
+        localStorage.setItem(getTenantAuthStorageKey(), JSON.stringify(currentAuthUser));
+        aplicarUsuarioLogado(currentAuthUser);
+        document.getElementById('modal_login_tenant').classList.add('hidden');
+      } catch (err) {
+        msgErro.textContent = err.message;
+        msgErro.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Entrar no Sistema';
+      }
+    }
+
+    function realizarLogoutTenant() {
+      if (confirm('Deseja realmente sair da sua conta?')) {
+        localStorage.removeItem(getTenantAuthStorageKey());
+        currentAuthUser = null;
+        location.reload();
+      }
+    }
+
+    // Gerenciamento de Usuários do Tenant
+    async function abrirModalGerenciarUsuarios() {
+      document.getElementById('modal_gerenciar_usuarios').classList.remove('hidden');
+      fecharFormNovoUsuario();
+      await carregarUsuariosTenant();
+    }
+
+    function fecharModalGerenciarUsuarios() {
+      document.getElementById('modal_gerenciar_usuarios').classList.add('hidden');
+    }
+
+    function abrirFormNovoUsuario() {
+      document.getElementById('form_usuario').reset();
+      document.getElementById('inp_usuario_edit_id').value = '';
+      document.getElementById('titulo_form_usuario').textContent = 'Novo Colaborador';
+      document.getElementById('inp_usr_senha').required = true;
+      document.getElementById('lbl_usr_senha').textContent = 'Senha de Acesso';
+      document.getElementById('container_form_usuario').classList.remove('hidden');
+    }
+
+    function fecharFormNovoUsuario() {
+      document.getElementById('container_form_usuario').classList.add('hidden');
+    }
+
+    async function carregarUsuariosTenant() {
+      const container = document.getElementById('lista_usuarios_container');
+      try {
+        const res = await fetch('/api/usuarios');
+        if (!res.ok) throw new Error('Falha ao carregar colaboradores');
+        const usuarios = await res.json();
+
+        if (!usuarios || usuarios.length === 0) {
+          container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">Nenhum colaborador cadastrado.</div>';
+          return;
+        }
+
+        container.innerHTML = usuarios.map(u => `
+          <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-slate-50/50">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center">
+                ${(u.nome || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div class="text-xs font-bold text-slate-900 flex items-center gap-2">
+                  <span>${u.nome}</span>
+                  <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-200 text-slate-700">${u.cargo || 'Colaborador'}</span>
+                </div>
+                <div class="text-[11px] text-slate-500 font-mono">${u.email} ${u.telefone ? '• ' + u.telefone : ''}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick='editarUsuario(${JSON.stringify(u)})' class="px-2.5 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition font-semibold">Editar</button>
+              <button onclick="excluirUsuario('${u.id}', '${u.nome}')" class="px-2.5 py-1 text-xs text-rose-600 hover:bg-rose-50 rounded-lg transition font-semibold">Excluir</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-rose-500">${err.message}</div>`;
+      }
+    }
+
+    function editarUsuario(u) {
+      document.getElementById('inp_usuario_edit_id').value = u.id;
+      document.getElementById('inp_usr_nome').value = u.nome;
+      document.getElementById('inp_usr_email').value = u.email;
+      document.getElementById('inp_usr_cargo').value = u.cargo || 'Administrador';
+      document.getElementById('inp_usr_telefone').value = u.telefone || '';
+      document.getElementById('inp_usr_senha').value = '';
+      document.getElementById('inp_usr_senha').required = false;
+      document.getElementById('lbl_usr_senha').textContent = 'Nova Senha (deixe em branco para manter)';
+      document.getElementById('titulo_form_usuario').textContent = 'Editar Colaborador';
+      document.getElementById('container_form_usuario').classList.remove('hidden');
+    }
+
+    async function salvarUsuarioTenant(e) {
+      e.preventDefault();
+      const id = document.getElementById('inp_usuario_edit_id').value;
+      const nome = document.getElementById('inp_usr_nome').value.trim();
+      const email = document.getElementById('inp_usr_email').value.trim().toLowerCase();
+      const cargo = document.getElementById('inp_usr_cargo').value;
+      const telefone = document.getElementById('inp_usr_telefone').value.trim();
+      const senha = document.getElementById('inp_usr_senha').value;
+
+      const btn = document.getElementById('btn_salvar_usr');
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+
+      try {
+        if (id) {
+          // Atualização
+          const res = await fetch(`/api/usuarios/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, email, cargo, telefone, senha: senha || null, ativo: 1 })
+          });
+          if (!res.ok) {
+            const d = await res.json();
+            throw new Error(d.detail || 'Falha ao atualizar colaborador');
+          }
+        } else {
+          // Criação
+          const res = await fetch('/api/usuarios', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, email, cargo, telefone, senha })
+          });
+          if (!res.ok) {
+            const d = await res.json();
+            throw new Error(d.detail || 'Falha ao criar colaborador');
+          }
+        }
+        fecharFormNovoUsuario();
+        await carregarUsuariosTenant();
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Salvar Colaborador';
+      }
+    }
+
+    async function excluirUsuario(id, nome) {
+      if (!confirm(`Deseja realmente remover o colaborador "${nome}"?`)) return;
+      try {
+        const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const d = await res.json();
+          throw new Error(d.detail || 'Falha ao excluir');
+        }
+        await carregarUsuariosTenant();
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      }
+    }
+
     (async function carregarTenantBranding() {
       try {
         const urlParams = new URLSearchParams(window.location.search);
@@ -10991,6 +11328,11 @@
           lblSidebar.textContent = info.name.toUpperCase();
         }
 
+        const tituloLogin = document.getElementById('login_empresa_titulo');
+        if (tituloLogin) {
+          tituloLogin.textContent = info.name;
+        }
+
         // Se o tenant estiver suspenso pelo admin, bloqueia a interface
         if (info.status === 'suspended') {
           document.body.innerHTML = `
@@ -11003,7 +11345,12 @@
               <div style="font-size: 12px; color: #64748b; font-family: monospace;">Tenant ID: ${info.id} | Status: Suspenso</div>
             </div>
           `;
+          return;
         }
+
+        // Executa verificação de autenticação do cliente
+        verificarAutenticacaoTenant();
+
       } catch (e) {
         console.warn("Tenant branding error:", e);
       }
@@ -11011,4 +11358,5 @@
   </script>
 </body>
 </html>
+
 

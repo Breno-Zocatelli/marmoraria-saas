@@ -14,7 +14,83 @@
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen">
-  <!-- Top Navigation -->
+
+  <!-- ============================================================ -->
+  <!-- MODAL DE LOGIN MASTER (SUPERADMIN GATEWAY)                   -->
+  <!-- ============================================================ -->
+  <div id="modal_login_master" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 text-center animate-in fade-in duration-200">
+      <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-sky-500/25 text-2xl font-black text-white">
+        🛡️
+      </div>
+      <div>
+        <h2 class="text-2xl font-extrabold text-white tracking-tight">SuperAdmin Master</h2>
+        <p class="text-xs text-slate-400 mt-1">Acesso exclusivo do mantenedor do SaaS Marmoraria</p>
+      </div>
+
+      <form id="form_login_master" onsubmit="realizarLoginMaster(event)" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Senha Mestre de Acesso</label>
+          <div class="relative">
+            <input type="password" id="inp_master_pwd" required placeholder="Digite a senha mestre..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500 transition font-mono pr-10">
+            <button type="button" onclick="alternarVisibilidadeSenha('inp_master_pwd')" class="absolute right-3 top-3 text-slate-400 hover:text-white text-xs">👁️</button>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1.5">Senha inicial padrão: <span class="font-mono text-sky-400">admin123</span></p>
+        </div>
+
+        <div id="msg_login_erro" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl"></div>
+
+        <button type="submit" id="btn_login_master" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-sky-500/25 text-sm transition active:scale-95 cursor-pointer">
+          Acessar Painel Master
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL ALTERAR SENHA MASTER                                  -->
+  <!-- ============================================================ -->
+  <div id="modal_alterar_senha_master" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>🔑</span> <span>Alterar Senha Mestre</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Defina sua nova chave de segurança do SuperAdmin</p>
+        </div>
+        <button onclick="fecharModalAlterarSenha()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
+      </div>
+
+      <form id="form_alterar_senha" onsubmit="salvarNovaSenhaMaster(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Senha Atual</label>
+          <input type="password" id="inp_pwd_atual" required placeholder="Digite a senha atual..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-sky-500 transition font-mono">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Nova Senha</label>
+          <input type="password" id="inp_pwd_nova" required minlength="6" placeholder="Mínimo 6 caracteres..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-sky-500 transition font-mono">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Confirmar Nova Senha</label>
+          <input type="password" id="inp_pwd_nova_conf" required minlength="6" placeholder="Repita a nova senha..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-sky-500 transition font-mono">
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-2.5">
+          <button type="button" onclick="fecharModalAlterarSenha()" class="px-4 py-2 text-xs text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" id="btn_salvar_senha" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold px-4 py-2 rounded-xl shadow-lg shadow-sky-500/25 text-xs transition">
+            Atualizar Senha
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- BARRA DE NAVEGAÇÃO SUPERIOR                                  -->
+  <!-- ============================================================ -->
   <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -30,10 +106,14 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <a href="/" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
-          <span>Abrir Sistema Padrão</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-        </a>
+        <button onclick="abrirModalAlterarSenha()" class="text-xs bg-slate-800/80 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1.5 cursor-pointer" title="Trocar a senha mestre do painel">
+          <span>🔑</span>
+          <span>Trocar Senha</span>
+        </button>
+        <button onclick="realizarLogoutMaster()" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-2 rounded-lg border border-rose-500/30 transition flex items-center gap-1.5 cursor-pointer" title="Sair do painel SuperAdmin">
+          <span>Sair</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </button>
       </div>
     </div>
   </header>
@@ -43,9 +123,9 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Painel de Marmorarias</h1>
-        <p class="text-slate-400 text-sm mt-1">Gerencie clientes, ative subdomínios e realize backups isolados dos bancos SQLite.</p>
+        <p class="text-slate-400 text-sm mt-1">Gerencie clientes, crie usuários administradores e realize backups isolados dos bancos SQLite.</p>
       </div>
-      <button onclick="abrirModalNovaEmpresa()" class="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-sky-500/25 transition active:scale-95 text-sm">
+      <button onclick="abrirModalNovaEmpresa()" class="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-sky-500/25 transition active:scale-95 text-sm cursor-pointer">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         Cadastrar Nova Marmoraria
       </button>
@@ -74,7 +154,7 @@
       <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5">
         <div class="flex items-center justify-between">
           <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Empresas Suspensas</span>
-          <span class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">⚠</span>
+          <span class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">⚠️</span>
         </div>
         <p id="stat_suspensas" class="text-3xl font-extrabold text-rose-400 mt-3 font-mono">0</p>
         <p class="text-xs text-slate-500 mt-1">Acesso bloqueado</p>
@@ -105,6 +185,7 @@
             <tr>
               <th class="px-6 py-4">Empresa & URL</th>
               <th class="px-6 py-4">Contato</th>
+              <th class="px-6 py-4">Colaboradores</th>
               <th class="px-6 py-4">Orçamentos</th>
               <th class="px-6 py-4">Banco SQLite</th>
               <th class="px-6 py-4">Status</th>
@@ -113,7 +194,7 @@
           </thead>
           <tbody id="tabela_tenants" class="divide-y divide-slate-700/40 text-slate-300">
             <tr>
-              <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+              <td colspan="7" class="px-6 py-12 text-center text-slate-500">
                 Carregando marmorarias...
               </td>
             </tr>
@@ -123,13 +204,15 @@
     </div>
   </main>
 
-  <!-- Modal Nova Empresa -->
+  <!-- ============================================================ -->
+  <!-- MODAL NOVA EMPRESA COM USUÁRIO ADMIN INICIAL                 -->
+  <!-- ============================================================ -->
   <div id="modal_nova_empresa" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in duration-150">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in duration-150 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-4">
         <div>
           <h3 class="text-lg font-bold text-white">Nova Marmoraria</h3>
-          <p class="text-xs text-slate-400 mt-0.5">O sistema criará o banco isolado e a rota automaticamente.</p>
+          <p class="text-xs text-slate-400 mt-0.5">Cria o banco isolado e o usuário administrador inicial da empresa.</p>
         </div>
         <button onclick="fecharModalNovaEmpresa()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
       </div>
@@ -158,14 +241,37 @@
             <input type="text" id="inp_telefone" placeholder="(11) 98765-4321" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500 transition">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">E-mail de Contato</label>
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">E-mail da Empresa</label>
             <input type="email" id="inp_email" placeholder="contato@empresa.com" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500 transition">
+          </div>
+        </div>
+
+        <!-- Seção: Administrador Inicial do Cliente -->
+        <div class="p-3.5 bg-slate-950/70 border border-slate-800 rounded-xl space-y-3">
+          <div class="flex items-center gap-2 text-xs font-bold text-sky-400 uppercase tracking-wider">
+            <span>👤</span>
+            <span>Usuário Administrador da Marmoraria</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Nome do Administrador</label>
+              <input type="text" id="inp_admin_nome" placeholder="Ex: Carlos Silva" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500 transition">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">E-mail de Login</label>
+              <input type="email" id="inp_admin_email" placeholder="admin@empresa.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500 transition">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Senha Inicial de Acesso</label>
+            <input type="text" id="inp_admin_senha" placeholder="123456" value="123456" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500 transition font-mono">
+            <p class="text-[10px] text-slate-500 mt-1">O cliente poderá alterar essa senha a qualquer momento.</p>
           </div>
         </div>
 
         <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-2.5">
           <button type="button" onclick="fecharModalNovaEmpresa()" class="px-4 py-2.5 text-sm text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition">Cancelar</button>
-          <button type="submit" id="btn_salvar" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-sky-500/25 text-sm transition active:scale-95">
+          <button type="submit" id="btn_salvar" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-sky-500/25 text-sm transition active:scale-95 cursor-pointer">
             Criar Marmoraria & Banco
           </button>
         </div>
@@ -175,10 +281,125 @@
 
   <script>
     let tenantsData = [];
+    let adminToken = localStorage.getItem('saas_admin_token') || '';
+
+    // Autenticação SuperAdmin
+    function verificarSessaoMaster() {
+      if (!adminToken) {
+        document.getElementById('modal_login_master').classList.remove('hidden');
+      } else {
+        document.getElementById('modal_login_master').classList.add('hidden');
+        carregarTenants();
+      }
+    }
+
+    async function realizarLoginMaster(e) {
+      e.preventDefault();
+      const senha = document.getElementById('inp_master_pwd').value;
+      const btn = document.getElementById('btn_login_master');
+      const msgErro = document.getElementById('msg_login_erro');
+
+      btn.disabled = true;
+      btn.textContent = 'Verificando...';
+      msgErro.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ senha })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Senha incorreta');
+
+        adminToken = data.token;
+        localStorage.setItem('saas_admin_token', adminToken);
+        document.getElementById('modal_login_master').classList.add('hidden');
+
+        // Se for primeiro acesso, convida para alterar senha
+        if (data.primeiro_acesso) {
+          abrirModalAlterarSenha(true);
+        }
+
+        carregarTenants();
+      } catch (err) {
+        msgErro.textContent = err.message;
+        msgErro.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Acessar Painel Master';
+      }
+    }
+
+    function realizarLogoutMaster() {
+      localStorage.removeItem('saas_admin_token');
+      adminToken = '';
+      location.reload();
+    }
+
+    function abrirModalAlterarSenha(primeiroAcesso = false) {
+      document.getElementById('form_alterar_senha').reset();
+      if (primeiroAcesso) {
+        document.getElementById('inp_pwd_atual').value = 'admin123';
+      }
+      document.getElementById('modal_alterar_senha_master').classList.remove('hidden');
+    }
+
+    function fecharModalAlterarSenha() {
+      document.getElementById('modal_alterar_senha_master').classList.add('hidden');
+    }
+
+    async function salvarNovaSenhaMaster(e) {
+      e.preventDefault();
+      const atual = document.getElementById('inp_pwd_atual').value;
+      const nova = document.getElementById('inp_pwd_nova').value;
+      const conf = document.getElementById('inp_pwd_nova_conf').value;
+
+      if (nova !== conf) {
+        alert('A confirmação da nova senha não confere.');
+        return;
+      }
+
+      const btn = document.getElementById('btn_salvar_senha');
+      btn.disabled = true;
+      btn.textContent = 'Atualizando...';
+
+      try {
+        const res = await fetch('/api/admin/change-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': adminToken
+          },
+          body: JSON.stringify({ senha_atual: atual, nova_senha: nova })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Erro ao alterar senha');
+
+        alert('Senha mestre alterada com sucesso! Utilize a nova senha nos próximos logins.');
+        fecharModalAlterarSenha();
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Atualizar Senha';
+      }
+    }
+
+    function alternarVisibilidadeSenha(idInput) {
+      const el = document.getElementById(idInput);
+      el.type = el.type === 'password' ? 'text' : 'password';
+    }
 
     async function carregarTenants() {
       try {
-        const res = await fetch('/api/admin/tenants');
+        const res = await fetch('/api/admin/tenants', {
+          headers: { 'x-admin-token': adminToken }
+        });
+        if (res.status === 401) {
+          realizarLogoutMaster();
+          return;
+        }
         if (!res.ok) throw new Error('Erro ao carregar lista de marmorarias');
         tenantsData = await res.json();
         renderizarTabela(tenantsData);
@@ -186,7 +407,7 @@
       } catch (err) {
         document.getElementById('tabela_tenants').innerHTML = `
           <tr>
-            <td colspan="6" class="px-6 py-8 text-center text-rose-400">
+            <td colspan="7" class="px-6 py-8 text-center text-rose-400">
               Falha ao carregar dados: ${err.message}
             </td>
           </tr>
@@ -211,7 +432,7 @@
       if (!lista || lista.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+            <td colspan="7" class="px-6 py-12 text-center text-slate-500">
               Nenhuma marmoraria cadastrada no momento.
             </td>
           </tr>
@@ -234,6 +455,11 @@
             <td class="px-6 py-4 text-xs">
               <div>${t.telefone || '<span class="text-slate-600">-</span>'}</div>
               <div class="text-slate-500">${t.email || ''}</div>
+            </td>
+            <td class="px-6 py-4 text-xs">
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono">
+                👤 ${t.total_usuarios || 0} usuários
+              </span>
             </td>
             <td class="px-6 py-4">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono">
@@ -261,7 +487,7 @@
               <button onclick="alternarStatus('${t.id}', '${isAtivo ? 'suspended' : 'active'}')" class="inline-flex items-center text-xs ${isAtivo ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'} px-2.5 py-1.5 rounded-lg border transition">
                 ${isAtivo ? 'Bloquear' : 'Liberar'}
               </button>
-              <a href="/api/admin/tenants/${t.id}/backup" download class="inline-flex items-center gap-1 text-xs bg-slate-800 hover:bg-slate-700 text-sky-400 px-2.5 py-1.5 rounded-lg border border-slate-700 transition" title="Baixar arquivo .db SQLite de backup">
+              <a href="/api/admin/tenants/${t.id}/backup?token=${adminToken}" download class="inline-flex items-center gap-1 text-xs bg-slate-800 hover:bg-slate-700 text-sky-400 px-2.5 py-1.5 rounded-lg border border-slate-700 transition" title="Baixar arquivo .db SQLite de backup">
                 Backup
               </a>
             </td>
@@ -288,6 +514,9 @@
         .trim();
       document.getElementById('inp_slug').value = slug;
       atualizarPreviewUrl(slug);
+      if (!document.getElementById('inp_admin_email').value) {
+        document.getElementById('inp_admin_email').value = `admin@${slug}.com.br`;
+      }
     }
 
     function atualizarPreviewUrl(slug) {
@@ -297,6 +526,7 @@
 
     function abrirModalNovaEmpresa() {
       document.getElementById('form_nova_empresa').reset();
+      document.getElementById('inp_admin_senha').value = '123456';
       atualizarPreviewUrl('');
       document.getElementById('modal_nova_empresa').classList.remove('hidden');
     }
@@ -309,31 +539,35 @@
       e.preventDefault();
       const btn = document.getElementById('btn_salvar');
       btn.disabled = true;
-      btn.textContent = 'Criando banco...';
+      btn.textContent = 'Criando banco e admin...';
 
       const payload = {
         name: document.getElementById('inp_nome').value.trim(),
         id: document.getElementById('inp_slug').value.trim().toLowerCase(),
         telefone: document.getElementById('inp_telefone').value.trim(),
         email: document.getElementById('inp_email').value.trim(),
-        status: 'active'
+        status: 'active',
+        admin_nome: document.getElementById('inp_admin_nome').value.trim(),
+        admin_email: document.getElementById('inp_admin_email').value.trim().toLowerCase(),
+        admin_senha: document.getElementById('inp_admin_senha').value.trim()
       };
 
       try {
         const res = await fetch('/api/admin/tenants', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-admin-token': adminToken
+          },
           body: JSON.stringify(payload)
         });
 
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.detail || 'Falha ao cadastrar');
-        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Falha ao cadastrar');
 
         fecharModalNovaEmpresa();
         await carregarTenants();
-        alert(`Marmoraria "${payload.name}" cadastrada com sucesso!\nURL: https://${payload.id}.mnservice.net.br`);
+        alert(`Marmoraria "${payload.name}" cadastrada com sucesso!\nURL: https://${payload.id}.mnservice.net.br\nAdmin: ${payload.admin_email}\nSenha: ${payload.admin_senha}`);
       } catch (err) {
         alert('Erro: ' + err.message);
       } finally {
@@ -349,7 +583,10 @@
       try {
         const res = await fetch(`/api/admin/tenants/${tenantId}/status`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-admin-token': adminToken
+          },
           body: JSON.stringify({ status: novoStatus })
         });
         if (!res.ok) throw new Error('Falha ao atualizar status');
@@ -359,8 +596,8 @@
       }
     }
 
-    // Inicialização
-    carregarTenants();
+    // Inicialização com verificação de segurança
+    verificarSessaoMaster();
   </script>
 </body>
 </html>

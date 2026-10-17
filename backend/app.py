@@ -7,14 +7,30 @@ import re
 import json
 import shutil
 import sqlite3
+import hashlib
+import secrets
 from datetime import datetime
 from typing import List, Optional, Any, Dict
 from contextvars import ContextVar
-from fastapi import FastAPI, HTTPException, Body, Request
+from fastapi import FastAPI, HTTPException, Body, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
+
+def hash_password(password: str) -> str:
+    """Hash SHA-256 seguro com salt embutido"""
+    salt = secrets.token_hex(8)
+    h = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
+    return f"{salt}:{h}"
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verifica senha contra hash salt:hash"""
+    if not hashed or ":" not in hashed:
+        return False
+    salt, original_hash = hashed.split(":", 1)
+    test_hash = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
+    return secrets.compare_digest(test_hash, original_hash)
 
 app = FastAPI(
     title="Marmoraria SaaS Multi-Tenant API",
@@ -58,6 +74,23 @@ def get_master_db():
 def init_master_db():
     conn = get_master_db()
     cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS config (
+        chave TEXT PRIMARY KEY,
+        valor TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    );
+    """)
+
+    # Inicializa Senha Mestre do SuperAdmin se não existir
+    cursor.execute("SELECT valor FROM config WHERE chave = 'admin_password_hash';")
+    if not cursor.fetchone():
+        agora = datetime.now().isoformat()
+        # Senha inicial padrão: admin123 (pode ser trocada na tela)
+        h = hash_password("admin123")
+        cursor.execute("INSERT INTO config (chave, valor, updated_at) VALUES ('admin_password_hash', ?, ?);", (h, agora))
+        cursor.execute("INSERT OR IGNORE INTO config (chave, valor, updated_at) VALUES ('primeiro_acesso', '1', ?);", (agora,))
+
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS tenants (
         id TEXT PRIMARY KEY,
@@ -198,6 +231,34 @@ def init_tenant_db_schema(conn, tenant_name: str = "Marmoraria"):
             ("banco_caixa_fisico", "Caixa Físico / Gaveta", "carteira_fisica", "-", "-", f"Balcão {tenant_name}", "#10b981", 0.0, 0, 1, agora, agora)
         ])
 
+    # Tabela de Usuários & Equipe (Autenticação e Permissões do Tenant)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id TEXT PRIMARY KEY,
+        nome TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        senha_hash TEXT NOT NULL,
+        cargo TEXT DEFAULT 'Administrador',
+        telefone TEXT,
+        ativo INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    );
+    """)
+
+    # Seed inicial de usuário admin para a marmoraria se estiver vazio
+    cursor.execute("SELECT COUNT(*) as total FROM usuarios;")
+    if cursor.fetchone()["total"] == 0:
+        agora = datetime.now().isoformat()
+        u_id = f"usr_{secrets.token_hex(6)}"
+        u_email = f"admin@{re.sub(r'[^a-zA-Z0-9]', '', tenant_name).lower() or 'marmoraria'}.com.br"
+        # Senha padrão inicial para a marmoraria: 123456
+        u_hash = hash_password("123456")
+        cursor.execute("""
+        INSERT INTO usuarios (id, nome, email, senha_hash, cargo, telefone, ativo, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (u_id, f"Admin {tenant_name}", u_email, u_hash, "Administrador", "", 1, agora, agora))
+
     conn.commit()
 
 def get_db(tenant_id: Optional[str] = None):
@@ -236,7 +297,12 @@ async def tenant_middleware(request: Request, call_next):
     host = request.headers.get("host", "")
     subdomain = extract_subdomain(host)
 
-    # Permite override via cabeçalho para testes ou visualização admin
+    # Permite override via query param (ex: ?tenant=pedrasnobres) para testes/visualização
+    param_tenant = request.query_params.get("tenant")
+    if param_tenant:
+        subdomain = param_tenant.strip().lower()
+
+    # Permite override via cabeçalho para testes ou chamadas de API
     header_tenant = request.headers.get("x-tenant-id")
     if header_tenant:
         subdomain = header_tenant.strip().lower()
@@ -851,7 +917,14 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
         "total_bancos": len(todos_ban)
     }
 
-# --- ROTAS MULTI-TENANT & SUPERADMIN ---
+# --- MODELOS PYDANTIC PARA AUTENTICAÇÃO & USUÁRIOS ---
+
+class AdminLoginRequest(BaseModel):
+    senha: str
+
+class AdminChangePasswordRequest(BaseModel):
+    senha_atual: str
+    nova_senha: str
 
 class TenantCreateRequest(BaseModel):
     id: str
@@ -860,9 +933,108 @@ class TenantCreateRequest(BaseModel):
     documento: Optional[str] = ""
     email: Optional[str] = ""
     status: Optional[str] = "active"
+    admin_nome: Optional[str] = ""
+    admin_email: Optional[str] = ""
+    admin_senha: Optional[str] = ""
 
 class TenantStatusRequest(BaseModel):
     status: str
+
+class TenantLoginRequest(BaseModel):
+    email: str
+    senha: str
+
+class UsuarioCreateRequest(BaseModel):
+    nome: str
+    email: str
+    senha: str
+    cargo: Optional[str] = "Administrador"
+    telefone: Optional[str] = ""
+
+class UsuarioUpdateRequest(BaseModel):
+    nome: str
+    email: str
+    cargo: Optional[str] = "Administrador"
+    telefone: Optional[str] = ""
+    senha: Optional[str] = None
+    ativo: Optional[int] = 1
+
+# --- ROTAS DE AUTENTICAÇÃO DO SUPERADMIN ---
+
+@app.post("/api/admin/login")
+def admin_login(payload: AdminLoginRequest):
+    """Autentica o SuperAdmin Master"""
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT valor FROM config WHERE chave = 'admin_password_hash';")
+    row = cursor.fetchone()
+    
+    cursor.execute("SELECT valor FROM config WHERE chave = 'primeiro_acesso';")
+    pa_row = cursor.fetchone()
+    primeiro_acesso = (pa_row and pa_row["valor"] == "1")
+    conn.close()
+
+    if not row or not verify_password(payload.senha, row["valor"]):
+        raise HTTPException(status_code=401, detail="Senha mestre incorreta.")
+
+    token = secrets.token_hex(24)
+    # Guarda token na master config (válido para sessão)
+    agora = datetime.now().isoformat()
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT OR REPLACE INTO config (chave, valor, updated_at) VALUES ('session_token', ?, ?);", (token, agora))
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "authenticated",
+        "token": token,
+        "primeiro_acesso": bool(primeiro_acesso),
+        "message": "Login realizado com sucesso."
+    }
+
+@app.post("/api/admin/change-password")
+def admin_change_password(payload: AdminChangePasswordRequest, x_admin_token: Optional[str] = Header(None)):
+    """Altera a Senha Mestre do SuperAdmin"""
+    conn = get_master_db()
+    cursor = conn.cursor()
+    
+    # Valida senha atual
+    cursor.execute("SELECT valor FROM config WHERE chave = 'admin_password_hash';")
+    row = cursor.fetchone()
+    if not row or not verify_password(payload.senha_atual, row["valor"]):
+        conn.close()
+        raise HTTPException(status_code=400, detail="A senha atual está incorreta.")
+
+    if not payload.nova_senha or len(payload.nova_senha) < 6:
+        conn.close()
+        raise HTTPException(status_code=400, detail="A nova senha deve ter no mínimo 6 caracteres.")
+
+    novo_hash = hash_password(payload.nova_senha)
+    agora = datetime.now().isoformat()
+    cursor.execute("UPDATE config SET valor = ?, updated_at = ? WHERE chave = 'admin_password_hash';", (novo_hash, agora))
+    cursor.execute("UPDATE config SET valor = '0', updated_at = ? WHERE chave = 'primeiro_acesso';", (agora,))
+    conn.commit()
+    conn.close()
+
+    return {"status": "success", "message": "Senha mestre atualizada com sucesso!"}
+
+def verificar_autenticacao_admin(request: Request):
+    """Verifica se a requisição ao SuperAdmin possui o token correto"""
+    token_cliente = request.headers.get("x-admin-token") or request.query_params.get("token")
+    if not token_cliente:
+        raise HTTPException(status_code=401, detail="Acesso não autorizado ao SuperAdmin.")
+        
+    conn = get_master_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT valor FROM config WHERE chave = 'session_token';")
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row or row["valor"] != token_cliente:
+        raise HTTPException(status_code=401, detail="Sessão do SuperAdmin expirada ou inválida.")
+
+# --- ROTAS DE GESTÃO DE TENANTS (SUPERADMIN) ---
 
 @app.get("/api/tenant/info")
 def get_tenant_info():
@@ -893,8 +1065,9 @@ def get_tenant_info():
     }
 
 @app.get("/api/admin/tenants")
-def list_tenants():
+def list_tenants(request: Request):
     """Lista todas as marmorarias e métricas de banco"""
+    verificar_autenticacao_admin(request)
     conn = get_master_db()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM tenants ORDER BY created_at DESC;")
@@ -906,6 +1079,7 @@ def list_tenants():
         db_path = get_tenant_db_path(t_id)
         size_kb = round(os.path.getsize(db_path) / 1024, 1) if os.path.exists(db_path) else 0
         total_orc = 0
+        total_usr = 0
         
         if os.path.exists(db_path):
             try:
@@ -914,18 +1088,22 @@ def list_tenants():
                 tcur = tconn.cursor()
                 tcur.execute("SELECT COUNT(*) as total FROM orcamentos;")
                 total_orc = tcur.fetchone()["total"]
+                tcur.execute("SELECT COUNT(*) as total FROM usuarios;")
+                total_usr = tcur.fetchone()["total"]
                 tconn.close()
             except Exception:
                 pass
                 
         t["db_size_kb"] = size_kb
         t["total_orcamentos"] = total_orc
+        t["total_usuarios"] = total_usr
         
     return tenants
 
 @app.post("/api/admin/tenants")
-def create_tenant(payload: TenantCreateRequest):
-    """Cria uma nova marmoraria e inicializa seu banco isolado"""
+def create_tenant(payload: TenantCreateRequest, request: Request):
+    """Cria uma nova marmoraria, banco isolado e usuário administrador inicial"""
+    verificar_autenticacao_admin(request)
     slug = re.sub(r"[^a-zA-Z0-9_-]", "", payload.id).lower()
     if not slug or len(slug) < 2:
         raise HTTPException(status_code=400, detail="Subdomínio inválido. Use apenas letras e números.")
@@ -959,13 +1137,38 @@ def create_tenant(payload: TenantCreateRequest):
     
     # Inicializa o banco de dados isolado da nova marmoraria
     tconn = get_db(slug)
+    tcursor = tconn.cursor()
+
+    # Se foram passados dados do usuário admin personalizado
+    admin_email = payload.admin_email or payload.email or f"admin@{slug}.com.br"
+    admin_nome = payload.admin_nome or f"Admin {payload.name}"
+    admin_senha = payload.admin_senha or "123456"
+
+    # Atualiza ou insere o admin inicial configurado
+    tcursor.execute("SELECT id FROM usuarios WHERE email = ?;", (admin_email,))
+    if not tcursor.fetchone():
+        u_id = f"usr_{secrets.token_hex(6)}"
+        u_hash = hash_password(admin_senha)
+        tcursor.execute("""
+        INSERT INTO usuarios (id, nome, email, senha_hash, cargo, telefone, ativo, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'Administrador', ?, 1, ?, ?);
+        """, (u_id, admin_nome, admin_email, u_hash, payload.telefone or "", agora, agora))
+        tconn.commit()
+    
     tconn.close()
     
-    return {"status": "created", "id": slug, "name": payload.name, "url": f"https://{slug}.mnservice.net.br"}
+    return {
+        "status": "created",
+        "id": slug,
+        "name": payload.name,
+        "url": f"https://{slug}.mnservice.net.br",
+        "admin_email": admin_email
+    }
 
 @app.put("/api/admin/tenants/{tenant_id}/status")
-def update_tenant_status(tenant_id: str, payload: TenantStatusRequest):
+def update_tenant_status(tenant_id: str, payload: TenantStatusRequest, request: Request):
     """Bloqueia ou libera acesso de uma marmoraria"""
+    verificar_autenticacao_admin(request)
     conn = get_master_db()
     cursor = conn.cursor()
     cursor.execute("UPDATE tenants SET status = ?, updated_at = ? WHERE id = ?;", (
@@ -978,12 +1181,130 @@ def update_tenant_status(tenant_id: str, payload: TenantStatusRequest):
     return {"status": "updated", "id": tenant_id, "new_status": payload.status}
 
 @app.get("/api/admin/tenants/{tenant_id}/backup")
-def backup_tenant_db(tenant_id: str):
+def backup_tenant_db(tenant_id: str, request: Request):
     """Download do banco SQLite completo do cliente"""
+    verificar_autenticacao_admin(request)
     db_path = get_tenant_db_path(tenant_id)
     if not os.path.exists(db_path):
         raise HTTPException(status_code=404, detail="Banco de dados da marmoraria não encontrado.")
     return FileResponse(db_path, filename=f"backup_{tenant_id}.db", media_type="application/x-sqlite3")
+
+# --- ROTAS DE AUTENTICAÇÃO E USUÁRIOS DO TENANT (CLIENTE) ---
+
+@app.post("/api/auth/login")
+def tenant_login(payload: TenantLoginRequest):
+    """Login de colaboradores no tenant da URL ativa"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM usuarios WHERE email = ?;", (payload.email.strip().lower(),))
+    user = cursor.fetchone()
+    conn.close()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="E-mail ou senha incorretos.")
+
+    if not user["ativo"]:
+        raise HTTPException(status_code=403, detail="Este usuário está desativado na empresa.")
+
+    if not verify_password(payload.senha, user["senha_hash"]):
+        raise HTTPException(status_code=401, detail="E-mail ou senha incorretos.")
+
+    token = secrets.token_hex(24)
+    return {
+        "status": "authenticated",
+        "token": token,
+        "usuario": {
+            "id": user["id"],
+            "nome": user["nome"],
+            "email": user["email"],
+            "cargo": user["cargo"] or "Administrador",
+            "telefone": user["telefone"] or ""
+        }
+    }
+
+@app.get("/api/usuarios")
+def list_usuarios():
+    """Lista todos os colaboradores do tenant ativo"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nome, email, cargo, telefone, ativo, created_at, updated_at FROM usuarios ORDER BY nome ASC;")
+    users = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return users
+
+@app.post("/api/usuarios")
+def create_usuario(payload: UsuarioCreateRequest):
+    """Cadastra um novo colaborador no tenant ativo"""
+    email_limpo = payload.email.strip().lower()
+    if not email_limpo or not payload.nome:
+        raise HTTPException(status_code=400, detail="Nome e e-mail são obrigatórios.")
+
+    if not payload.senha or len(payload.senha) < 4:
+        raise HTTPException(status_code=400, detail="A senha deve ter no mínimo 4 caracteres.")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM usuarios WHERE email = ?;", (email_limpo,))
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="Já existe um colaborador cadastrado com este e-mail.")
+
+    agora = datetime.now().isoformat()
+    u_id = f"usr_{secrets.token_hex(6)}"
+    u_hash = hash_password(payload.senha)
+
+    cursor.execute("""
+    INSERT INTO usuarios (id, nome, email, senha_hash, cargo, telefone, ativo, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?);
+    """, (u_id, payload.nome.strip(), email_limpo, u_hash, payload.cargo or "Administrador", payload.telefone or "", agora, agora))
+    conn.commit()
+    conn.close()
+
+    return {"status": "created", "id": u_id, "nome": payload.nome, "email": email_limpo}
+
+@app.put("/api/usuarios/{usuario_id}")
+def update_usuario(usuario_id: str, payload: UsuarioUpdateRequest):
+    """Atualiza dados, cargo ou senha de um colaborador"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM usuarios WHERE id = ?;", (usuario_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Colaborador não encontrado.")
+
+    agora = datetime.now().isoformat()
+    if payload.senha and len(payload.senha) >= 4:
+        u_hash = hash_password(payload.senha)
+        cursor.execute("""
+        UPDATE usuarios 
+        SET nome = ?, email = ?, cargo = ?, telefone = ?, senha_hash = ?, ativo = ?, updated_at = ?
+        WHERE id = ?;
+        """, (payload.nome.strip(), payload.email.strip().lower(), payload.cargo, payload.telefone or "", u_hash, payload.ativo, agora, usuario_id))
+    else:
+        cursor.execute("""
+        UPDATE usuarios 
+        SET nome = ?, email = ?, cargo = ?, telefone = ?, ativo = ?, updated_at = ?
+        WHERE id = ?;
+        """, (payload.nome.strip(), payload.email.strip().lower(), payload.cargo, payload.telefone or "", payload.ativo, agora, usuario_id))
+
+    conn.commit()
+    conn.close()
+    return {"status": "updated", "id": usuario_id}
+
+@app.delete("/api/usuarios/{usuario_id}")
+def delete_usuario(usuario_id: str):
+    """Exclui um colaborador do tenant"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) as total FROM usuarios WHERE ativo = 1;")
+    if cursor.fetchone()["total"] <= 1:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Não é possível excluir o único usuário da empresa.")
+
+    cursor.execute("DELETE FROM usuarios WHERE id = ?;", (usuario_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "deleted", "id": usuario_id}
 
 # --- ROTAS DE SERVIÇO DE FRONTEND ---
 
@@ -1010,4 +1331,5 @@ def serve_index(request: Request):
 
 if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
 
