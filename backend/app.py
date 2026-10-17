@@ -375,6 +375,7 @@ class StatusUpdateRequest(BaseModel):
 
 @app.get("/api/health")
 def health_check():
+    tenant_id = current_tenant_var.get()
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) as total FROM orcamentos;")
@@ -382,9 +383,9 @@ def health_check():
     conn.close()
     return {
         "status": "online",
-        "app": "Marmoraria Marmobraz SaaS",
+        "app": "Marmoraria SaaS",
+        "tenant": tenant_id,
         "database": "sqlite",
-        "db_path": DB_PATH,
         "total_orcamentos": total_orc,
         "timestamp": datetime.now().isoformat()
     }
