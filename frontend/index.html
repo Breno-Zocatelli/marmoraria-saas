@@ -1622,10 +1622,11 @@
     }
 
     // Controle de Prazos & Agenda de Medições / Instalações (Passo 4)
+    const CLIENTES_AGENDA_EXEMPLO = ["Dra. Camila Vasconcelos", "Eng. Ricardo Prado"];
     let agendaCompromissos = [];
     try {
       agendaCompromissos = JSON.parse(localStorage.getItem("marmoraria_agenda")) || [];
-      agendaCompromissos = agendaCompromissos.filter(a => a && a.id && !String(a.id).startsWith("age_179224"));
+      agendaCompromissos = agendaCompromissos.filter(a => a && a.clienteNome && !CLIENTES_AGENDA_EXEMPLO.includes(a.clienteNome.trim()));
       localStorage.setItem("marmoraria_agenda", JSON.stringify(agendaCompromissos));
     } catch(e) {
       agendaCompromissos = [];
@@ -1705,7 +1706,7 @@
         const payload = {
           orcamentos: (orcamentosSalvos || []).filter(o => o && o.id && !String(o.id).startsWith("orc_padrao_")),
           clientes: (clientesCadastrados || []).filter(c => c && c.nome && !CLIENTES_EXEMPLO_LEGADOS.includes(c.nome.trim())),
-          agenda: (agendaCompromissos || []).filter(a => a && a.id && !String(a.id).startsWith("age_179224")),
+          agenda: (agendaCompromissos || []).filter(a => a && a.clienteNome && !CLIENTES_AGENDA_EXEMPLO.includes(a.clienteNome.trim())),
           bancos: (bancosContas || []).filter(b => b && b.id && !listaExcluidos.includes(b.id) && !["banco_itau", "banco_sicoob", "banco_caixa_fisico"].includes(b.id)),
           bancos_excluidos: listaExcluidos,
           catalogos: {
@@ -8626,45 +8627,12 @@
     // MÓDULO PASSO 4: CONTROLE DE PRAZOS & AGENDA DE MEDIÇÃO / INSTALAÇÃO
     // =================================================================
     function inicializarAgendaSeNecessario() {
-      if (!agendaCompromissos || agendaCompromissos.length === 0) {
-        const hoje = new Date();
-        const amanha = new Date(hoje);
-        amanha.setDate(hoje.getDate() + 1);
-        const em3Dias = new Date(hoje);
-        em3Dias.setDate(hoje.getDate() + 3);
-
-        agendaCompromissos = [
-          {
-            id: "age_" + Date.now() + "_1",
-            orcamentoId: "",
-            clienteNome: "Dra. Camila Vasconcelos",
-            clienteFone: "(11) 98765-4321",
-            endereco: "Rua Oscar Freire, 1420 - Apto 82, Jardins",
-            tipo: "medicao",
-            data: amanha.toISOString().split("T")[0],
-            turno: "manha",
-            responsavel: "Marcos (Medidor Chefe)",
-            status: "agendado",
-            observacoes: "Levar gabarito e papelão. Cozinha com ilha gourmet.",
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: "age_" + Date.now() + "_2",
-            orcamentoId: "",
-            clienteNome: "Eng. Ricardo Prado",
-            clienteFone: "(11) 97123-8899",
-            endereco: "Alameda das Sucupiras, 210, Alphaville 2",
-            tipo: "instalacao",
-            data: em3Dias.toISOString().split("T")[0],
-            turno: "tarde",
-            responsavel: "Equipe 01 (Montagem)",
-            status: "agendado",
-            observacoes: "Montagem da bancada de granito São Gabriel. Acesso pela garagem.",
-            createdAt: new Date().toISOString()
-          }
-        ];
-        localStorage.setItem("marmoraria_agenda", JSON.stringify(agendaCompromissos));
+      if (!agendaCompromissos || !Array.isArray(agendaCompromissos)) {
+        agendaCompromissos = [];
       }
+      const NOMES_AGENDA_EXEMPLO = ["Dra. Camila Vasconcelos", "Eng. Ricardo Prado"];
+      agendaCompromissos = agendaCompromissos.filter(a => a && a.clienteNome && !NOMES_AGENDA_EXEMPLO.includes(a.clienteNome.trim()));
+      localStorage.setItem("marmoraria_agenda", JSON.stringify(agendaCompromissos));
     }
 
     function filtrarVisitasAgenda(tipo) {

@@ -829,10 +829,12 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
                 agora
             ))
     
+    SAMPLE_AGENDA_NAMES = {"Dra. Camila Vasconcelos", "Eng. Ricardo Prado"}
     agenda_locais = payload.get("agenda") or []
     for item in agenda_locais:
         a_id = item.get("id")
-        if not a_id or str(a_id).startswith("age_179224"):
+        c_nome = (item.get("clienteNome") or item.get("cliente_nome") or "").strip()
+        if not a_id or c_nome in SAMPLE_AGENDA_NAMES or str(a_id).startswith("age_179224"):
             continue
         cursor.execute("SELECT id FROM agenda WHERE id = ?;", (a_id,))
         if not cursor.fetchone():
