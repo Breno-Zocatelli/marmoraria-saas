@@ -278,20 +278,6 @@ def init_tenant_db_schema(conn, tenant_id: str = "marmobraz", tenant_name: str =
     );
     """)
 
-    # Seed inicial de usuário admin para a marmoraria se estiver vazio
-    cursor.execute("SELECT COUNT(*) as total FROM usuarios;")
-    if cursor.fetchone()["total"] == 0:
-        agora = datetime.now().isoformat()
-        u_id = f"usr_{secrets.token_hex(6)}"
-        clean_slug = re.sub(r'[^a-zA-Z0-9]', '', tenant_id).lower() or 'marmoraria'
-        u_email = f"admin@{clean_slug}.com.br"
-        # Senha padrão inicial para a marmoraria: 123456
-        u_hash = hash_password("123456")
-        cursor.execute("""
-        INSERT INTO usuarios (id, nome, email, senha_hash, cargo, telefone, ativo, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, (u_id, f"Admin {tenant_name}", u_email, u_hash, "Administrador", "", 1, agora, agora))
-
     conn.commit()
 
 initialized_tenants = set()
@@ -1318,38 +1304,15 @@ def create_tenant(payload: TenantCreateRequest, request: Request):
     conn.commit()
     conn.close()
     
-    # Inicializa o banco de dados isolado da nova marmoraria
+    # Inicializa o banco de dados isolado da nova marmoraria vazio (sem usuários)
     tconn = get_db(slug)
-    tcursor = tconn.cursor()
-
-    # Se foram passados dados do usuário admin personalizado
-    admin_email = payload.admin_email or payload.email or f"admin@{slug}.com.br"
-    admin_nome = payload.admin_nome or f"Admin {payload.name}"
-    admin_senha = payload.admin_senha or "123456"
-
-    # Atualiza ou insere o admin inicial configurado
-    tcursor.execute("SELECT id FROM usuarios WHERE email = ?;", (admin_email,))
-    row_user = tcursor.fetchone()
-    u_hash = hash_password(admin_senha)
-    if not row_user:
-        u_id = f"usr_{secrets.token_hex(6)}"
-        tcursor.execute("""
-        INSERT INTO usuarios (id, nome, email, senha_hash, cargo, telefone, ativo, created_at, updated_at)
-        VALUES (?, ?, ?, ?, 'Administrador', ?, 1, ?, ?);
-        """, (u_id, admin_nome, admin_email, u_hash, payload.telefone or "", agora, agora))
-    else:
-        tcursor.execute("""
-        UPDATE usuarios SET nome = ?, senha_hash = ?, telefone = ?, updated_at = ? WHERE id = ?;
-        """, (admin_nome, u_hash, payload.telefone or "", agora, row_user["id"]))
-    tconn.commit()
     tconn.close()
     
     return {
         "status": "created",
         "id": slug,
         "name": payload.name,
-        "url": f"https://{slug}.mnservice.net.br",
-        "admin_email": admin_email
+        "url": f"https://{slug}.mnservice.net.br"
     }
 
 @app.put("/api/admin/tenants/{tenant_id}/status")
