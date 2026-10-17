@@ -762,10 +762,10 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
     conn = get_db()
     cursor = conn.cursor()
     
-    # 1. Sincroniza orçamentos locais se a nuvem estiver sem aquele orçamento
+    # 1. Sincroniza orçamentos locais se a nuvem estiver sem aquele orçamento (ignora orçamentos de exemplo legados)
     for orc in orcamentos_locais:
         orc_id = orc.get("id")
-        if not orc_id:
+        if not orc_id or str(orc_id).startswith("orc_padrao_"):
             continue
         cursor.execute("SELECT id FROM orcamentos WHERE id = ?;", (orc_id,))
         if not cursor.fetchone():
@@ -803,10 +803,12 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
             INSERT INTO catalogos (tipo, dados_json, updated_at) VALUES (?, ?, ?);
             """, (tipo, json.dumps(itens, ensure_ascii=False), datetime.now().isoformat()))
     
-    # 3. Sincroniza clientes CRM locais se a nuvem não possuir
+    # 3. Sincroniza clientes CRM locais se a nuvem não possuir (ignora clientes de exemplo)
+    SAMPLE_CLIENT_NAMES = {"Jéssica Hupp de Souza", "Dr. Marcos Vinícius Resende", "Construtora Alvorada Ltda (Eng. Roberto)"}
     for cli in clientes_locais:
         c_id = cli.get("id")
-        if not c_id:
+        c_nome = (cli.get("nome") or "").strip()
+        if not c_id or c_nome in SAMPLE_CLIENT_NAMES:
             continue
         cursor.execute("SELECT id FROM clientes WHERE id = ?;", (c_id,))
         if not cursor.fetchone():
@@ -816,7 +818,7 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             """, (
                 c_id,
-                cli.get("nome", ""),
+                c_nome,
                 cli.get("fone", ""),
                 cli.get("endereco", ""),
                 cli.get("pontoRef", "") or cli.get("ponto_ref", ""),
@@ -827,35 +829,10 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
                 agora
             ))
     
-    # 4. Auto-seed de clientes a partir de orçamentos existentes caso tabela esteja vazia
-    cursor.execute("SELECT COUNT(*) as total FROM clientes;")
-    if cursor.fetchone()["total"] == 0:
-        cursor.execute("SELECT DISTINCT cliente_nome, cliente_fone, dados_json FROM orcamentos WHERE cliente_nome != '';")
-        for row in cursor.fetchall():
-            c_nome = (row["cliente_nome"] or "").strip()
-            c_fone = (row["cliente_fone"] or "").strip()
-            if not c_nome or c_nome in ["Novo Cliente", "Cliente Sem Nome"]:
-                continue
-            cursor.execute("SELECT id FROM clientes WHERE nome = ?;", (c_nome,))
-            if cursor.fetchone():
-                continue
-            try:
-                d = json.loads(row["dados_json"])
-                end = d.get("clienteEndereco", "")
-                pref = d.get("clientePontoRef", "")
-            except Exception:
-                end, pref = "", ""
-            c_id = f"cli_{abs(hash(c_nome + c_fone))}"
-            agora = datetime.now().isoformat()
-            cursor.execute("""
-            INSERT INTO clientes (id, nome, fone, endereco, ponto_ref, cidade, tipo, observacoes, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            """, (c_id, c_nome, c_fone, end, pref, "", "consumidor", "Importado automaticamente", agora, agora))
-    
     agenda_locais = payload.get("agenda") or []
     for item in agenda_locais:
         a_id = item.get("id")
-        if not a_id:
+        if not a_id or str(a_id).startswith("age_179224"):
             continue
         cursor.execute("SELECT id FROM agenda WHERE id = ?;", (a_id,))
         if not cursor.fetchone():
@@ -887,7 +864,7 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
     bancos_locais = payload.get("bancos") or []
     for b in bancos_locais:
         b_id = b.get("id")
-        if not b_id or b_id in bancos_excluidos:
+        if not b_id or b_id in bancos_excluidos or b_id in ["banco_itau", "banco_sicoob", "banco_caixa_fisico"]:
             continue
         cursor.execute("SELECT id FROM bancos WHERE id = ?;", (b_id,))
         if not cursor.fetchone():

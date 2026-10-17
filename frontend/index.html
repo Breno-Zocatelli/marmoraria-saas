@@ -1611,9 +1611,12 @@
     let nuvemStatus = "offline";
 
     // Base de Clientes Cadastrados (Mini-CRM / Passo 3)
+    const CLIENTES_EXEMPLO_LEGADOS = ["Jéssica Hupp de Souza", "Dr. Marcos Vinícius Resende", "Construtora Alvorada Ltda (Eng. Roberto)"];
     let clientesCadastrados = [];
     try {
       clientesCadastrados = JSON.parse(localStorage.getItem("marmoraria_clientes")) || [];
+      clientesCadastrados = clientesCadastrados.filter(c => c && c.nome && !CLIENTES_EXEMPLO_LEGADOS.includes(c.nome.trim()));
+      localStorage.setItem("marmoraria_clientes", JSON.stringify(clientesCadastrados));
     } catch(e) {
       clientesCadastrados = [];
     }
@@ -1622,6 +1625,8 @@
     let agendaCompromissos = [];
     try {
       agendaCompromissos = JSON.parse(localStorage.getItem("marmoraria_agenda")) || [];
+      agendaCompromissos = agendaCompromissos.filter(a => a && a.id && !String(a.id).startsWith("age_179224"));
+      localStorage.setItem("marmoraria_agenda", JSON.stringify(agendaCompromissos));
     } catch(e) {
       agendaCompromissos = [];
     }
@@ -1698,10 +1703,10 @@
         }
 
         const payload = {
-          orcamentos: orcamentosSalvos || [],
-          clientes: clientesCadastrados || [],
-          agenda: agendaCompromissos || [],
-          bancos: (bancosContas || []).filter(b => !listaExcluidos.includes(b.id)),
+          orcamentos: (orcamentosSalvos || []).filter(o => o && o.id && !String(o.id).startsWith("orc_padrao_")),
+          clientes: (clientesCadastrados || []).filter(c => c && c.nome && !CLIENTES_EXEMPLO_LEGADOS.includes(c.nome.trim())),
+          agenda: (agendaCompromissos || []).filter(a => a && a.id && !String(a.id).startsWith("age_179224")),
+          bancos: (bancosContas || []).filter(b => b && b.id && !listaExcluidos.includes(b.id) && !["banco_itau", "banco_sicoob", "banco_caixa_fisico"].includes(b.id)),
           bancos_excluidos: listaExcluidos,
           catalogos: {
             materiais: MATERIAIS,
@@ -2106,7 +2111,7 @@
     // -----------------------------------------------------------------
     // GESTÃO DE MÚLTIPLOS ORÇAMENTOS, DASHBOARD & VISÕES DO SISTEMA
     // -----------------------------------------------------------------
-    let orcamentoAtualId = "orc_padrao_01";
+    let orcamentoAtualId = null;
     let filtroStatusAtivo = "todos";
     let filtroPainelAtivo = "em_aberto";
     let filtroEtapaFabricaAtivo = "todos";
@@ -2142,178 +2147,6 @@
 
     // Inicialização e correção automática de orçamentos (evita valores zerados R$ 0,00)
     function corrigirTotaisOrcamentosSalvos() {
-      const orcamentosIniciaisRicos = [
-        {
-          id: "orc_padrao_01",
-          numero: "ORC-2024-001",
-          status: "em_aberto",
-          dataCriacao: new Date().toLocaleDateString('pt-BR'),
-          validadeDias: 15,
-          vendedor: "Carlos - Vendas",
-          clienteNome: "Jéssica Hupp de Souza",
-          clienteFone: "(27) 99862-2076",
-          clienteEndereco: "Av. Presidente Garrastazu Médice, 837 - BNH, Linhares-ES",
-          clientePontoRef: "Próximo à pracinha do BNH",
-          tipoEntrega: "entregar",
-          observacoes: "Entrega e instalação inclusas. Pagamento: 50% de entrada e restante na conclusão.",
-          entrada: 0,
-          parcelas: 3,
-          itens: [
-            {
-              id: 1,
-              descricao: "Peitoris de Janela",
-              materialId: "prime",
-              precoM2: 600.0,
-              qtd: 2,
-              comp: 0.805,
-              larg: 0.150,
-              rb: 0.0,
-              tipoAcabamentoId: "bisote",
-              regraAcab: "peitoril_2",
-              precoMetroLinear: 10.0,
-              cubaId: "nenhuma",
-              cubaNome: "Sem Cuba",
-              cuba: 0.0
-            },
-            {
-              id: 2,
-              descricao: "Pia de Cozinha com Cuba",
-              materialId: "verde",
-              precoM2: 270.0,
-              qtd: 1,
-              comp: 1.92,
-              larg: 0.62,
-              rb: 0.889,
-              configRbDesc: "RB 20cm (2 Lados) + Saia 10cm",
-              tipoAcabamentoId: "45_graus",
-              regraAcab: "pia_2",
-              precoMetroLinear: 80.0,
-              cubaId: "inox_n2",
-              cubaNome: "Cuba Inox Tramontina Nº 2 (40x34cm)",
-              cuba: 180.0
-            },
-            {
-              id: 3,
-              descricao: "Soleiras de Porta",
-              materialId: "arabesco",
-              precoM2: 220.0,
-              qtd: 4,
-              comp: 1.05,
-              larg: 0.14,
-              rb: 0.0,
-              tipoAcabamentoId: "soleira_peitoril",
-              regraAcab: "peitoril_2",
-              precoMetroLinear: 8.0,
-              cubaId: "nenhuma",
-              cubaNome: "Sem Cuba",
-              cuba: 0.0
-            }
-          ]
-        },
-        {
-          id: "orc_padrao_02",
-          numero: "ORC-2024-002",
-          status: "em_producao",
-          dataCriacao: new Date().toLocaleDateString('pt-BR'),
-          validadeDias: 20,
-          vendedor: "Carlos - Vendas",
-          clienteNome: "Dr. Marcos Vinícius Resende",
-          clienteFone: "(27) 99741-3320",
-          clienteEndereco: "Rua das Palmeiras, 142 - Alphaville, Linhares-ES",
-          clientePontoRef: "Lote 14 Quadra B",
-          tipoEntrega: "entregar",
-          observacoes: "Bancada de banheiro fino acabamento 45 graus com cuba esculpida e rampa oculta.",
-          entrada: 1200,
-          parcelas: 4,
-          itens: [
-            {
-              id: 101,
-              descricao: "Bancada Suíte Master c/ Cuba Esculpida",
-              materialId: "prime",
-              precoM2: 600.0,
-              qtd: 1,
-              comp: 1.60,
-              larg: 0.55,
-              rb: 0.450,
-              configRbDesc: "Saia 15cm + Rodabanca 15cm",
-              tipoAcabamentoId: "45_graus",
-              regraAcab: "pia_3",
-              precoMetroLinear: 80.0,
-              cubaId: "esculpida_rampa",
-              cubaNome: "Cuba Esculpida c/ Rampa Oculta",
-              cuba: 480.0
-            },
-            {
-              id: 102,
-              descricao: "Nicho de Banheiro 60x35cm",
-              materialId: "prime",
-              precoM2: 600.0,
-              qtd: 1,
-              comp: 0.60,
-              larg: 0.35,
-              rb: 0.200,
-              configRbDesc: "Moldura 45 graus",
-              tipoAcabamentoId: "45_graus",
-              regraAcab: "peitoril_4",
-              precoMetroLinear: 80.0,
-              cubaId: "nenhuma",
-              cubaNome: "Sem Cuba",
-              cuba: 0.0
-            }
-          ]
-        },
-        {
-          id: "orc_padrao_03",
-          numero: "ORC-2024-003",
-          status: "aprovado",
-          dataCriacao: new Date().toLocaleDateString('pt-BR'),
-          validadeDias: 30,
-          vendedor: "Carlos - Vendas",
-          clienteNome: "Construtora Alvorada Ltda (Eng. Roberto)",
-          clienteFone: "(27) 3371-5500",
-          clienteEndereco: "Av. Comendador Rafael, 450 - Centro, Linhares-ES",
-          clientePontoRef: "Obra Residencial Jardins",
-          tipoEntrega: "buscar",
-          observacoes: "Lote de soleiras e peitoris para 12 apartamentos tipo. Retirada pelo caminhão da construtora.",
-          entrada: 2000,
-          parcelas: 2,
-          itens: [
-            {
-              id: 201,
-              descricao: "Soleiras de Porta de Entrada",
-              materialId: "sao_gabriel",
-              precoM2: 380.0,
-              qtd: 12,
-              comp: 0.90,
-              larg: 0.15,
-              rb: 0.0,
-              tipoAcabamentoId: "meio_boleado",
-              regraAcab: "peitoril_2",
-              precoMetroLinear: 25.0,
-              cubaId: "nenhuma",
-              cubaNome: "Sem Cuba",
-              cuba: 0.0
-            },
-            {
-              id: 202,
-              descricao: "Peitoris de Sacada",
-              materialId: "sao_gabriel",
-              precoM2: 380.0,
-              qtd: 6,
-              comp: 1.50,
-              larg: 0.20,
-              rb: 0.0,
-              tipoAcabamentoId: "boleado",
-              regraAcab: "peitoril_3",
-              precoMetroLinear: 20.0,
-              cubaId: "nenhuma",
-              cubaNome: "Sem Cuba",
-              cuba: 0.0
-            }
-          ]
-        }
-      ];
-
       try {
         const salvo = localStorage.getItem("marmoraria_orcamentos_salvos");
         if (salvo) {
@@ -2326,6 +2159,9 @@
       if (!orcamentosSalvos || !Array.isArray(orcamentosSalvos)) {
         orcamentosSalvos = [];
       }
+
+      // Purga orçamentos de exemplo legados (orc_padrao_*)
+      orcamentosSalvos = orcamentosSalvos.filter(o => o && o.id && !String(o.id).startsWith("orc_padrao_"));
 
       // Calcula e garante totais de todos os orçamentos
       orcamentosSalvos.forEach(o => {
