@@ -113,12 +113,12 @@
     
     <!-- Topo da Sidebar: Logotipo & Toggle -->
     <div class="p-3.5 border-b border-slate-800/80 flex items-center justify-between gap-2 min-h-[64px] sidebar-logo-container">
-      <div class="flex items-center gap-2.5 overflow-hidden cursor-pointer" onclick="navegarParaAba('painel')">
-        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-base shadow-md shrink-0">
+      <div class="flex items-center gap-2.5 overflow-hidden cursor-pointer flex-1 min-w-0" onclick="navegarParaAba('painel')">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-base shadow-md shrink-0" id="sidebar_logo_icon">
           M
         </div>
-        <div class="sidebar-label whitespace-nowrap overflow-hidden transition-all duration-300">
-          <span id="lbl_empresa_sidebar" class="text-xs font-black tracking-widest uppercase text-white font-mono block leading-tight">MARMOBRAZ</span>
+        <div class="sidebar-label min-w-0 flex-1 transition-all duration-300">
+          <span id="lbl_empresa_sidebar" class="text-xs font-black tracking-tight uppercase text-white block leading-snug break-words" title="MARMOBRAZ">MARMOBRAZ</span>
           <p class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Gestão & Produção</p>
         </div>
       </div>
@@ -312,9 +312,9 @@
 
       <div class="flex items-center gap-2">
         <!-- Badge Usuário Logado -->
-        <div id="badge_usuario_logado" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-200/80 border border-slate-300 text-xs text-slate-800">
-          <span class="w-6 h-6 rounded-lg bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center" id="avatar_usuario_logado">U</span>
-          <span class="font-semibold text-[11px] truncate max-w-[120px]" id="nome_usuario_logado">Usuário</span>
+        <div id="badge_usuario_logado" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-200/80 border border-slate-300 text-xs text-slate-800" title="Usuário Conectado">
+          <span class="w-6 h-6 rounded-lg bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0" id="avatar_usuario_logado">U</span>
+          <span class="font-semibold text-[11px] truncate max-w-[200px]" id="nome_usuario_logado">Usuário</span>
         </div>
 
         <!-- Botão Usuários & Equipe Topbar -->
@@ -11281,8 +11281,14 @@
             body: JSON.stringify({ nome, email, cargo, telefone, senha: senha || null, ativo: 1 })
           });
           if (!res.ok) {
-            const d = await res.json();
-            throw new Error(d.detail || 'Falha ao atualizar colaborador');
+            let erroMsg = 'Falha ao atualizar colaborador';
+            try {
+              const d = await res.json();
+              erroMsg = d.detail || erroMsg;
+            } catch (e) {
+              erroMsg = 'O servidor está temporariamente sem resposta. Aguarde instantes.';
+            }
+            throw new Error(erroMsg);
           }
         } else {
           // Criação
@@ -11292,14 +11298,20 @@
             body: JSON.stringify({ nome, email, cargo, telefone, senha })
           });
           if (!res.ok) {
-            const d = await res.json();
-            throw new Error(d.detail || 'Falha ao criar colaborador');
+            let erroMsg = 'Falha ao criar colaborador';
+            try {
+              const d = await res.json();
+              erroMsg = d.detail || erroMsg;
+            } catch (e) {
+              erroMsg = 'O servidor está temporariamente sem resposta. Aguarde instantes.';
+            }
+            throw new Error(erroMsg);
           }
         }
         fecharFormNovoUsuario();
         await carregarUsuariosTenant();
       } catch (err) {
-        alert('Erro: ' + err.message);
+        alert('Aviso: ' + err.message);
       } finally {
         btn.disabled = false;
         btn.textContent = 'Salvar Colaborador';
@@ -11335,6 +11347,12 @@
         const lblSidebar = document.getElementById('lbl_empresa_sidebar');
         if (lblSidebar) {
           lblSidebar.textContent = info.name.toUpperCase();
+          lblSidebar.title = info.name;
+        }
+
+        const logoIcon = document.getElementById('sidebar_logo_icon');
+        if (logoIcon && info.name) {
+          logoIcon.textContent = info.name.trim().charAt(0).toUpperCase();
         }
 
         const tituloLogin = document.getElementById('login_empresa_titulo');
