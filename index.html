@@ -1478,23 +1478,18 @@
 
       <div class="overflow-x-auto rounded-xl border border-slate-200">
         <table class="w-full text-left text-xs" id="tabela_pecas">
-          <thead class="bg-slate-100/80 text-slate-700 font-semibold border-b border-slate-200">
+          <thead class="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-200 text-xs">
             <tr>
-              <th class="p-3 w-8 text-center">#</th>
-              <th class="p-3 min-w-[160px]">Ambiente / Descrição</th>
-              <th class="p-3 min-w-[150px]">Material (Chapa)</th>
-              <th class="p-3 w-14 text-center">Qtd</th>
-              <th class="p-3 w-20 min-w-[78px] text-right">Comp (m)</th>
-              <th class="p-3 w-20 min-w-[78px] text-right">Larg (m)</th>
-              <th class="p-3 min-w-[150px] text-right text-indigo-700 font-mono" title="Rodabanca / Espelho e Saia em m²">R.B. / Saia (m²)</th>
-              <th class="p-3 w-20 text-right bg-blue-50 text-blue-900 font-bold font-mono">Área m²</th>
-              <th class="p-3 min-w-[165px]">Tipo de Acabamento</th>
-              <th class="p-3 min-w-[155px]">Lados com Acabamento</th>
-              <th class="p-3 w-16 text-right text-slate-500 font-mono">Metros</th>
-              <th class="p-3 w-20 text-right">R$/m</th>
-              <th class="p-3 min-w-[160px] text-right">Modelo / Cuba (R$)</th>
-              <th class="p-3 w-26 text-right bg-emerald-50 text-emerald-900 font-bold font-mono text-sm">Total (R$)</th>
-              <th class="p-3 w-10 text-center no-print"></th>
+              <th class="p-2.5 w-8 text-center">#</th>
+              <th class="p-2.5 min-w-[150px]">Ambiente / Descrição</th>
+              <th class="p-2.5 min-w-[160px]">Material (Chapa)</th>
+              <th class="p-2.5 w-12 text-center">Qtd</th>
+              <th class="p-2.5 w-20 text-right">Comp (m)</th>
+              <th class="p-2.5 w-20 text-right">Larg (m)</th>
+              <th class="p-2.5 w-28 text-right text-indigo-700" title="Rodabanca / Espelho e Saia em m²">R.B. / Saia (m²)</th>
+              <th class="p-2.5 w-20 text-right bg-blue-50/80 text-blue-900 font-bold font-mono">Área m²</th>
+              <th class="p-2.5 w-28 text-right bg-emerald-50/80 text-emerald-900 font-bold font-mono">Total (R$)</th>
+              <th class="p-2.5 w-10 text-center no-print"></th>
             </tr>
           </thead>
           <tbody id="corpo_tabela" class="divide-y divide-slate-100">
@@ -2099,7 +2094,7 @@
       if (!itens || itens.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="12" class="p-8 text-center text-slate-400 bg-slate-50/50">
+            <td colspan="10" class="p-8 text-center text-slate-400 bg-slate-50/50">
               <div class="max-w-xs mx-auto space-y-2">
                 <span class="text-3xl block">📐</span>
                 <p class="text-sm font-semibold text-slate-600">Nenhuma peça adicionada ainda</p>
@@ -2123,84 +2118,130 @@
         const valorAcabamento = metrosLineares * item.precoMetroLinear;
         const totalItem = valorPedra + valorAcabamento + (item.cuba || 0);
 
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-50 transition";
+        // 1. Linha Principal (Medidas e Identificação)
+        const trPrincipal = document.createElement("tr");
+        trPrincipal.className = "hover:bg-slate-50/80 transition border-t border-slate-200/80 bg-white";
 
-        tr.innerHTML = `
-          <td class="p-3 text-slate-400 font-mono text-center">${index + 1}</td>
-          <td class="p-3">
-            <input type="text" value="${item.descricao || ''}" oninput="atualizarItem(${index}, 'descricao', this.value)" class="w-full px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-xs font-medium focus:ring-1 focus:ring-blue-500">
+        trPrincipal.innerHTML = `
+          <td class="p-2.5 text-slate-400 font-mono text-center font-bold text-xs">${index + 1}</td>
+          <td class="p-2.5">
+            <input type="text" value="${item.descricao || ''}" oninput="atualizarItem(${index}, 'descricao', this.value)" placeholder="Ex: Pia Cozinha" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </td>
-          <td class="p-3">
-            <select onchange="atualizarMaterial(${index}, this.value)" class="w-full px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-xs font-medium focus:ring-1 focus:ring-blue-500">
+          <td class="p-2.5">
+            <select onchange="atualizarMaterial(${index}, this.value)" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
               ${MATERIAIS.length > 0 ? MATERIAIS.map(m => `<option value="${m.id}" ${m.id === item.materialId ? "selected" : ""}>${m.nome} (R$ ${m.precoM2.toFixed(2)}/m²)</option>`).join("") : '<option value="">(Nenhum material cadastrado)</option>'}
               <option value="_novo_material_" class="font-bold text-emerald-600 bg-emerald-50">+ Cadastrar Pedra...</option>
             </select>
           </td>
-          <td class="p-3">
-            <input type="number" min="1" step="1" value="${item.qtd !== undefined ? item.qtd : 1}" oninput="atualizarItem(${index}, 'qtd', this.value)" class="w-full text-center px-1.5 py-1 rounded-lg border border-slate-200 bg-white text-xs font-mono">
+          <td class="p-2.5">
+            <input type="number" min="1" step="1" value="${item.qtd !== undefined ? item.qtd : 1}" oninput="atualizarItem(${index}, 'qtd', this.value)" class="w-full text-center px-1.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </td>
-          <td class="p-3">
-            <input type="number" step="0.001" value="${item.comp !== undefined ? item.comp : ''}" oninput="atualizarItem(${index}, 'comp', this.value)" class="w-full min-w-[72px] text-right px-2 py-1 rounded-lg border border-slate-200 bg-white text-xs font-mono font-medium focus:ring-1 focus:ring-blue-500">
+          <td class="p-2.5">
+            <input type="number" step="0.001" value="${item.comp !== undefined ? item.comp : ''}" oninput="atualizarItem(${index}, 'comp', this.value)" placeholder="Comp" class="w-full min-w-[65px] text-right px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-mono font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </td>
-          <td class="p-3">
-            <input type="number" step="0.001" value="${item.larg !== undefined ? item.larg : ''}" oninput="atualizarItem(${index}, 'larg', this.value)" class="w-full min-w-[72px] text-right px-2 py-1 rounded-lg border border-slate-200 bg-white text-xs font-mono font-medium focus:ring-1 focus:ring-blue-500">
+          <td class="p-2.5">
+            <input type="number" step="0.001" value="${item.larg !== undefined ? item.larg : ''}" oninput="atualizarItem(${index}, 'larg', this.value)" placeholder="Larg" class="w-full min-w-[65px] text-right px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-mono font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </td>
-          <td class="p-3">
-            <div class="flex items-center gap-1.5 justify-end">
-              <input type="number" step="0.001" value="${item.rb !== undefined ? item.rb : 0}" oninput="atualizarItem(${index}, 'rb', this.value)" title="Valor manual ou calculado em m²" class="w-16 min-w-[62px] text-right px-1.5 py-1 rounded-lg border border-slate-200 bg-white text-xs font-mono text-indigo-700 font-semibold focus:ring-1 focus:ring-blue-500">
-              <button type="button" onclick="abrirModalRb(${index})" title="Configurar Altura e Lados da Rodabanca e Saia" class="px-2 py-1 text-[11px] font-bold rounded-lg ${item.rb > 0 ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} transition flex items-center gap-1">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                Auto
+          <td class="p-2.5">
+            <div class="flex items-center gap-1 justify-end">
+              <input type="number" step="0.001" value="${item.rb !== undefined ? item.rb : 0}" oninput="atualizarItem(${index}, 'rb', this.value)" title="Valor manual ou calculado em m²" class="w-16 min-w-[55px] text-right px-1.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-mono text-indigo-700 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <button type="button" onclick="abrirModalRb(${index})" title="Configurar Altura e Lados da Rodabanca e Saia" class="px-2 py-1.5 text-[11px] font-bold rounded-lg ${item.rb > 0 ? 'bg-indigo-600 text-white shadow-2xs hover:bg-indigo-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'} transition flex items-center gap-1 cursor-pointer">
+                <span>⚙️</span> Auto
               </button>
             </div>
-            ${item.configRbDesc ? `<div class="text-[10px] text-indigo-600 font-medium text-right mt-0.5 truncate max-w-[155px]" title="${item.configRbDesc}">${item.configRbDesc}</div>` : ''}
           </td>
-          <td id="area_peca_${index}" class="p-3 text-right font-mono font-bold bg-blue-50 text-blue-700">
+          <td id="area_peca_${index}" class="p-2.5 text-right font-mono font-black bg-blue-50/80 text-blue-900 text-xs">
             ${areaPeca.toFixed(3)}
           </td>
-          <td class="p-3">
-            <select onchange="atualizarTipoAcabamento(${index}, this.value)" class="w-full px-2 py-1 rounded-lg border border-slate-200 bg-white text-xs font-medium focus:ring-1 focus:ring-indigo-500">
-              ${TIPOS_ACABAMENTO.map(a => `<option value="${a.id}" ${a.id === item.tipoAcabamentoId ? 'selected' : ''}>${a.nome} (R$ ${a.precoM.toFixed(2)}/m)</option>`).join('')}
-              <option value="_novo_" class="font-bold text-indigo-600 bg-indigo-50">+ Cadastrar Novo Tipo...</option>
-            </select>
-          </td>
-          <td class="p-3">
-            <select onchange="atualizarRegraLados(${index}, this.value)" class="w-full px-2 py-1 rounded-lg border border-slate-200 bg-white text-xs focus:ring-1 focus:ring-blue-500 font-medium">
-              ${REGRAS_LADOS.map(r => `<option value="${r.id}" ${r.id === item.regraAcab ? 'selected' : ''}>${r.nome}</option>`).join('')}
-              <option value="_nova_regra_" class="font-bold text-blue-600 bg-blue-50">+ Cadastrar Nova Regra...</option>
-            </select>
-          </td>
-          <td id="metros_lineares_${index}" class="p-3 text-right font-mono text-slate-500">
-            ${metrosLineares.toFixed(2)}m
-          </td>
-          <td class="p-3">
-            <input type="number" step="0.5" id="preco_linear_${index}" value="${item.precoMetroLinear}" oninput="atualizarItem(${index}, 'precoMetroLinear', this.value)" title="Preço do metro linear da peça" class="w-full text-right px-1.5 py-1 rounded-lg border border-slate-200 bg-white text-xs font-mono font-medium">
-          </td>
-          <td class="p-3">
-            <div class="flex flex-col gap-1 min-w-[155px]">
-              <select onchange="atualizarModeloCuba(${index}, this.value)" class="w-full px-2 py-1 rounded-lg border border-slate-200 bg-white text-[11px] font-medium focus:ring-1 focus:ring-blue-500">
-                ${CUBAS.length > 0 ? CUBAS.map(c => `<option value="${c.id}" ${c.id === (item.cubaId || (item.cuba > 0 ? '' : 'nenhuma')) ? 'selected' : ''}>${c.nome}${c.preco > 0 ? ` (R$ ${c.preco.toFixed(2)})` : ''}</option>`).join('') : '<option value="nenhuma">Sem Cuba (R$ 0,00)</option>'}
-                <option value="_nova_cuba_" class="font-bold text-blue-600 bg-blue-50">+ Cadastrar Cuba...</option>
-              </select>
-              <div class="flex items-center gap-1.5 justify-end">
-                <span class="text-[10px] text-slate-400 font-mono">R$</span>
-                <input type="number" step="10" id="cuba_preco_${index}" value="${item.cuba !== undefined ? item.cuba : 0}" oninput="atualizarItem(${index}, 'cuba', this.value)" title="Valor ajustável da cuba/serviço" class="w-20 text-right px-1.5 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-mono font-medium focus:ring-1 focus:ring-blue-500">
-              </div>
-            </div>
-          </td>
-          <td id="total_item_${index}" class="p-3 text-right font-mono font-bold bg-emerald-50 text-emerald-700">
+          <td id="total_item_${index}" class="p-2.5 text-right font-mono font-black bg-emerald-50/80 text-emerald-900 text-sm whitespace-nowrap">
             R$ ${totalItem.toFixed(2)}
           </td>
-          <td class="p-3 text-center no-print">
-            <button onclick="removerItem(${index})" title="Excluir peça" class="text-rose-400 hover:text-rose-600 font-bold p-1 rounded-md hover:bg-rose-50 transition">✕</button>
+          <td class="p-2.5 text-center no-print whitespace-nowrap">
+            <div class="flex items-center justify-center gap-1">
+              <button type="button" onclick="duplicarItem(${index})" title="Duplicar esta peça" class="text-slate-400 hover:text-slate-700 font-bold p-1 rounded-md hover:bg-slate-100 transition cursor-pointer">
+                📋
+              </button>
+              <button type="button" onclick="removerItem(${index})" title="Excluir peça" class="text-rose-400 hover:text-rose-600 font-bold p-1 rounded-md hover:bg-rose-50 transition cursor-pointer">
+                ✕
+              </button>
+            </div>
           </td>
         `;
 
-        tbody.appendChild(tr);
+        // 2. Linha Secundária (Acabamentos e Cubas integrados)
+        const trDetalhes = document.createElement("tr");
+        trDetalhes.className = "bg-slate-50/80 border-b border-slate-200/90 hover:bg-slate-100/50 transition";
+
+        trDetalhes.innerHTML = `
+          <td class="py-1.5 px-2.5 text-center text-slate-300 font-mono text-[11px] select-none">↳</td>
+          <td colspan="9" class="py-1.5 px-2.5">
+            <div class="flex flex-wrap items-center gap-2.5 text-xs">
+              
+              <!-- Bloco Acabamento Linear -->
+              <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs">
+                <span class="text-indigo-600 font-bold text-[11px] flex items-center gap-1 shrink-0">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  Acabamento:
+                </span>
+                <select onchange="atualizarTipoAcabamento(${index}, this.value)" class="px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[190px]" title="Tipo de acabamento">
+                  ${TIPOS_ACABAMENTO.map(a => `<option value="${a.id}" ${a.id === item.tipoAcabamentoId ? 'selected' : ''}>${a.nome} (R$ ${a.precoM.toFixed(2)}/m)</option>`).join('')}
+                  <option value="_novo_" class="font-bold text-indigo-600 bg-indigo-50">+ Cadastrar Tipo...</option>
+                </select>
+                <span class="text-slate-400 text-[11px] font-medium">• Lados:</span>
+                <select onchange="atualizarRegraLados(${index}, this.value)" class="px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[180px]" title="Regra de lados">
+                  ${REGRAS_LADOS.map(r => `<option value="${r.id}" ${r.id === item.regraAcab ? 'selected' : ''}>${r.nome}</option>`).join('')}
+                  <option value="_nova_regra_" class="font-bold text-blue-600 bg-blue-50">+ Cadastrar Regra...</option>
+                </select>
+                <div class="flex items-center gap-1 text-[11px] pl-1 font-mono">
+                  <span class="text-slate-400">R$/m:</span>
+                  <input type="number" step="0.5" id="preco_linear_${index}" value="${item.precoMetroLinear}" oninput="atualizarItem(${index}, 'precoMetroLinear', this.value)" title="Preço unitário do metro linear" class="w-16 text-right px-1.5 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-mono font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                  <span class="text-slate-400 font-mono pl-1">=</span>
+                  <span id="metros_lineares_${index}" class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold font-mono text-xs">
+                    ${metrosLineares.toFixed(2)}m
+                  </span>
+                </div>
+              </div>
+
+              <!-- Bloco Cuba / Acessório -->
+              <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs">
+                <span class="text-blue-600 font-bold text-[11px] flex items-center gap-1 shrink-0">
+                  <span class="text-sm">🚰</span> Cuba:
+                </span>
+                <select onchange="atualizarModeloCuba(${index}, this.value)" class="px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[200px]" title="Modelo da cuba ou acessório">
+                  ${CUBAS.length > 0 ? CUBAS.map(c => `<option value="${c.id}" ${c.id === (item.cubaId || (item.cuba > 0 ? '' : 'nenhuma')) ? 'selected' : ''}>${c.nome}${c.preco > 0 ? ` (R$ ${c.preco.toFixed(2)})` : ''}</option>`).join('') : '<option value="nenhuma">Sem Cuba (R$ 0,00)</option>'}
+                  <option value="_nova_cuba_" class="font-bold text-blue-600 bg-blue-50">+ Cadastrar Cuba...</option>
+                </select>
+                <div class="flex items-center gap-1 text-[11px] pl-1 font-mono">
+                  <span class="text-slate-400">R$:</span>
+                  <input type="number" step="10" id="cuba_preco_${index}" value="${item.cuba !== undefined ? item.cuba : 0}" oninput="atualizarItem(${index}, 'cuba', this.value)" title="Valor ajustável da cuba/serviço" class="w-20 text-right px-1.5 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-mono font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                </div>
+              </div>
+
+              <!-- Detalhes de Rodabanca/Saia configurada -->
+              ${item.configRbDesc ? `
+                <div class="flex items-center gap-1 text-[10px] text-indigo-700 bg-indigo-50/80 px-2 py-1 rounded-lg border border-indigo-200/60 font-medium" title="${item.configRbDesc}">
+                  <span>📐</span> <span class="truncate max-w-[200px]">${item.configRbDesc}</span>
+                </div>
+              ` : ''}
+
+            </div>
+          </td>
+        `;
+
+        tbody.appendChild(trPrincipal);
+        tbody.appendChild(trDetalhes);
       });
 
       calcularTotais();
+    }
+
+    function duplicarItem(index) {
+      if (!itens || !itens[index]) return;
+      const itemCopia = JSON.parse(JSON.stringify(itens[index]));
+      itemCopia.descricao = (itemCopia.descricao ? itemCopia.descricao + " (Cópia)" : "Peça (Cópia)");
+      itens.splice(index + 1, 0, itemCopia);
+      renderTabela();
+      mostrarToast("Peça duplicada com sucesso!", "📋");
     }
 
     function parseValorNumerico(val) {
