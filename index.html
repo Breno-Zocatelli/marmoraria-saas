@@ -5077,16 +5077,52 @@
       document.getElementById("rec_avulsa_categoria").value = "retalhos";
       document.getElementById("rec_avulsa_valor").value = "";
       document.getElementById("rec_avulsa_data").value = new Date().toISOString().split("T")[0];
-      document.getElementById("rec_avulsa_forma").value = "pix";
 
       const selBancoRec = document.getElementById("rec_avulsa_banco");
       if (selBancoRec) {
         selBancoRec.value = obterBancoPadrao() ? obterBancoPadrao().id : "";
       }
+      atualizarFormasReceitaAvulsaPorBanco();
 
       document.getElementById("rec_avulsa_obs").value = "";
 
       document.getElementById("modal_receita_avulsa").classList.remove("hidden");
+    }
+
+    function atualizarFormasReceitaAvulsaPorBanco() {
+      const selBanco = document.getElementById("rec_avulsa_banco");
+      const selForma = document.getElementById("rec_avulsa_forma");
+      if (!selBanco || !selForma) return;
+
+      const bancoId = selBanco.value;
+      const banco = (bancosContas || []).find(b => b.id === bancoId);
+      const valorAtual = selForma.value;
+
+      if (banco && banco.tipo === "carteira_fisica") {
+        selForma.innerHTML = `
+          <option value="dinheiro">Dinheiro em Espécie</option>
+          <option value="cheque">Cheque</option>
+        `;
+        if (valorAtual === "dinheiro" || valorAtual === "cheque") {
+          selForma.value = valorAtual;
+        } else {
+          selForma.value = "dinheiro";
+        }
+      } else {
+        selForma.innerHTML = `
+          <option value="pix">PIX Instantâneo</option>
+          <option value="cartao_debito">Cartão de Débito</option>
+          <option value="cartao_credito">Cartão de Crédito</option>
+          <option value="transferencia">Transferência / TED</option>
+          <option value="boleto">Boleto Bancário</option>
+          <option value="cheque">Cheque</option>
+        `;
+        if (["pix", "cartao_debito", "cartao_credito", "transferencia", "boleto", "cheque"].includes(valorAtual)) {
+          selForma.value = valorAtual;
+        } else {
+          selForma.value = "pix";
+        }
+      }
     }
 
     function fecharModalReceitaAvulsa() {
@@ -5405,11 +5441,11 @@
         inputDescPerc.value = percAtual > 0 ? percAtual : "";
       }
 
-      document.getElementById("pag_modal_forma").value = "pix";
       const selBancoPag = document.getElementById("pag_modal_banco");
       if (selBancoPag) {
         selBancoPag.value = (obterBancoPadrao() ? obterBancoPadrao().id : "");
       }
+      atualizarFormasPagamentoPorBanco();
       document.getElementById("pag_modal_obs").value = "";
 
       // Define a seleção inicial do tipo de pagamento APENAS ao abrir o modal
@@ -5430,6 +5466,44 @@
       recalcularValoresBaixaComDesconto();
 
       document.getElementById("modal_registrar_pagamento").classList.remove("hidden");
+    }
+
+    function atualizarFormasPagamentoPorBanco() {
+      const selBanco = document.getElementById("pag_modal_banco");
+      const selForma = document.getElementById("pag_modal_forma");
+      if (!selBanco || !selForma) return;
+
+      const bancoId = selBanco.value;
+      const banco = (bancosContas || []).find(b => b.id === bancoId);
+      const valorAtual = selForma.value;
+
+      if (banco && banco.tipo === "carteira_fisica") {
+        // Caixa Empresa (Gaveta / Espécie): apenas Dinheiro em Espécie ou Cheque
+        selForma.innerHTML = `
+          <option value="dinheiro">Dinheiro em Espécie</option>
+          <option value="cheque">Cheque</option>
+        `;
+        if (valorAtual === "dinheiro" || valorAtual === "cheque") {
+          selForma.value = valorAtual;
+        } else {
+          selForma.value = "dinheiro";
+        }
+      } else {
+        // Conta Bancária Comercial: PIX, Cartão de Crédito, Cartão de Débito, Transferência/TED, Boleto, Cheque
+        selForma.innerHTML = `
+          <option value="pix">PIX Instantâneo</option>
+          <option value="cartao_credito">Cartão de Crédito</option>
+          <option value="cartao_debito">Cartão de Débito</option>
+          <option value="transferencia">Transferência Bancária / TED</option>
+          <option value="boleto">Boleto Bancário</option>
+          <option value="cheque">Cheque</option>
+        `;
+        if (["pix", "cartao_credito", "cartao_debito", "transferencia", "boleto", "cheque"].includes(valorAtual)) {
+          selForma.value = valorAtual;
+        } else {
+          selForma.value = "pix";
+        }
+      }
     }
 
     function marcarTipoPagamentoManual() {
@@ -10864,7 +10938,7 @@
               <span>🏦</span>
               <span>Conta Bancária / Destino *</span>
             </label>
-            <select id="pag_modal_banco" required class="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs">
+            <select id="pag_modal_banco" required onchange="atualizarFormasPagamentoPorBanco()" class="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs">
               <!-- Populado dinamicamente por popularSelectsBancos() -->
             </select>
           </div>
@@ -11129,7 +11203,7 @@
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">Conta Bancária / Destino *</label>
-            <select id="rec_avulsa_banco" required class="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <select id="rec_avulsa_banco" required onchange="atualizarFormasReceitaAvulsaPorBanco()" class="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
               <!-- Populado dinamicamente por popularSelectsBancos() -->
             </select>
           </div>
