@@ -251,9 +251,9 @@
         </div>
       </div>
 
-      <!-- Seção 2: PRODUÇÃO & OFICINA -->
+      <!-- Seção 2: PRODUÇÃO & LOGÍSTICA -->
       <div>
-        <span class="sidebar-label text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2.5 block mb-1">Produção</span>
+        <span class="sidebar-label text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2.5 block mb-1">Produção & Logística</span>
         <div class="space-y-1">
           <!-- Fábrica / Fila de Corte -->
           <button id="btn_nav_fabrica" onclick="navegarParaAba('fabrica')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-semibold group cursor-pointer sidebar-item-container" title="Fila de Corte da Fábrica">
@@ -262,6 +262,15 @@
               <span class="sidebar-label truncate">Fila da Fábrica</span>
             </div>
             <span id="badge_nav_qtd_fabrica" class="sidebar-badge px-1.5 py-0.5 text-[10px] font-mono rounded-full bg-amber-500/20 text-amber-300 font-bold shrink-0">0</span>
+          </button>
+
+          <!-- Entregas & Expedição (Novo!) -->
+          <button id="btn_nav_entregas" onclick="navegarParaAba('entregas')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-semibold group cursor-pointer sidebar-item-container" title="Controle de Entregas e Expedição de Pedidos">
+            <div class="flex items-center gap-2.5 truncate">
+              <span class="text-sm shrink-0">🚚</span>
+              <span class="sidebar-label truncate">Entregas & Expedição</span>
+            </div>
+            <span id="badge_nav_qtd_entregas" class="sidebar-badge px-1.5 py-0.5 text-[10px] font-mono rounded-full bg-blue-500/20 text-blue-300 font-bold shrink-0">0</span>
           </button>
 
           <!-- Calculadora de Peças -->
@@ -744,6 +753,135 @@
       <!-- Lista de Pedidos na Linha da Fábrica -->
       <div id="container_view_fila_fabrica" class="space-y-6 md:space-y-8">
         <!-- Rendered dynamically by renderizarFilaFabricaView() -->
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- VISÃO: ENTREGAS & EXPEDIÇÃO (LOGÍSTICA)                      -->
+    <!-- ============================================================ -->
+    <div id="view_entregas" class="space-y-6 hidden">
+
+      <!-- Cabeçalho & Ações da Logística -->
+      <div class="bloco-cinza p-5 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-blue-600/20">
+            🚚
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">Entregas & Expedição de Materiais</h2>
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200">Logística</span>
+            </div>
+            <p class="text-xs text-slate-600 font-medium">Controle de entregas na obra e retiradas no balcão, com radar visual de quitação e saldos pendentes.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 self-start sm:self-auto">
+          <button onclick="navegarParaAba('fabrica')" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition shadow-2xs flex items-center gap-1.5 cursor-pointer" title="Ver fila de corte na fábrica">
+            <span>🏭</span>
+            <span>Ver Fila da Fábrica</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 KPIs da Expedição e Entregas -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- KPI 1: Pendentes de Entrega -->
+        <div class="bloco-cinza p-5 rounded-2xl shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700">🚚 Entregas Pendentes</span>
+            <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">⏳</span>
+          </div>
+          <div class="text-2xl font-black text-slate-900 font-mono mt-2" id="kpi_entregas_qtd_pendente">0</div>
+          <div class="text-[11px] text-slate-600 font-medium mt-1" id="kpi_entregas_sub_pendente">0.00 m² aguardando saída</div>
+        </div>
+
+        <!-- KPI 2: Saldo Pendente a Receber nas Entregas -->
+        <div class="bloco-cinza p-5 rounded-2xl shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-rose-700">⚠️ A Receber nas Entregas</span>
+            <span class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-sm">💰</span>
+          </div>
+          <div class="text-2xl font-black text-rose-700 font-mono mt-2" id="kpi_entregas_valor_a_receber">R$ 0,00</div>
+          <div class="text-[11px] text-slate-600 font-medium mt-1" id="kpi_entregas_sub_a_receber">0 pedido(s) com saldo pendente</div>
+        </div>
+
+        <!-- KPI 3: Entregas 100% Quitadas (Liberadas) -->
+        <div class="bloco-cinza p-5 rounded-2xl shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">🟢 100% Quitado / Liberado</span>
+            <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">✓</span>
+          </div>
+          <div class="text-2xl font-black text-emerald-700 font-mono mt-2" id="kpi_entregas_qtd_quitadas">0</div>
+          <div class="text-[11px] text-slate-600 font-medium mt-1" id="kpi_entregas_sub_quitadas">Sem saldo a cobrar na entrega</div>
+        </div>
+
+        <!-- KPI 4: Entregas Realizadas -->
+        <div class="bloco-cinza p-5 rounded-2xl shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-blue-700">✅ Entregas Realizadas</span>
+            <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">📦</span>
+          </div>
+          <div class="text-2xl font-black text-blue-900 font-mono mt-2" id="kpi_entregas_qtd_realizadas">0</div>
+          <div class="text-[11px] text-slate-600 font-medium mt-1" id="kpi_entregas_sub_realizadas">Histórico de saídas concluídas</div>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros e Busca de Entregas -->
+      <div class="bloco-cinza p-4 rounded-2xl shadow-sm space-y-3">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <!-- Campo de Busca -->
+          <div class="relative flex-1">
+            <input type="text" id="filtro_entregas_busca" oninput="filtrarEntregasView()" placeholder="Buscar por cliente, nº do pedido, telefone, endereço da obra ou recebedor..." class="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </div>
+
+          <!-- Filtro de Status de Entrega (Pills Primárias) -->
+          <div class="flex items-center gap-1 overflow-x-auto p-1 bg-slate-200/80 rounded-xl text-xs font-semibold text-slate-700 shrink-0">
+            <button onclick="setFiltroStatusEntrega('pendente')" id="pill_entrega_pendente" class="px-3.5 py-1.5 rounded-lg bg-white text-blue-700 shadow-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+              <span>🚚 Pendentes de Entrega</span>
+              <span id="cont_pill_entrega_pendente" class="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 font-mono text-[10px] font-bold">0</span>
+            </button>
+            <button onclick="setFiltroStatusEntrega('realizada')" id="pill_entrega_realizada" class="px-3.5 py-1.5 rounded-lg hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer text-slate-600">
+              <span>✅ Entregas Realizadas</span>
+              <span id="cont_pill_entrega_realizada" class="px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-900 font-mono text-[10px] font-bold">0</span>
+            </button>
+            <button onclick="setFiltroStatusEntrega('todos')" id="pill_entrega_todos" class="px-3 py-1.5 rounded-lg hover:text-slate-900 transition cursor-pointer text-slate-600">
+              <span>📋 Todas as Entregas</span>
+              <span id="cont_pill_entrega_todos" class="px-1.5 py-0.2 rounded-full bg-slate-300 text-slate-800 font-mono text-[10px] font-bold">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtros Secundários: Financeiro e Modalidade -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-300 text-xs">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="font-bold text-slate-600 text-[11px] uppercase tracking-wider">Filtrar Situação Financeira:</span>
+            <button onclick="setFiltroFinanceiroEntrega('todos')" id="pill_fin_entrega_todos" class="px-2.5 py-1 rounded-lg bg-slate-800 text-white font-bold text-xs cursor-pointer">Todas</button>
+            <button onclick="setFiltroFinanceiroEntrega('saldo_pendente')" id="pill_fin_entrega_saldo" class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 text-rose-700 hover:bg-rose-50 font-semibold text-xs cursor-pointer">⚠️ Com Saldo a Receber</button>
+            <button onclick="setFiltroFinanceiroEntrega('quitado')" id="pill_fin_entrega_quitado" class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 text-emerald-700 hover:bg-emerald-50 font-semibold text-xs cursor-pointer">🟢 100% Quitado</button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-slate-600 text-[11px] uppercase tracking-wider">Modalidade:</span>
+            <select id="filtro_entrega_modalidade" onchange="filtrarEntregasView()" class="px-2.5 py-1 text-xs rounded-lg border border-slate-300 bg-white font-semibold text-slate-700 focus:ring-1 focus:ring-blue-500">
+              <option value="todos">Todas (Entrega + Balcão)</option>
+              <option value="entregar">🚚 Apenas Entregas na Obra</option>
+              <option value="buscar">🏪 Apenas Retiradas no Balcão</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+          <span id="entregas_contador_exibicao">Exibindo entregas pendentes</span>
+          <span class="text-[11px] text-slate-500">Dica: clique em <b>🚚 Baixa na Entrega</b> quando as peças forem entregues ou retiradas pelo cliente</span>
+        </div>
+      </div>
+
+      <!-- Lista de Cartões de Entregas -->
+      <div id="container_view_entregas" class="space-y-6 md:space-y-8">
+        <!-- Renderizado dinamicamente por renderizarEntregasView() -->
       </div>
 
     </div>
@@ -1842,6 +1980,12 @@
           renderizarPainelHomeOrcamentos();
           renderizarFilaFabricaView();
           renderizarAgendaView();
+          if (typeof renderizarEntregasView === "function") {
+            const vEntregas = document.getElementById("view_entregas");
+            if (vEntregas && !vEntregas.classList.contains("hidden")) {
+              renderizarEntregasView();
+            }
+          }
           renderTabela();
 
           if (manual) {
@@ -2288,6 +2432,7 @@
       const viewAgenda = document.getElementById("view_agenda");
       const viewClientes = document.getElementById("view_clientes");
       const viewFabrica = document.getElementById("view_fila_fabrica");
+      const viewEntregas = document.getElementById("view_entregas");
       const viewFinanceiro = document.getElementById("view_financeiro");
       const viewCancelados = document.getElementById("view_cancelados");
       const viewCalc = document.getElementById("view_calculadora");
@@ -2296,6 +2441,7 @@
       const btnNavAgenda = document.getElementById("btn_nav_agenda");
       const btnNavClientes = document.getElementById("btn_nav_clientes");
       const btnNavFabrica = document.getElementById("btn_nav_fabrica");
+      const btnNavEntregas = document.getElementById("btn_nav_entregas");
       const btnNavFinanceiro = document.getElementById("btn_nav_financeiro");
       const btnNavCancelados = document.getElementById("btn_nav_cancelados");
       const btnNavCalc = document.getElementById("btn_nav_calculadora");
@@ -2304,6 +2450,7 @@
       if (viewAgenda) viewAgenda.classList.add("hidden");
       if (viewClientes) viewClientes.classList.add("hidden");
       if (viewFabrica) viewFabrica.classList.add("hidden");
+      if (viewEntregas) viewEntregas.classList.add("hidden");
       if (viewFinanceiro) viewFinanceiro.classList.add("hidden");
       if (viewCancelados) viewCancelados.classList.add("hidden");
       if (viewCalc) viewCalc.classList.add("hidden");
@@ -2313,6 +2460,7 @@
       if (btnNavAgenda) btnNavAgenda.className = inativoClass;
       if (btnNavClientes) btnNavClientes.className = inativoClass;
       if (btnNavFabrica) btnNavFabrica.className = inativoClass;
+      if (btnNavEntregas) btnNavEntregas.className = inativoClass;
       if (btnNavFinanceiro) btnNavFinanceiro.className = inativoClass;
       if (btnNavCancelados) btnNavCancelados.className = inativoClass;
       if (btnNavCalc) btnNavCalc.className = inativoClass;
@@ -2365,6 +2513,13 @@
         if (topbarTitle) topbarTitle.innerText = "Fila de Produção da Fábrica";
         if (topbarSub) topbarSub.innerText = "Ordens de corte, acabamento e conclusão de pedidos";
         renderizarFilaFabricaView();
+      } else if (aba === "entregas") {
+        if (viewEntregas) viewEntregas.classList.remove("hidden");
+        if (btnNavEntregas) btnNavEntregas.className = "w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-blue-600 text-white font-bold transition shadow-xs group cursor-pointer sidebar-item-container";
+        if (topbarIcon) topbarIcon.innerText = "🚚";
+        if (topbarTitle) topbarTitle.innerText = "Entregas & Expedição";
+        if (topbarSub) topbarSub.innerText = "Controle de entregas pendentes e realizadas com status de recebimento";
+        renderizarEntregasView();
       } else if (aba === "cancelados") {
         if (viewCancelados) viewCancelados.classList.remove("hidden");
         if (btnNavCancelados) btnNavCancelados.className = "w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-rose-600 text-white font-black transition shadow-xs group cursor-pointer sidebar-item-container";
@@ -2459,6 +2614,11 @@
 
       const badgeNavFab = document.getElementById("badge_nav_qtd_fabrica");
       if (badgeNavFab) badgeNavFab.innerText = qtdFabrica;
+
+      const todosConf = (orcamentosSalvos || []).filter(o => o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido");
+      const totalEntregasPendentes = todosConf.filter(o => o.statusEntrega !== "entregue" && o.statusEntrega !== "realizada").length;
+      const badgeNavEntregas = document.getElementById("badge_nav_qtd_entregas");
+      if (badgeNavEntregas) badgeNavEntregas.innerText = totalEntregasPendentes;
 
       const qtdCancelados = (orcamentosSalvos || []).filter(o => o.status === "cancelado" || o.status === "recusado").length;
       const badgeNavCanc = document.getElementById("badge_nav_qtd_cancelados");
@@ -3043,6 +3203,522 @@
         renderizarFilaFabricaView();
         renderizarPainelHomeOrcamentos();
         mostrarToast(`Status do orçamento ${orc.numero} atualizado!`, "🏭");
+      }
+    }
+
+    // =================================================================
+    // MÓDULO DE ENTREGAS & EXPEDIÇÃO (LOGÍSTICA)
+    // =================================================================
+    let filtroStatusEntregaAtivo = "pendente"; // "pendente", "realizada", "todos"
+    let filtroFinEntregaAtivo = "todos"; // "todos", "saldo_pendente", "quitado"
+
+    function setFiltroStatusEntrega(status) {
+      filtroStatusEntregaAtivo = status;
+      const pillPendente = document.getElementById("pill_entrega_pendente");
+      const pillRealizada = document.getElementById("pill_entrega_realizada");
+      const pillTodos = document.getElementById("pill_entrega_todos");
+
+      const ativoClass = "px-3.5 py-1.5 rounded-lg bg-white text-blue-700 shadow-xs font-bold transition flex items-center gap-1.5 cursor-pointer";
+      const inativoClass = "px-3.5 py-1.5 rounded-lg hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer text-slate-600";
+
+      if (pillPendente) pillPendente.className = (status === "pendente") ? ativoClass : inativoClass;
+      if (pillRealizada) pillRealizada.className = (status === "realizada") ? ativoClass : inativoClass;
+      if (pillTodos) pillTodos.className = (status === "todos") ? ativoClass : inativoClass;
+
+      renderizarEntregasView();
+    }
+
+    function setFiltroFinanceiroEntrega(statusFin) {
+      filtroFinEntregaAtivo = statusFin;
+      const ids = [
+        { chave: "todos", id: "pill_fin_entrega_todos" },
+        { chave: "saldo_pendente", id: "pill_fin_entrega_saldo" },
+        { chave: "quitado", id: "pill_fin_entrega_quitado" }
+      ];
+
+      ids.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el) {
+          if (item.chave === statusFin) {
+            el.className = "px-2.5 py-1 rounded-lg bg-slate-800 text-white font-bold text-xs cursor-pointer shadow-2xs";
+          } else {
+            el.className = "px-2.5 py-1 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold text-xs cursor-pointer";
+          }
+        }
+      });
+
+      renderizarEntregasView();
+    }
+
+    function filtrarEntregasView() {
+      renderizarEntregasView();
+    }
+
+    function renderizarEntregasView() {
+      const container = document.getElementById("container_view_entregas");
+      if (!container) return;
+
+      const inputBusca = document.getElementById("filtro_entregas_busca");
+      const termo = inputBusca ? inputBusca.value.trim().toLowerCase() : "";
+      const selectMod = document.getElementById("filtro_entrega_modalidade");
+      const filtroMod = selectMod ? selectMod.value : "todos";
+
+      // Considera todos os orçamentos confirmados na fábrica/venda
+      const todosConfirmados = (orcamentosSalvos || []).filter(o => 
+        o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido"
+      );
+
+      // Totalizadores de KPIs
+      let totalPendentes = 0;
+      let m2Pendentes = 0;
+      let totalRealizadas = 0;
+      let m2Realizadas = 0;
+      let saldoPendenteReceber = 0;
+      let qtdComSaldo = 0;
+      let qtd100Quitadas = 0;
+
+      todosConfirmados.forEach(o => {
+        const isRealizada = (o.statusEntrega === "entregue" || o.statusEntrega === "realizada");
+        const t = (o.totalVista !== undefined && o.m2Total !== undefined) ? o : calcularTotaisOrcamento(o);
+        const m2 = (t.m2Total || 0);
+        const stFin = calcularStatusFinanceiro(o);
+
+        if (isRealizada) {
+          totalRealizadas++;
+          m2Realizadas += m2;
+        } else {
+          totalPendentes++;
+          m2Pendentes += m2;
+          if (stFin.saldoDevedor > 0.01) {
+            saldoPendenteReceber += stFin.saldoDevedor;
+            qtdComSaldo++;
+          } else {
+            qtd100Quitadas++;
+          }
+        }
+      });
+
+      // Atualiza KPIs da tela
+      const elQtdPend = document.getElementById("kpi_entregas_qtd_pendente");
+      if (elQtdPend) elQtdPend.innerText = totalPendentes;
+      const elSubPend = document.getElementById("kpi_entregas_sub_pendente");
+      if (elSubPend) elSubPend.innerText = `${m2Pendentes.toFixed(2)} m² aguardando saída`;
+
+      const elValRec = document.getElementById("kpi_entregas_valor_a_receber");
+      if (elValRec) elValRec.innerText = `R$ ${saldoPendenteReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const elSubRec = document.getElementById("kpi_entregas_sub_a_receber");
+      if (elSubRec) elSubRec.innerText = `${qtdComSaldo} pedido(s) c/ saldo a receber`;
+
+      const elQtdQuit = document.getElementById("kpi_entregas_qtd_quitadas");
+      if (elQtdQuit) elQtdQuit.innerText = qtd100Quitadas;
+      const elSubQuit = document.getElementById("kpi_entregas_sub_quitadas");
+      if (elSubQuit) elSubQuit.innerText = `${qtd100Quitadas} pedido(s) 100% quitados`;
+
+      const elQtdReal = document.getElementById("kpi_entregas_qtd_realizadas");
+      if (elQtdReal) elQtdReal.innerText = totalRealizadas;
+      const elSubReal = document.getElementById("kpi_entregas_sub_realizadas");
+      if (elSubReal) elSubReal.innerText = `${m2Realizadas.toFixed(2)} m² entregues no total`;
+
+      // Atualiza contadores dos pills
+      const pillContPend = document.getElementById("cont_pill_entrega_pendente");
+      if (pillContPend) pillContPend.innerText = totalPendentes;
+      const pillContReal = document.getElementById("cont_pill_entrega_realizada");
+      if (pillContReal) pillContReal.innerText = totalRealizadas;
+      const pillContTodos = document.getElementById("cont_pill_entrega_todos");
+      if (pillContTodos) pillContTodos.innerText = todosConfirmados.length;
+
+      // Atualiza badge da barra lateral
+      const badgeSidebar = document.getElementById("badge_nav_qtd_entregas");
+      if (badgeSidebar) badgeSidebar.innerText = totalPendentes;
+
+      // Filtragem da lista a exibir
+      const filtrados = todosConfirmados.filter(o => {
+        const isRealizada = (o.statusEntrega === "entregue" || o.statusEntrega === "realizada");
+        
+        // Filtro de status de entrega
+        let matchStatus = true;
+        if (filtroStatusEntregaAtivo === "pendente") matchStatus = !isRealizada;
+        else if (filtroStatusEntregaAtivo === "realizada") matchStatus = isRealizada;
+
+        // Filtro de situação financeira
+        let matchFinanceiro = true;
+        const stFin = calcularStatusFinanceiro(o);
+        if (filtroFinEntregaAtivo === "saldo_pendente") matchFinanceiro = (stFin.saldoDevedor > 0.01);
+        else if (filtroFinEntregaAtivo === "quitado") matchFinanceiro = (stFin.saldoDevedor <= 0.01);
+
+        // Filtro de modalidade
+        let matchMod = true;
+        if (filtroMod === "entregar") matchMod = (o.tipoEntrega !== "buscar");
+        else if (filtroMod === "buscar") matchMod = (o.tipoEntrega === "buscar");
+
+        // Filtro de busca por texto
+        let matchBusca = true;
+        if (termo) {
+          const num = (o.numero || "").toLowerCase();
+          const cliente = (o.clienteNome || "").toLowerCase();
+          const fone = (o.clienteFone || "").toLowerCase();
+          const end = (o.clienteEndereco || "").toLowerCase();
+          const recebedor = (o.recebedorEntrega || "").toLowerCase();
+          const motorista = (o.responsavelEntrega || "").toLowerCase();
+          const obs = (o.obsEntrega || "").toLowerCase();
+          const itens = (o.itens || []).some(it => (it.descricao || "").toLowerCase().includes(termo) || (it.material || "").toLowerCase().includes(termo));
+          matchBusca = num.includes(termo) || cliente.includes(termo) || fone.includes(termo) || end.includes(termo) || recebedor.includes(termo) || motorista.includes(termo) || obs.includes(termo) || itens;
+        }
+
+        return matchStatus && matchFinanceiro && matchMod && matchBusca;
+      });
+
+      const contadorEl = document.getElementById("entregas_contador_exibicao");
+      if (contadorEl) {
+        const txtStatus = (filtroStatusEntregaAtivo === "pendente") ? "pendente(s)" : (filtroStatusEntregaAtivo === "realizada" ? "realizada(s)" : "no total");
+        contadorEl.innerText = `Exibindo ${filtrados.length} de ${todosConfirmados.length} entrega(s) ${txtStatus}`;
+      }
+
+      container.innerHTML = "";
+
+      if (filtrados.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400 space-y-2">
+            <span class="text-4xl block mb-2">🚚</span>
+            <p class="text-sm font-bold text-slate-700">Nenhuma entrega encontrada para os filtros selecionados.</p>
+            <p class="text-xs text-slate-400">Todos os pedidos confirmados na fábrica com status pendente ou realizado aparecem aqui.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Ordena: pendentes com previsão mais antiga primeiro, realizadas mais recentes primeiro
+      filtrados.sort((a, b) => {
+        const aRealizada = (a.statusEntrega === "entregue" || a.statusEntrega === "realizada");
+        const bRealizada = (b.statusEntrega === "entregue" || b.statusEntrega === "realizada");
+        if (aRealizada !== bRealizada) return aRealizada ? 1 : -1;
+        if (!aRealizada) {
+          const dtA = a.dataEntregaPrevista || "9999-99-99";
+          const dtB = b.dataEntregaPrevista || "9999-99-99";
+          return dtA.localeCompare(dtB);
+        }
+        return (b.dataEntregaRealizada || "").localeCompare(a.dataEntregaRealizada || "");
+      });
+
+      const hojeISO = new Date().toISOString().split("T")[0];
+
+      filtrados.forEach(o => {
+        const isRealizada = (o.statusEntrega === "entregue" || o.statusEntrega === "realizada");
+        const t = (o.totalVista !== undefined && o.m2Total !== undefined) ? o : calcularTotaisOrcamento(o);
+        const m2 = (t.m2Total || 0);
+        const stFin = calcularStatusFinanceiro(o);
+        const mod = obterModalidadeLogistica(o.tipoEntrega);
+        const isRetirada = (o.tipoEntrega === "buscar" || mod.tipo === "retirada");
+
+        // Alerta de atraso na previsão
+        const isAtrasada = (!isRealizada && o.dataEntregaPrevista && o.dataEntregaPrevista < hojeISO);
+
+        // Status na fábrica
+        const isProntoFabrica = (o.status === "concluido");
+
+        // Monta a faixa de situação financeira em destaque
+        let bannerFinanceiroHtml = "";
+        if (stFin.saldoDevedor <= 0.01) {
+          bannerFinanceiroHtml = `
+            <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-emerald-200 text-emerald-900 font-black text-xs flex items-center justify-center shrink-0">✓</span>
+                <div>
+                  <span class="font-extrabold uppercase tracking-wide text-emerald-950">100% Quitado</span>
+                  <span class="text-emerald-800 font-medium ml-2">• Total: <b>R$ ${stFin.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</b> — Nenhuma pendência financeira a receber na entrega.</span>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[11px] self-start sm:self-auto shadow-xs">
+                🟢 Liberado Sem Cobrança
+              </span>
+            </div>
+          `;
+        } else {
+          bannerFinanceiroHtml = `
+            <div class="p-3.5 rounded-xl bg-rose-50 border-2 border-rose-300 text-rose-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-xs">
+              <div class="flex items-start sm:items-center gap-2.5">
+                <span class="w-7 h-7 rounded-lg bg-rose-200 text-rose-900 font-black text-sm flex items-center justify-center shrink-0">⚠️</span>
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-black uppercase tracking-wide text-rose-950 text-xs">Pendente de Recebimento: Saldo de R$ ${stFin.saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span class="px-2 py-0.5 rounded-full bg-rose-200 text-rose-900 font-bold text-[10px] font-mono">Restam ${100 - stFin.percPago}%</span>
+                  </div>
+                  <p class="text-[11px] text-rose-800 font-medium mt-0.5">
+                    Valor Fechado: <b>R$ ${stFin.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</b> • Já recebido: <b>R$ ${stFin.totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</b> (${stFin.percPago}%)
+                  </p>
+                </div>
+              </div>
+              <button onclick="abrirModalRegistrarPagamento('${o.id}')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer" title="Registrar recebimento de pagamento para este pedido">
+                <span>💵</span> <span>Receber Saldo</span>
+              </button>
+            </div>
+          `;
+        }
+
+        // Tabela de peças detalhadas
+        const linhasPecas = (o.itens || []).map((it, idx) => `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100 text-xs">
+            <td class="py-2 px-3 font-mono font-bold text-slate-500">${idx + 1}</td>
+            <td class="py-2 px-3 font-bold text-slate-900">${it.descricao || 'Peça sem nome'}</td>
+            <td class="py-2 px-3 font-medium text-slate-700">${it.material || 'Padrão'}</td>
+            <td class="py-2 px-3 text-center font-bold text-blue-900 font-mono">${it.qtd || 1}</td>
+            <td class="py-2 px-3 font-mono text-slate-700 font-semibold">${it.comprimento || 0} x ${it.largura || 0} cm</td>
+            <td class="py-2 px-3 font-mono text-slate-600">${parseFloat(it.m2 || 0).toFixed(2)} m²</td>
+            <td class="py-2 px-3 text-slate-600 text-[11px]">${it.tipoAcabamento || 'Simples'}</td>
+          </tr>
+        `).join('');
+
+        const card = document.createElement("div");
+        card.className = isRealizada 
+          ? "bg-white rounded-2xl border-2 border-emerald-300 ring-4 ring-emerald-500/10 border-l-[8px] border-l-emerald-500 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+          : "bg-white rounded-2xl border-2 border-blue-200 border-l-[8px] border-l-blue-600 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden";
+
+        card.innerHTML = `
+          <!-- Header do Card de Entrega -->
+          <div class="${isRealizada ? 'bg-emerald-50/70 border-emerald-200' : 'bg-slate-50/80 border-slate-200'} px-5 py-3.5 border-b flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2.5">
+              <span class="px-3 py-1 rounded-lg ${isRealizada ? 'bg-emerald-900' : 'bg-blue-900'} text-white font-mono font-black text-xs tracking-wider shadow-xs">
+                ${o.numero || 'ORC'}
+              </span>
+              ${obterBadgeLogistica(o.tipoEntrega)}
+              <h4 class="font-black text-slate-900 text-base tracking-tight">${o.clienteNome || 'Cliente Não Informado'}</h4>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              ${isRealizada ? `
+                <span class="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-300 font-black text-xs flex items-center gap-1.5 shadow-2xs">
+                  <span>✅</span> <span>ENTREGA REALIZADA</span>
+                </span>
+                <button onclick="reabrirEntregaPendente('${o.id}')" class="px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition shadow-2xs flex items-center gap-1 cursor-pointer" title="Reverter entrega e voltar para pendentes">
+                  <span>↩️</span> <span>Reverter</span>
+                </button>
+              ` : `
+                <span class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-950 border border-amber-300 font-black text-xs flex items-center gap-1.5 shadow-2xs">
+                  <span>⏳</span> <span>PENDENTE DE ENTREGA</span>
+                </span>
+                <button onclick="abrirModalBaixaEntrega('${o.id}')" class="px-4 py-2 text-xs font-black rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer">
+                  <span>🚚</span> <span>Baixa na Entrega</span>
+                </button>
+              `}
+              <button onclick="abrirFichaProducaoPorId('${o.id}')" class="px-3 py-2 text-xs font-black rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 transition flex items-center gap-1.5 shadow-xs cursor-pointer" title="Ver romaneio e ordem de conferência">
+                <span>🖨️</span> <span>Romaneio</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Corpo do Card -->
+          <div class="p-5 space-y-4">
+            
+            <!-- Faixa de Situação Financeira em Destaque -->
+            ${bannerFinanceiroHtml}
+
+            <!-- Informações de Entrega, Obra, Contato e Oficina -->
+            <div class="text-xs text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div>
+                <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Local / Destino da Obra:</span>
+                <div class="font-bold text-slate-900 flex items-start gap-1">
+                  <span>📍</span>
+                  <div>
+                    <span>${o.clienteEndereco || 'Retirada na marmoraria'}</span>
+                    ${o.clienteEndereco ? `
+                      <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.clienteEndereco)}" target="_blank" class="block text-[10px] text-blue-600 hover:underline font-bold mt-0.5">Abrir no GPS / Maps ↗</a>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Contato do Cliente:</span>
+                <div class="font-bold text-slate-900 flex items-center gap-1">
+                  <span>📞</span>
+                  <span>${o.clienteFone || 'Não informado'}</span>
+                  ${o.clienteFone ? `
+                    <a href="https://wa.me/55${o.clienteFone.replace(/\D/g, '')}" target="_blank" class="ml-1.5 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold hover:bg-emerald-200">WhatsApp</a>
+                  ` : ''}
+                </div>
+              </div>
+
+              <div>
+                <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Data Prevista:</span>
+                <div class="font-bold ${isAtrasada ? 'text-rose-700' : 'text-slate-900'} flex items-center gap-1">
+                  <span>📅</span>
+                  <span>${o.dataEntregaPrevista ? o.dataEntregaPrevista.split('-').reverse().join('/') : 'A combinar'}</span>
+                  ${isAtrasada ? '<span class="px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 text-[10px] font-bold">Atrasada</span>' : ''}
+                </div>
+              </div>
+
+              <div>
+                <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Status na Fábrica:</span>
+                <div class="flex items-center gap-1.5">
+                  ${isProntoFabrica ? `
+                    <span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-[11px]">
+                      ✅ Concluído na Fábrica
+                    </span>
+                  ` : `
+                    <span class="px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-bold text-[11px]">
+                      ⚙️ Em Corte na Fábrica
+                    </span>
+                  `}
+                  <span class="text-[11px] font-mono font-bold text-slate-500">${m2.toFixed(2)} m²</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dados da Entrega Realizada (se aplicável) -->
+            ${isRealizada ? `
+              <div class="p-3.5 rounded-xl bg-emerald-50/90 border border-emerald-300 text-xs text-emerald-950 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <span>📦 <b>Entrega Concluída em:</b> ${o.dataEntregaRealizada || 'Recente'}</span>
+                  <span>👤 <b>Recebido por:</b> ${o.recebedorEntrega || 'Cliente'}</span>
+                  <span>🚚 <b>Entregador / Motorista:</b> ${o.responsavelEntrega || 'Marmoraria'}</span>
+                </div>
+                ${o.obsEntrega ? `
+                  <div class="italic bg-white/80 px-3 py-1 rounded-lg border border-emerald-200 text-emerald-900 font-medium">
+                    "${o.obsEntrega}"
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            <!-- Peças da Carga para Conferência Física -->
+            <div class="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+              <div class="bg-slate-100/90 px-3.5 py-2 border-b border-slate-200 flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-700">📦 Peças da Carga para Conferência (${(o.itens || []).length} itens)</span>
+                <span class="text-[11px] text-slate-500 font-mono font-bold">Chapa Total: ${m2.toFixed(2)} m²</span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200">
+                    <tr>
+                      <th class="py-2 px-3">#</th>
+                      <th class="py-2 px-3">Peça</th>
+                      <th class="py-2 px-3">Material</th>
+                      <th class="py-2 px-3 text-center">Qtd</th>
+                      <th class="py-2 px-3">Dimensões</th>
+                      <th class="py-2 px-3">Área</th>
+                      <th class="py-2 px-3">Acabamento</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    ${linhasPecas}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // Modal de Baixa na Entrega
+    function abrirModalBaixaEntrega(id) {
+      const orc = (orcamentosSalvos || []).find(o => o.id === id);
+      if (!orc) return;
+
+      document.getElementById("baixa_entrega_orc_id").value = id;
+      document.getElementById("baixa_entrega_cliente").innerText = orc.clienteNome || 'Cliente Não Informado';
+      document.getElementById("baixa_entrega_endereco").innerText = orc.clienteEndereco || 'Retirada na marmoraria';
+      
+      const mod = obterModalidadeLogistica(orc.tipoEntrega);
+      document.getElementById("baixa_entrega_modalidade").innerText = `${mod.icone || '🚚'} ${mod.nome}`;
+      document.getElementById("baixa_entrega_subtitulo").innerText = `Pedido ${orc.numero || ''} • Confirmação de Saída`;
+
+      // Preenche data/hora atual local
+      const agora = new Date();
+      const offset = agora.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(agora.getTime() - offset)).toISOString().slice(0, 16);
+      document.getElementById("baixa_entrega_data_hora").value = localISOTime;
+
+      document.getElementById("baixa_entrega_recebedor").value = orc.clienteNome || "";
+      document.getElementById("baixa_entrega_responsavel").value = (orc.tipoEntrega === "buscar") ? "Balcão Fábrica" : (orc.vendedor || "Motorista Caminhão");
+      document.getElementById("baixa_entrega_obs").value = "";
+
+      // Alerta financeiro dentro do modal
+      const stFin = calcularStatusFinanceiro(orc);
+      const elAlertaFin = document.getElementById("baixa_entrega_alerta_financeiro");
+      if (elAlertaFin) {
+        if (stFin.saldoDevedor > 0.01) {
+          elAlertaFin.className = "p-3.5 rounded-xl border-2 border-rose-300 bg-rose-50 text-rose-950 text-xs space-y-1.5";
+          elAlertaFin.innerHTML = `
+            <div class="flex items-center gap-2 font-black text-rose-900">
+              <span class="text-base">⚠️</span>
+              <span>ATENÇÃO: ESTE PEDIDO POSSUI SALDO PENDENTE DE RECEBIMENTO!</span>
+            </div>
+            <p class="text-rose-800 font-medium">
+              Resta receber <b>R$ ${stFin.saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</b> de um total de R$ ${stFin.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.
+            </p>
+            <p class="text-[11px] text-rose-700">
+              Certifique-se de cobrar o cliente no ato da entrega ou conferir o comprovante de pagamento antes de descarregar.
+            </p>
+          `;
+        } else {
+          elAlertaFin.className = "p-3.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-950 text-xs";
+          elAlertaFin.innerHTML = `
+            <div class="flex items-center gap-2 font-bold text-emerald-900">
+              <span>🟢</span>
+              <span>PEDIDO 100% QUITADO. Liberado para entrega sem cobrança financeira pendente.</span>
+            </div>
+          `;
+        }
+      }
+
+      document.getElementById("modal_baixa_entrega").classList.remove("hidden");
+    }
+
+    function fecharModalBaixaEntrega() {
+      const modal = document.getElementById("modal_baixa_entrega");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function confirmarBaixaEntrega() {
+      const id = document.getElementById("baixa_entrega_orc_id").value;
+      const orc = (orcamentosSalvos || []).find(o => o.id === id);
+      if (!orc) return;
+
+      const dataHoraInput = document.getElementById("baixa_entrega_data_hora").value;
+      let dataFormatada = "";
+      if (dataHoraInput) {
+        const d = new Date(dataHoraInput);
+        dataFormatada = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      } else {
+        dataFormatada = new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      const recebedor = document.getElementById("baixa_entrega_recebedor").value.trim() || (orc.clienteNome || "Cliente");
+      const responsavel = document.getElementById("baixa_entrega_responsavel").value.trim() || "Marmoraria";
+      const obs = document.getElementById("baixa_entrega_obs").value.trim();
+
+      orc.statusEntrega = "entregue";
+      orc.dataEntregaRealizada = dataFormatada;
+      orc.recebedorEntrega = recebedor;
+      orc.responsavelEntrega = responsavel;
+      orc.obsEntrega = obs;
+
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
+      enviarOrcamentoParaNuvem(orc);
+
+      fecharModalBaixaEntrega();
+      atualizarBadgesHeader();
+      renderizarEntregasView();
+
+      mostrarToast(`Entrega do pedido ${orc.numero} registrada com sucesso! 🚚`, "✅");
+    }
+
+    function reabrirEntregaPendente(id) {
+      const orc = (orcamentosSalvos || []).find(o => o.id === id);
+      if (!orc) return;
+
+      if (confirm(`Deseja reverter o pedido ${orc.numero} para a lista de Entregas Pendentes?`)) {
+        orc.statusEntrega = "pendente";
+        localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
+        enviarOrcamentoParaNuvem(orc);
+
+        atualizarBadgesHeader();
+        renderizarEntregasView();
+        mostrarToast(`Pedido ${orc.numero} retornado para Entregas Pendentes! 🚚`, "↩️");
       }
     }
 
@@ -5759,6 +6435,7 @@
       atualizarKpisFinanceiro();
       renderizarFinanceiroView();
       if (subabaFinanceiroAtiva === "fluxo") renderizarFluxoCaixaView();
+      if (typeof renderizarEntregasView === "function") renderizarEntregasView();
 
       mostrarToast(`Pagamento de R$ ${valor.toFixed(2)} registrado com sucesso!`, "💵");
 
@@ -6074,6 +6751,11 @@
       const totalFabrica = (orcamentosSalvos || []).filter(o => o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido").length;
       const badgeFabrica = document.getElementById("badge_nav_qtd_fabrica");
       if (badgeFabrica) badgeFabrica.innerText = totalFabrica;
+
+      const todosConfGeral = (orcamentosSalvos || []).filter(o => o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido");
+      const totalEntregasPend = todosConfGeral.filter(o => o.statusEntrega !== "entregue" && o.statusEntrega !== "realizada").length;
+      const badgeNavEntregas = document.getElementById("badge_nav_qtd_entregas");
+      if (badgeNavEntregas) badgeNavEntregas.innerText = totalEntregasPend;
 
       const totalCancelados = (orcamentosSalvos || []).filter(o => o.status === "cancelado" || o.status === "recusado").length;
       const badgeNavCanc = document.getElementById("badge_nav_qtd_cancelados");
@@ -10299,6 +10981,79 @@
         </button>
         <button type="button" onclick="confirmarBaixaProducao()" class="px-5 py-2.5 text-xs font-black rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm flex items-center gap-1.5">
           <span>✓</span> Confirmar Conclusão
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE BAIXA NA ENTREGA / CONFIRMAÇÃO DE EXPEDIÇÃO -->
+  <div id="modal_baixa_entrega" class="fixed inset-0 bg-slate-950/85 z-50 hidden overflow-y-auto p-4 flex items-center justify-center no-print">
+    <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-5">
+      
+      <!-- Cabeçalho -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-lg">🚚</span>
+          <div>
+            <h3 class="text-base font-black text-slate-900">Registrar Entrega / Expedição</h3>
+            <p class="text-xs text-slate-500" id="baixa_entrega_subtitulo">Confirmar saída do material para o cliente</p>
+          </div>
+        </div>
+        <button type="button" onclick="fecharModalBaixaEntrega()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer font-bold">✕</button>
+      </div>
+
+      <input type="hidden" id="baixa_entrega_orc_id">
+
+      <!-- Banner de Alerta Financeiro (Dinâmico) -->
+      <div id="baixa_entrega_alerta_financeiro" class="p-3.5 rounded-xl border text-xs">
+        <!-- Preenchido dinamicamente -->
+      </div>
+
+      <!-- Resumo do Pedido -->
+      <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Cliente:</span>
+          <b class="text-slate-900" id="baixa_entrega_cliente">--</b>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Local / Endereço:</span>
+          <b class="text-slate-900 text-right truncate max-w-[280px]" id="baixa_entrega_endereco">--</b>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Modalidade:</span>
+          <b class="text-blue-700" id="baixa_entrega_modalidade">--</b>
+        </div>
+      </div>
+
+      <!-- Formulário de Baixa -->
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Data e Hora da Entrega Realizada *</label>
+          <input type="datetime-local" id="baixa_entrega_data_hora" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Quem Recebeu o Material na Obra / Balcão *</label>
+          <input type="text" id="baixa_entrega_recebedor" placeholder="Ex: O próprio cliente, Mestre João, Engenheiro Carlos..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Motorista / Entregador / Responsável pelo Envio</label>
+          <input type="text" id="baixa_entrega_responsavel" placeholder="Ex: Caminhão 01 - Marcos, Atendente Balcão..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Observações da Entrega / Romaneio</label>
+          <textarea id="baixa_entrega_obs" rows="2" placeholder="Ex: Peças conferidas sem avarias, entregue na garagem..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800"></textarea>
+        </div>
+      </div>
+
+      <!-- Botões de Ação -->
+      <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+        <button type="button" onclick="fecharModalBaixaEntrega()" class="px-4 py-2.5 text-xs font-semibold rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 transition cursor-pointer">Cancelar</button>
+        <button type="button" onclick="confirmarBaixaEntrega()" class="px-5 py-2.5 text-xs font-black rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+          <span>✓</span> Confirmar Entrega Realizada
         </button>
       </div>
 
