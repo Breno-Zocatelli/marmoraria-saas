@@ -5412,13 +5412,34 @@
       }
       document.getElementById("pag_modal_obs").value = "";
 
-      // Recalcula todos os valores e opções com base no desconto (se houver)
-      recalcularValoresBaixaComDesconto(tipoSugerido);
+      // Define a seleção inicial do tipo de pagamento APENAS ao abrir o modal
+      const selectTipo = document.getElementById("pag_modal_tipo");
+      if (selectTipo) {
+        if (tipoSugerido) {
+          selectTipo.value = tipoSugerido;
+        } else if (st.totalPago === 0) {
+          selectTipo.value = "entrada";
+        } else if (st.saldoDevedor > 0) {
+          selectTipo.value = "quitacao";
+        } else {
+          selectTipo.value = "quitacao";
+        }
+      }
+
+      // Recalcula todos os valores e opções com base no desconto (se houver), preservando a opção escolhida
+      recalcularValoresBaixaComDesconto();
 
       document.getElementById("modal_registrar_pagamento").classList.remove("hidden");
     }
 
-    function recalcularValoresBaixaComDesconto(tipoSugerido = null) {
+    function marcarTipoPagamentoManual() {
+      const selectTipo = document.getElementById("pag_modal_tipo");
+      if (selectTipo && selectTipo.value !== "outro") {
+        selectTipo.value = "outro";
+      }
+    }
+
+    function recalcularValoresBaixaComDesconto(forcarTipo = null) {
       if (!idOrcamentoPagamento) return;
       const orc = (orcamentosSalvos || []).find(o => o.id === idOrcamentoPagamento);
       if (!orc) return;
@@ -5450,7 +5471,7 @@
       if (elTotalDesc) elTotalDesc.innerText = `R$ ${totalComDesconto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       if (elJaPago) elJaPago.innerText = `R$ ${totalJaPago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-      // Atualiza os rótulos do select de tipo
+      // Atualiza os rótulos do select de tipo com os valores calculados
       const selectTipo = document.getElementById("pag_modal_tipo");
       const metadeTotal = Math.round((totalComDesconto * 0.5) * 100) / 100;
       if (selectTipo) {
@@ -5467,16 +5488,11 @@
           optSaldoEntrega.innerText = `Saldo na Entrega • R$ ${saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
 
-        if (tipoSugerido) {
-          selectTipo.value = tipoSugerido;
-        } else if (!selectTipo.value || selectTipo.value === "entrada" || selectTipo.value === "quitacao") {
-          if (totalJaPago === 0) {
-            selectTipo.value = "entrada";
-          } else if (saldoDevedor > 0) {
-            selectTipo.value = "quitacao";
-          } else {
-            selectTipo.value = "outro";
-          }
+        // NÃO altera a seleção do usuário se já estiver definida; apenas força se solicitado explicitamente
+        if (forcarTipo) {
+          selectTipo.value = forcarTipo;
+        } else if (!selectTipo.value) {
+          selectTipo.value = (totalJaPago === 0) ? "entrada" : "quitacao";
         }
       }
 
@@ -10791,7 +10807,7 @@
             </div>
             <div class="relative">
               <span class="absolute left-3 top-2 text-xs font-bold text-slate-400">R$</span>
-              <input type="number" id="pag_modal_valor" required min="0.01" step="0.01" class="w-full pl-9 pr-3 py-2 text-sm font-black font-mono rounded-xl border border-slate-300 text-emerald-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs">
+              <input type="number" id="pag_modal_valor" oninput="marcarTipoPagamentoManual()" required min="0.01" step="0.01" class="w-full pl-9 pr-3 py-2 text-sm font-black font-mono rounded-xl border border-slate-300 text-emerald-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs">
             </div>
           </div>
 
