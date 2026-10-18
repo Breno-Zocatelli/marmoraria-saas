@@ -9,8 +9,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
     }
     .font-mono {
       font-family: 'JetBrains Mono', monospace;
@@ -22,6 +30,26 @@
     }
     input[type=number] {
       -moz-appearance: textfield;
+    }
+
+    /* Otimizações de Desempenho e Eliminação de Pixelamento/Lag */
+    .modal-scroll-otimizado {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      transform: translateZ(0);
+      will-change: scroll-position;
+    }
+    .folha-a4-impressao {
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      contain: layout style;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+    .otimizar-lista {
+      content-visibility: auto;
+      contain-intrinsic-size: 0 100px;
     }
     @media print {
       body {
@@ -104,7 +132,7 @@
 <body class="bg-slate-100/70 text-slate-800 antialiased min-h-screen flex flex-row overflow-x-hidden selection:bg-blue-500 selection:text-white">
 
   <!-- Mobile Backdrop Overlay -->
-  <div id="sidebar_backdrop" onclick="fecharSidebarMobile()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 hidden md:hidden transition-opacity"></div>
+  <div id="sidebar_backdrop" onclick="fecharSidebarMobile()" class="fixed inset-0 bg-slate-900/75 z-40 hidden md:hidden transition-opacity"></div>
 
   <!-- ============================================================ -->
   <!-- SIDEBAR LATERAL RETRÁTIL (MENU ESQUERDO)                     -->
@@ -2391,9 +2419,8 @@
       let m2Fabrica = 0, qtdFabrica = 0;
 
       (orcamentosSalvos || []).forEach(o => {
-        const totais = calcularTotaisOrcamento(o);
-        const valorVista = (o.totalVista && o.totalVista > 0) ? o.totalVista : totais.totalVista;
-        const m2 = (o.m2Total && o.m2Total > 0) ? o.m2Total : totais.m2Total;
+        const valorVista = (o.totalVista && o.totalVista > 0) ? o.totalVista : calcularTotaisOrcamento(o).totalVista;
+        const m2 = (o.m2Total && o.m2Total > 0) ? o.m2Total : calcularTotaisOrcamento(o).m2Total;
 
         if (o.status === "em_aberto") {
           valorAberto += valorVista;
@@ -2508,10 +2535,11 @@
 
         card.className = `bg-white rounded-2xl border-2 ${isAtual ? 'border-blue-400 ring-4 ring-blue-500/10' : 'border-slate-200/90'} shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden ${corLateral}`;
 
-        const totais = calcularTotaisOrcamento(o);
-        const valorVistaNum = (o.totalVista && o.totalVista > 0) ? o.totalVista : totais.totalVista;
-        const valorPrazoNum = (o.totalPrazo && o.totalPrazo > 0) ? o.totalPrazo : totais.totalPrazo;
-        const m2Num = (o.m2Total && o.m2Total > 0) ? o.m2Total : totais.m2Total;
+        const temTotais = o.totalVista && o.totalPrazo && o.m2Total;
+        const totais = temTotais ? null : calcularTotaisOrcamento(o);
+        const valorVistaNum = (o.totalVista && o.totalVista > 0) ? o.totalVista : (totais ? totais.totalVista : 0);
+        const valorPrazoNum = (o.totalPrazo && o.totalPrazo > 0) ? o.totalPrazo : (totais ? totais.totalPrazo : 0);
+        const m2Num = (o.m2Total && o.m2Total > 0) ? o.m2Total : (totais ? totais.m2Total : 0);
 
         const valorVistaStr = `R$ ${valorVistaNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const valorPrazoStr = `R$ ${valorPrazoNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -2699,8 +2727,7 @@
       let totalM2 = 0;
 
       todosConfirmados.forEach(o => {
-        const t = calcularTotaisOrcamento(o);
-        totalM2 += (o.m2Total && o.m2Total > 0) ? o.m2Total : t.m2Total;
+        totalM2 += (o.m2Total && o.m2Total > 0) ? o.m2Total : calcularTotaisOrcamento(o).m2Total;
       });
 
       const elPed = document.getElementById("view_fab_stat_pedidos");
@@ -2769,9 +2796,8 @@
 
         card.className = `bg-white rounded-2xl border-2 ${estiloBordaStatus} shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden`;
 
-        const t = calcularTotaisOrcamento(o);
-        const m2 = (o.m2Total && o.m2Total > 0) ? o.m2Total : t.m2Total;
-        const valorVistaNum = (o.totalVista && o.totalVista > 0) ? o.totalVista : t.totalVista;
+        const m2 = (o.m2Total && o.m2Total > 0) ? o.m2Total : calcularTotaisOrcamento(o).m2Total;
+        const valorVistaNum = (o.totalVista && o.totalVista > 0) ? o.totalVista : calcularTotaisOrcamento(o).totalVista;
         const valorVistaStr = `R$ ${valorVistaNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         const listaAcab = (typeof TIPOS_ACABAMENTO !== 'undefined' ? TIPOS_ACABAMENTO : ACABAMENTOS_PADRAO);
@@ -3224,9 +3250,9 @@
       let contPreco = 0, contObra = 0, contRetorno = 0;
 
       cancelados.forEach(o => {
-        const t = calcularTotaisOrcamento(o);
-        totalValor += (o.totalVista || t.totalVista);
-        totalM2 += (o.m2Total || t.m2Total);
+        const t = (o.totalVista !== undefined && o.m2Total !== undefined) ? o : calcularTotaisOrcamento(o);
+        totalValor += (t.totalVista || 0);
+        totalM2 += (t.m2Total || 0);
         if (o.motivoCancelamento === "preco") contPreco++;
         else if (o.motivoCancelamento === "obra_adiada") contObra++;
         else if (o.motivoCancelamento === "sem_retorno") contRetorno++;
@@ -3284,10 +3310,10 @@
         const card = document.createElement("div");
         card.className = "bg-white rounded-2xl border-2 border-rose-300 ring-4 ring-rose-500/10 border-l-[8px] border-l-rose-500 shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden";
 
-        const t = calcularTotaisOrcamento(o);
-        const valorVistaNum = (o.totalVista || t.totalVista);
+        const t = (o.totalVista !== undefined && o.m2Total !== undefined) ? o : calcularTotaisOrcamento(o);
+        const valorVistaNum = (t.totalVista || 0);
         const valorVistaStr = `R$ ${valorVistaNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        const m2 = (o.m2Total || t.m2Total);
+        const m2 = (t.m2Total || 0);
         const motivoNome = obterNomeMotivoCancelamento(o.motivoCancelamento);
 
         card.innerHTML = `
@@ -6297,9 +6323,9 @@
 
         // Calcula total de peças e totais financeiros garantidos
         const qtdPecas = (o.itens || []).reduce((acc, it) => acc + (it.qtd || 1), 0);
-        const totais = calcularTotaisOrcamento(o);
-        const valorVistaNum = (o.totalVista && o.totalVista > 0) ? o.totalVista : totais.totalVista;
-        const valorPrazoNum = (o.totalPrazo && o.totalPrazo > 0) ? o.totalPrazo : totais.totalPrazo;
+        const totais = (o.totalVista !== undefined && o.totalPrazo !== undefined) ? o : calcularTotaisOrcamento(o);
+        const valorVistaNum = totais.totalVista || 0;
+        const valorPrazoNum = totais.totalPrazo || 0;
         const valorVistaStr = `R$ ${valorVistaNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const valorPrazoStr = `R$ ${valorPrazoNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -9714,7 +9740,7 @@
   </script>
 
   <!-- MODAL DE RODABANCA E SAIA -->
-  <div id="modal_rb" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="modal_rb" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in duration-150">
       
       <!-- Modal Header -->
@@ -9834,7 +9860,7 @@
   </div>
 
   <!-- MODAL DE GERENCIAMENTO DE TIPOS DE ACABAMENTO LINEAR -->
-  <div id="modal_acabamentos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="modal_acabamentos" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in duration-150 max-h-[90vh] flex flex-col">
       
       <!-- Modal Header -->
@@ -9896,7 +9922,7 @@
   </div>
 
   <!-- MODAL DE GERENCIAMENTO DE REGRAS DE LADOS COM ACABAMENTO -->
-  <div id="modal_lados" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="modal_lados" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in duration-150 max-h-[90vh] flex flex-col">
       
       <!-- Modal Header -->
@@ -9986,7 +10012,7 @@
   </div>
 
   <!-- MODAL DE LISTA DE ORÇAMENTOS SALVOS -->
-  <div id="modal_meus_orcamentos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="modal_meus_orcamentos" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-4xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-150 max-h-[90vh] flex flex-col">
       
       <!-- Modal Header -->
@@ -10044,11 +10070,11 @@
   </div>
 
   <!-- MODAL DE VISUALIZAÇÃO DE PROPOSTA COMERCIAL / IMPRESSÃO A4 -->
-  <div id="modal_proposta" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden overflow-y-auto p-4 md:p-8 flex justify-center">
-    <div class="relative w-full max-w-4xl my-auto">
+  <div id="modal_proposta" class="modal-scroll-otimizado fixed inset-0 bg-slate-950/85 z-50 hidden p-4 md:p-8 flex justify-center items-start">
+    <div class="relative w-full max-w-4xl my-4 md:my-8">
       
       <!-- Barra superior do modal (oculta na impressão) -->
-      <div class="flex items-center justify-between bg-slate-900 text-white px-6 py-3.5 rounded-t-2xl shadow-xl no-print">
+      <div class="flex items-center justify-between bg-slate-900 text-white px-6 py-3.5 rounded-t-2xl shadow-lg no-print">
         <div class="flex items-center gap-2.5">
           <span class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm">🖨️</span>
           <div>
@@ -10068,14 +10094,14 @@
       </div>
 
       <!-- Folha A4 formatada -->
-      <div id="folha_proposta_a4" class="folha-a4-impressao bg-white p-8 md:p-12 rounded-b-2xl shadow-2xl border border-slate-200 text-slate-800 space-y-6">
+      <div id="folha_proposta_a4" class="folha-a4-impressao bg-white p-8 md:p-12 rounded-b-2xl shadow-xl border border-slate-300 text-slate-800 space-y-6">
         <!-- Rendered dynamically by prepararPropostaImpressao() -->
       </div>
     </div>
   </div>
 
   <!-- MODAL DA FILA DA FÁBRICA / CONTROLE DE PRODUÇÃO (F ENTREGAR) -->
-  <div id="modal_fila_fabrica" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="modal_fila_fabrica" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-5xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-150 max-h-[90vh] flex flex-col">
       
       <!-- Modal Header -->
@@ -10148,7 +10174,7 @@
   </div>
 
   <!-- MODAL DE REGISTRO DE CANCELAMENTO / RECUSA DO ORÇAMENTO -->
-  <div id="modal_cancelar_orcamento" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden overflow-y-auto p-4 flex items-center justify-center no-print">
+  <div id="modal_cancelar_orcamento" class="fixed inset-0 bg-slate-900/75 z-50 hidden overflow-y-auto p-4 flex items-center justify-center no-print">
     <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-5">
       
       <!-- Cabeçalho -->
@@ -10209,7 +10235,7 @@
   </div>
 
   <!-- MODAL DE BAIXA DE PRODUÇÃO & EXPEDIÇÃO (FÁBRICA) -->
-  <div id="modal_baixa_producao" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden overflow-y-auto p-4 flex items-center justify-center no-print">
+  <div id="modal_baixa_producao" class="fixed inset-0 bg-slate-900/75 z-50 hidden overflow-y-auto p-4 flex items-center justify-center no-print">
     <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-5">
       
       <!-- Cabeçalho -->
@@ -10280,11 +10306,11 @@
   </div>
 
   <!-- MODAL DA FICHA DE PRODUÇÃO / ORDEM DE SERVIÇO A4 (SEM PREÇOS R$) -->
-  <div id="modal_ficha_producao" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden overflow-y-auto p-4 md:p-8 flex justify-center">
-    <div class="relative w-full max-w-4xl my-auto">
+  <div id="modal_ficha_producao" class="modal-scroll-otimizado fixed inset-0 bg-slate-950/85 z-50 hidden p-4 md:p-8 flex justify-center items-start">
+    <div class="relative w-full max-w-4xl my-4 md:my-8">
       
       <!-- Barra superior do modal (oculta na impressão) -->
-      <div class="flex items-center justify-between bg-slate-900 text-white px-6 py-3.5 rounded-t-2xl shadow-xl no-print">
+      <div class="flex items-center justify-between bg-slate-900 text-white px-6 py-3.5 rounded-t-2xl shadow-lg no-print">
         <div class="flex items-center gap-2.5">
           <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">🏭</span>
           <div>
@@ -10304,14 +10330,14 @@
       </div>
 
       <!-- Folha A4 formatada para oficina e entrega -->
-      <div id="folha_ficha_producao_a4" class="folha-a4-impressao bg-white p-8 md:p-12 rounded-b-2xl shadow-2xl border border-slate-200 text-slate-800 space-y-6">
+      <div id="folha_ficha_producao_a4" class="folha-a4-impressao bg-white p-8 md:p-12 rounded-b-2xl shadow-xl border border-slate-300 text-slate-800 space-y-6">
         <!-- Rendered dynamically by prepararFichaProducao() -->
       </div>
     </div>
   </div>
 
   <!-- MODAL DE GERENCIAMENTO DE PEDRAS E CHAPAS (MATERIAIS) -->
-  <div id="modal_materiais" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="modal_materiais" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-150 max-h-[90vh] flex flex-col">
       
       <!-- Modal Header -->
@@ -10388,7 +10414,7 @@
   </div>
 
   <!-- MODAL DE GERENCIAMENTO DE CUBAS E ACESSÓRIOS -->
-  <div id="modal_cubas" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="modal_cubas" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-150 max-h-[90vh] flex flex-col">
       
       <!-- Modal Header -->
@@ -10467,7 +10493,7 @@
   </div>
 
   <!-- MODAL DE GERENCIAMENTO DE MODALIDADES DE LOGÍSTICA -->
-  <div id="modal_logistica" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="modal_logistica" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in duration-150 max-h-[90vh] flex flex-col">
       
       <!-- Modal Header -->
@@ -10554,7 +10580,7 @@
   </div>
 
   <!-- MODAL DE CADASTRO / EDIÇÃO DE CLIENTE (CRM) -->
-  <div id="modal_form_cliente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden overflow-y-auto p-4 flex items-center justify-center no-print">
+  <div id="modal_form_cliente" class="fixed inset-0 bg-slate-900/75 z-50 hidden overflow-y-auto p-4 flex items-center justify-center no-print">
     <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
       
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -10628,7 +10654,7 @@
   </div>
 
   <!-- MODAL DE HISTÓRICO DE ORÇAMENTOS DO CLIENTE -->
-  <div id="modal_historico_cliente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden overflow-y-auto p-4 flex items-center justify-center no-print">
+  <div id="modal_historico_cliente" class="fixed inset-0 bg-slate-900/75 z-50 hidden overflow-y-auto p-4 flex items-center justify-center no-print">
     <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
       
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -10659,7 +10685,7 @@
   </div>
 
   <!-- MODAL DE AGENDAR MEDIÇÃO / INSTALAÇÃO (PASSO 4) -->
-  <div id="modal_agendar_evento" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+  <div id="modal_agendar_evento" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in duration-150 my-auto">
       
       <!-- Cabeçalho -->
@@ -10767,7 +10793,7 @@
   </div>
 
   <!-- MODAL DE REGISTRO DE PAGAMENTO / BAIXA (PASSO 5) -->
-  <div id="modal_registrar_pagamento" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
+  <div id="modal_registrar_pagamento" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
     <div class="bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in duration-150 my-auto">
       
       <!-- Cabeçalho -->
@@ -10970,7 +10996,7 @@
   </div>
 
   <!-- MODAL DE CADASTRO / EDIÇÃO DE CONTA A PAGAR -->
-  <div id="modal_conta_pagar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
+  <div id="modal_conta_pagar" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
     <div class="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 my-auto animate-in fade-in zoom-in duration-150">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2.5">
@@ -11064,7 +11090,7 @@
   </div>
 
   <!-- MODAL DE BAIXA / PAGAMENTO DE CONTA A PAGAR -->
-  <div id="modal_baixa_conta_pagar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
+  <div id="modal_baixa_conta_pagar" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
     <div class="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 my-auto animate-in fade-in zoom-in duration-150">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2.5">
@@ -11144,7 +11170,7 @@
   </div>
 
   <!-- MODAL DE RECEITA AVULSA / ENTRADA DIRETA -->
-  <div id="modal_receita_avulsa" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
+  <div id="modal_receita_avulsa" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
     <div class="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 my-auto animate-in fade-in zoom-in duration-150">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2.5">
@@ -11227,11 +11253,11 @@
   </div>
 
   <!-- MODAL DE RECIBO COMERCIAL A4 TIMBRADO MARMOBRAZ (PASSO 5) -->
-  <div id="modal_recibo_pagamento" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden overflow-y-auto p-4 md:p-8 flex justify-center">
-    <div class="relative w-full max-w-3xl my-auto">
+  <div id="modal_recibo_pagamento" class="modal-scroll-otimizado fixed inset-0 bg-slate-950/85 z-50 hidden p-4 md:p-8 flex justify-center items-start">
+    <div class="relative w-full max-w-3xl my-4 md:my-8">
       
       <!-- Barra superior do modal (oculta na impressão) -->
-      <div class="flex items-center justify-between bg-slate-900 text-white px-6 py-3.5 rounded-t-2xl shadow-xl no-print">
+      <div class="flex items-center justify-between bg-slate-900 text-white px-6 py-3.5 rounded-t-2xl shadow-lg no-print">
         <div class="flex items-center gap-2.5">
           <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">🧾</span>
           <div>
@@ -11254,7 +11280,7 @@
       </div>
 
       <!-- Folha A4 do Recibo -->
-      <div id="folha_recibo_pagamento_a4" class="folha-a4-impressao bg-white p-8 md:p-12 rounded-b-2xl shadow-2xl border border-slate-200 text-slate-800 space-y-6">
+      <div id="folha_recibo_pagamento_a4" class="folha-a4-impressao bg-white p-8 md:p-12 rounded-b-2xl shadow-xl border border-slate-300 text-slate-800 space-y-6">
         <!-- Preenchido dinamicamente por abrirModalReciboPagamento() -->
       </div>
     </div>
@@ -11262,7 +11288,7 @@
   <!-- ============================================================ -->
   <!-- MODAL DE CADASTRO / EDIÇÃO DE CONTA BANCÁRIA (MÓDULO FINANCEIRO) -->
   <!-- ============================================================ -->
-  <div id="modal_banco_conta" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
+  <div id="modal_banco_conta" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
     <div class="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 my-auto animate-in fade-in zoom-in duration-150">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
         <div class="flex items-center gap-2.5">
@@ -11346,7 +11372,7 @@
   <!-- ============================================================ -->
   <!-- MODAL DE GERENCIAMENTO DE BANCOS & CONTAS (LISTA COMPLETA)     -->
   <!-- ============================================================ -->
-  <div id="modal_gerenciar_bancos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
+  <div id="modal_gerenciar_bancos" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
     <div class="bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 my-auto animate-in fade-in zoom-in duration-150">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
         <div class="flex items-center gap-2.5">
@@ -11380,7 +11406,7 @@
   <!-- ============================================================ -->
   <!-- MODAL DE LOGIN DO CLIENTE / MARMORARIA                      -->
   <!-- ============================================================ -->
-  <div id="modal_login_tenant" class="fixed inset-0 bg-slate-950/98 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+  <div id="modal_login_tenant" class="fixed inset-0 bg-slate-950/98 z-[9999] flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 text-center animate-in fade-in duration-200">
       <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/25 text-2xl font-black text-white" id="login_logo_box">
         M
@@ -11413,7 +11439,7 @@
   <!-- ============================================================ -->
   <!-- MODAL GERENCIAR USUÁRIOS & EQUIPE                            -->
   <!-- ============================================================ -->
-  <div id="modal_gerenciar_usuarios" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9990] flex items-center justify-center p-3 sm:p-4 hidden">
+  <div id="modal_gerenciar_usuarios" class="fixed inset-0 bg-black/85 z-[9990] flex items-center justify-center p-3 sm:p-4 hidden">
     <div class="bg-white rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl space-y-4 text-left border border-slate-200 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-200">
         <div class="flex items-center gap-3">
