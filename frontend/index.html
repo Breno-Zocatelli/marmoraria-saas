@@ -133,6 +133,15 @@
         page-break-before: avoid !important;
         break-before: avoid !important;
       }
+      .folha-a4-impressao table {
+        width: 100% !important;
+        table-layout: fixed !important;
+      }
+      .folha-a4-impressao th,
+      .folha-a4-impressao td {
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+      }
       table {
         page-break-inside: auto !important;
         break-inside: auto !important;
@@ -7580,34 +7589,38 @@
 
           <!-- Tabela de Movimentações -->
           <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
-            <table class="w-full text-left">
+            <table class="w-full text-left table-fixed">
               <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                 <tr>
-                  <th class="py-2 px-2.5 w-20">Data</th>
-                  <th class="py-2 px-2.5">Doc / Ref</th>
-                  <th class="py-2 px-2.5">Cliente / Fornecedor</th>
-                  <th class="py-2 px-2.5">Descrição</th>
-                  <th class="py-2 px-2.5">Categoria</th>
-                  <th class="py-2 px-2.5">Banco / Conta</th>
-                  <th class="py-2 px-2.5">Forma</th>
-                  <th class="py-2 px-2.5 text-right w-28">Valor</th>
+                  <th class="py-2 px-2 w-[11%]">Data</th>
+                  <th class="py-2 px-2 w-[13%]">Doc / Ref</th>
+                  <th class="py-2 px-2 w-[22%]">Cliente / Favorecido</th>
+                  <th class="py-2 px-2 w-[23%]">Descrição / Categoria</th>
+                  <th class="py-2 px-2 w-[16%]">Conta / Forma</th>
+                  <th class="py-2 px-2 text-right w-[15%]">Valor</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
                 ${movimentos.length === 0 ? `
-                  <tr><td colspan="8" class="py-6 text-center text-slate-400 font-medium">Nenhum lançamento encontrado para os critérios selecionados.</td></tr>
+                  <tr><td colspan="6" class="py-6 text-center text-slate-400 font-medium">Nenhum lançamento encontrado para os critérios selecionados.</td></tr>
                 ` : movimentos.map(m => `
                   <tr class="hover:bg-slate-50">
-                    <td class="py-2 px-2.5 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                    <td class="py-2 px-2 font-mono text-[11px] text-slate-600 whitespace-nowrap">
                       ${m.data ? m.data.split('-').reverse().join('/') : '-'}
                     </td>
-                    <td class="py-2 px-2.5 font-mono font-bold text-slate-800 text-[11px] whitespace-nowrap">${m.documento}</td>
-                    <td class="py-2 px-2.5 font-medium text-slate-900 truncate max-w-[150px]">${m.entidade}</td>
-                    <td class="py-2 px-2.5 text-slate-700 truncate max-w-[180px]">${m.descricao}</td>
-                    <td class="py-2 px-2.5 text-slate-600">${m.categoria}</td>
-                    <td class="py-2 px-2.5 text-slate-600 text-[11px]">${m.bancoNome}</td>
-                    <td class="py-2 px-2.5 text-[10px] uppercase font-bold text-slate-600">${m.forma}</td>
-                    <td class="py-2 px-2.5 text-right font-mono font-bold whitespace-nowrap ${m.tipo === 'entrada' ? 'text-emerald-700' : 'text-rose-700'}">
+                    <td class="py-2 px-2 font-mono font-bold text-slate-800 text-[11px] truncate" title="${m.documento}">${m.documento}</td>
+                    <td class="py-2 px-2 text-slate-900 truncate" title="${m.entidade}">
+                      <span class="font-bold block truncate">${m.entidade}</span>
+                    </td>
+                    <td class="py-2 px-2 text-slate-700">
+                      <div class="font-medium truncate" title="${m.descricao}">${m.descricao}</div>
+                      ${m.categoria ? `<div class="text-[10px] text-slate-500 truncate">${m.categoria}</div>` : ''}
+                    </td>
+                    <td class="py-2 px-2 text-slate-700">
+                      <div class="text-[11px] font-medium truncate" title="${m.bancoNome}">${m.bancoNome}</div>
+                      ${m.forma ? `<div class="text-[10px] uppercase font-bold text-slate-500 truncate">${m.forma}</div>` : ''}
+                    </td>
+                    <td class="py-2 px-2 text-right font-mono font-black text-xs whitespace-nowrap ${m.tipo === 'entrada' ? 'text-emerald-700' : 'text-rose-700'}">
                       ${m.tipo === 'entrada' ? '+' : '-'} R$ ${m.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
@@ -7615,8 +7628,8 @@
               </tbody>
               <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-black">
                 <tr>
-                  <td colspan="7" class="py-2.5 px-3 text-right uppercase text-slate-700 text-xs">Saldo Consolidado do Extrato:</td>
-                  <td class="py-2.5 px-3 text-right font-mono text-sm ${saldoConsolidado >= 0 ? 'text-emerald-800' : 'text-rose-800'} whitespace-nowrap">
+                  <td colspan="5" class="py-2.5 px-3 text-right uppercase text-slate-700 text-[11px]">Saldo Consolidado do Extrato:</td>
+                  <td class="py-2.5 px-2 text-right font-mono text-xs ${saldoConsolidado >= 0 ? 'text-emerald-800' : 'text-rose-800'} whitespace-nowrap">
                     ${saldoConsolidado >= 0 ? '+ ' : ''}R$ ${saldoConsolidado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                 </tr>
@@ -7707,16 +7720,16 @@
           </div>
 
           <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
-            <table class="w-full text-left">
+            <table class="w-full text-left table-fixed">
               <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                 <tr>
-                  <th class="py-2 px-2.5 w-24">Orçamento</th>
-                  <th class="py-2 px-2.5">Cliente</th>
-                  <th class="py-2 px-2.5">Contato</th>
-                  <th class="py-2 px-2.5 text-right w-24">Total</th>
-                  <th class="py-2 px-2.5 text-right w-24">Já Pago</th>
-                  <th class="py-2 px-2.5 text-right w-24">Saldo Restante</th>
-                  <th class="py-2 px-2.5 text-center w-28">Status Financeiro</th>
+                  <th class="py-2 px-2 w-[14%]">Orçamento</th>
+                  <th class="py-2 px-2 w-[24%]">Cliente</th>
+                  <th class="py-2 px-2 w-[14%]">Contato</th>
+                  <th class="py-2 px-2 text-right w-[12%]">Total</th>
+                  <th class="py-2 px-2 text-right w-[12%]">Já Pago</th>
+                  <th class="py-2 px-2 text-right w-[12%]">Saldo</th>
+                  <th class="py-2 px-2 text-center w-[12%]">Status</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
@@ -7724,16 +7737,16 @@
                   <tr><td colspan="7" class="py-6 text-center text-slate-400 font-medium">Nenhum registro financeiro encontrado.</td></tr>
                 ` : itensFormatados.map(({ orc, st }) => `
                   <tr class="hover:bg-slate-50">
-                    <td class="py-2 px-2.5 font-mono font-bold text-slate-800 text-[11px]">${orc.numero}</td>
-                    <td class="py-2 px-2.5 font-medium text-slate-900">${orc.clienteNome || 'Consumidor'}</td>
-                    <td class="py-2 px-2.5 text-slate-600 font-mono text-[11px]">${orc.clienteFone || '-'}</td>
-                    <td class="py-2 px-2.5 text-right font-mono font-bold text-slate-800">R$ ${st.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td class="py-2 px-2.5 text-right font-mono font-semibold text-emerald-700">R$ ${st.totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td class="py-2 px-2.5 text-right font-mono font-bold ${st.saldoDevedor <= 0.01 ? 'text-emerald-700' : 'text-amber-700'}">
+                    <td class="py-2 px-2 font-mono font-bold text-slate-800 text-[11px] truncate">${orc.numero}</td>
+                    <td class="py-2 px-2 font-medium text-slate-900 truncate" title="${orc.clienteNome || 'Consumidor'}">${orc.clienteNome || 'Consumidor'}</td>
+                    <td class="py-2 px-2 text-slate-600 font-mono text-[11px] truncate">${orc.clienteFone || '-'}</td>
+                    <td class="py-2 px-2 text-right font-mono font-bold text-slate-800 text-[11px] whitespace-nowrap">R$ ${st.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td class="py-2 px-2 text-right font-mono font-semibold text-emerald-700 text-[11px] whitespace-nowrap">R$ ${st.totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td class="py-2 px-2 text-right font-mono font-bold text-[11px] whitespace-nowrap ${st.saldoDevedor <= 0.01 ? 'text-emerald-700' : 'text-amber-700'}">
                       R$ ${st.saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
-                    <td class="py-2 px-2.5 text-center">
-                      <span class="px-2 py-0.5 rounded text-[10px] font-bold ${st.saldoDevedor <= 0.01 ? 'bg-emerald-100 text-emerald-800' : (st.totalPago === 0 ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800')}">
+                    <td class="py-2 px-2 text-center">
+                      <span class="px-1.5 py-0.5 rounded text-[10px] font-bold block truncate ${st.saldoDevedor <= 0.01 ? 'bg-emerald-100 text-emerald-800' : (st.totalPago === 0 ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800')}">
                         ${st.badgeTexto}
                       </span>
                     </td>
@@ -7742,10 +7755,10 @@
               </tbody>
               <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-black">
                 <tr>
-                  <td colspan="3" class="py-2.5 px-3 text-right uppercase text-slate-700 text-xs">Totais Gerais a Receber:</td>
-                  <td class="py-2.5 px-3 text-right font-mono text-xs text-slate-900">R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td class="py-2.5 px-3 text-right font-mono text-xs text-emerald-700">R$ ${totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td class="py-2.5 px-3 text-right font-mono text-xs text-amber-800">R$ ${totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td colspan="3" class="py-2.5 px-3 text-right uppercase text-slate-700 text-[11px]">Totais Gerais a Receber:</td>
+                  <td class="py-2.5 px-2 text-right font-mono text-[11px] text-slate-900 whitespace-nowrap">R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td class="py-2.5 px-2 text-right font-mono text-[11px] text-emerald-700 whitespace-nowrap">R$ ${totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td class="py-2.5 px-2 text-right font-mono text-[11px] text-amber-800 whitespace-nowrap">R$ ${totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   <td></td>
                 </tr>
               </tfoot>
@@ -7830,44 +7843,45 @@
           </div>
 
           <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
-            <table class="w-full text-left">
+            <table class="w-full text-left table-fixed">
               <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                 <tr>
-                  <th class="py-2 px-2.5 w-20">Vencimento</th>
-                  <th class="py-2 px-2.5">Fornecedor / Favorecido</th>
-                  <th class="py-2 px-2.5">Descrição</th>
-                  <th class="py-2 px-2.5">Categoria</th>
-                  <th class="py-2 px-2.5">Doc / NF</th>
-                  <th class="py-2 px-2.5 text-right w-24">Valor</th>
-                  <th class="py-2 px-2.5 text-center w-24">Status</th>
-                  <th class="py-2 px-2.5 text-center w-24">Data Pagto</th>
+                  <th class="py-2 px-2 w-[11%]">Vencimento</th>
+                  <th class="py-2 px-2 w-[20%]">Fornecedor / Favorecido</th>
+                  <th class="py-2 px-2 w-[24%]">Descrição / Categoria</th>
+                  <th class="py-2 px-2 w-[12%]">Doc / NF</th>
+                  <th class="py-2 px-2 text-right w-[13%]">Valor</th>
+                  <th class="py-2 px-2 text-center w-[10%]">Status</th>
+                  <th class="py-2 px-2 text-center w-[10%]">Data Pagto</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
                 ${lista.length === 0 ? `
-                  <tr><td colspan="8" class="py-6 text-center text-slate-400 font-medium">Nenhuma conta a pagar encontrada.</td></tr>
+                  <tr><td colspan="7" class="py-6 text-center text-slate-400 font-medium">Nenhuma conta a pagar encontrada.</td></tr>
                 ` : lista.map(c => {
                   const catInfo = typeof obterCategoriaDespesa === "function" ? obterCategoriaDespesa(c.categoria) : {};
                   const isPaga = c.status === "pago";
                   const isVencida = !isPaga && c.vencimento && c.vencimento < hojeStr;
                   return `
                     <tr class="hover:bg-slate-50">
-                      <td class="py-2 px-2.5 font-mono text-[11px] ${isVencida ? 'text-rose-600 font-bold' : 'text-slate-700'}">
+                      <td class="py-2 px-2 font-mono text-[11px] whitespace-nowrap ${isVencida ? 'text-rose-600 font-bold' : 'text-slate-700'}">
                         ${c.vencimento ? c.vencimento.split('-').reverse().join('/') : '-'}
                       </td>
-                      <td class="py-2 px-2.5 font-bold text-slate-900 truncate max-w-[140px]">${c.fornecedor || 'Fornecedor'}</td>
-                      <td class="py-2 px-2.5 text-slate-700 truncate max-w-[160px]">${c.descricao || '-'}</td>
-                      <td class="py-2 px-2.5 text-slate-600">${catInfo.nome || c.categoria || '-'}</td>
-                      <td class="py-2 px-2.5 font-mono text-[11px] text-slate-600">${c.numDoc || '-'}</td>
-                      <td class="py-2 px-2.5 text-right font-mono font-bold text-slate-900">
+                      <td class="py-2 px-2 font-bold text-slate-900 truncate" title="${c.fornecedor || 'Fornecedor'}">${c.fornecedor || 'Fornecedor'}</td>
+                      <td class="py-2 px-2 text-slate-700">
+                        <div class="font-medium truncate" title="${c.descricao || '-'}">${c.descricao || '-'}</div>
+                        ${(catInfo.nome || c.categoria) ? `<div class="text-[10px] text-slate-500 truncate">${catInfo.nome || c.categoria}</div>` : ''}
+                      </td>
+                      <td class="py-2 px-2 font-mono text-[11px] text-slate-600 truncate">${c.numDoc || '-'}</td>
+                      <td class="py-2 px-2 text-right font-mono font-bold text-slate-900 text-[11px] whitespace-nowrap">
                         R$ ${(parseFloat(c.valor) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
-                      <td class="py-2 px-2.5 text-center">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isPaga ? 'bg-emerald-100 text-emerald-800' : (isVencida ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800')}">
+                      <td class="py-2 px-2 text-center">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold block truncate ${isPaga ? 'bg-emerald-100 text-emerald-800' : (isVencida ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800')}">
                           ${isPaga ? 'PAGO' : (isVencida ? 'VENCIDA' : 'PENDENTE')}
                         </span>
                       </td>
-                      <td class="py-2 px-2.5 text-center font-mono text-[11px] text-slate-500">
+                      <td class="py-2 px-2 text-center font-mono text-[11px] text-slate-500 whitespace-nowrap">
                         ${c.dataPagamento ? c.dataPagamento.split('-').reverse().join('/') : '-'}
                       </td>
                     </tr>
@@ -7876,8 +7890,8 @@
               </tbody>
               <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-black">
                 <tr>
-                  <td colspan="5" class="py-2.5 px-3 text-right uppercase text-slate-700 text-xs">Totalizador das Contas:</td>
-                  <td class="py-2.5 px-3 text-right font-mono text-xs text-slate-900">R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td colspan="4" class="py-2.5 px-3 text-right uppercase text-slate-700 text-[11px]">Totalizador das Contas:</td>
+                  <td class="py-2.5 px-2 text-right font-mono text-xs text-slate-900 whitespace-nowrap">R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   <td colspan="2"></td>
                 </tr>
               </tfoot>
@@ -7910,17 +7924,17 @@
           </div>
 
           <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
-            <table class="w-full text-left">
+            <table class="w-full text-left table-fixed">
               <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                 <tr>
-                  <th class="py-2.5 px-3">Instituição / Conta</th>
-                  <th class="py-2.5 px-3">Tipo</th>
-                  <th class="py-2.5 px-3">Agência / Conta</th>
-                  <th class="py-2.5 px-3 text-right">Saldo Inicial</th>
-                  <th class="py-2.5 px-3 text-right">Entradas</th>
-                  <th class="py-2.5 px-3 text-right">Saídas</th>
-                  <th class="py-2.5 px-3 text-right font-black">Saldo Atual</th>
-                  <th class="py-2.5 px-3 text-right font-black">Projeção Futura</th>
+                  <th class="py-2 px-2 w-[20%]">Instituição / Conta</th>
+                  <th class="py-2 px-2 w-[10%]">Tipo</th>
+                  <th class="py-2 px-2 w-[12%]">Agência / Conta</th>
+                  <th class="py-2 px-2 text-right w-[11%]">Saldo Inicial</th>
+                  <th class="py-2 px-2 text-right w-[11%]">Entradas</th>
+                  <th class="py-2 px-2 text-right w-[11%]">Saídas</th>
+                  <th class="py-2 px-2 text-right font-black w-[12%]">Saldo Atual</th>
+                  <th class="py-2 px-2 text-right font-black w-[13%]">Projeção Futura</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
@@ -7929,18 +7943,18 @@
                   const tipoTexto = b.tipo === "corrente" ? "Conta Corrente" : (b.tipo === "poupanca" ? "Poupança" : "Caixa Gaveta");
                   return `
                     <tr class="hover:bg-slate-50">
-                      <td class="py-2.5 px-3 font-bold text-slate-900">
-                        ${b.nome} ${b.padrao ? '<span class="text-[10px] text-emerald-700 font-bold">(Padrão)</span>' : ''}
+                      <td class="py-2 px-2 font-bold text-slate-900 truncate" title="${b.nome}">
+                        ${b.nome} ${b.padrao ? '<span class="text-[10px] text-emerald-700 font-bold block">(Padrão)</span>' : ''}
                       </td>
-                      <td class="py-2.5 px-3 text-slate-600">${tipoTexto}</td>
-                      <td class="py-2.5 px-3 font-mono text-slate-600 text-[11px]">${b.agencia || '-'} / ${b.conta || '-'}</td>
-                      <td class="py-2.5 px-3 text-right font-mono text-slate-600">R$ ${(b.saldoInicial || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td class="py-2.5 px-3 text-right font-mono text-emerald-700">+ R$ ${s.entradasRealizadas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td class="py-2.5 px-3 text-right font-mono text-rose-700">- R$ ${s.saidasRealizadas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td class="py-2.5 px-3 text-right font-mono font-black text-sm ${s.saldoRealizado >= 0 ? 'text-emerald-800' : 'text-rose-700'}">
+                      <td class="py-2 px-2 text-slate-600 truncate text-[11px]">${tipoTexto}</td>
+                      <td class="py-2 px-2 font-mono text-slate-600 text-[11px] truncate">${b.agencia || '-'} / ${b.conta || '-'}</td>
+                      <td class="py-2 px-2 text-right font-mono text-slate-600 text-[11px] whitespace-nowrap">R$ ${(b.saldoInicial || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td class="py-2 px-2 text-right font-mono text-emerald-700 text-[11px] whitespace-nowrap">+ R$ ${s.entradasRealizadas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td class="py-2 px-2 text-right font-mono text-rose-700 text-[11px] whitespace-nowrap">- R$ ${s.saidasRealizadas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td class="py-2 px-2 text-right font-mono font-black text-xs whitespace-nowrap ${s.saldoRealizado >= 0 ? 'text-emerald-800' : 'text-rose-700'}">
                         R$ ${s.saldoRealizado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
-                      <td class="py-2.5 px-3 text-right font-mono font-bold text-xs ${s.saldoProjetado >= 0 ? 'text-amber-800' : 'text-rose-700'}">
+                      <td class="py-2 px-2 text-right font-mono font-bold text-[11px] whitespace-nowrap ${s.saldoProjetado >= 0 ? 'text-amber-800' : 'text-rose-700'}">
                         R$ ${s.saldoProjetado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                     </tr>
@@ -8062,7 +8076,8 @@
     function copiarReciboWhatsApp() {
       if (!reciboAtivoDados) return;
 
-      const texto = `*🧾 RECIBO DE PAGAMENTO - MARMORARIA MARMOBRAZ*\n` +
+      const nomeEmpresa = typeof getNomeEmpresaAtiva === 'function' ? getNomeEmpresaAtiva() : 'MARMORARIA';
+      const texto = `*🧾 RECIBO DE PAGAMENTO - ${nomeEmpresa.toUpperCase()}*\n` +
         `Ref: *${reciboAtivoDados.recNumero}* | Pedido: *${reciboAtivoDados.orcNumero}*\n\n` +
         `Olá, *${reciboAtivoDados.clienteNome}*!\n` +
         `Confirmamos o recebimento com sucesso do seu pagamento:\n\n` +
@@ -8075,8 +8090,8 @@
         `• Total do Pedido: R$ ${reciboAtivoDados.totalOrc.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n` +
         `• Total Quitado: R$ ${reciboAtivoDados.totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n` +
         `• Saldo Restante: ${reciboAtivoDados.saldoRestante <= 0.01 ? '*QUITADO (R$ 0,00)* 🎉' : `*R$ ${reciboAtivoDados.saldoRestante.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}*`}\n\n` +
-        `Agradecemos a sua preferência e confiança na Marmobraz! 🪨✨\n` +
-        `_Oficina & Atendimento: 27-3373-3778 / 27-99862-2076_`;
+        `Agradecemos a sua preferência e confiança na ${nomeEmpresa}! 🪨✨\n` +
+        `_Atendimento & Suporte ao Cliente_`;
 
       navigator.clipboard.writeText(texto).then(() => {
         mostrarToast("Recibo formatado copiado para o WhatsApp!", "📋");
