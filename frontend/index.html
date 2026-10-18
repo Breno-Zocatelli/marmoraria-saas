@@ -183,7 +183,7 @@
           <!-- Agenda & Prazos (Passo 4) -->
           <button id="btn_nav_agenda" onclick="navegarParaAba('agenda')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-bold group cursor-pointer sidebar-item-container" title="Agenda de Medição e Prazos de Entrega">
             <div class="flex items-center gap-2.5 truncate">
-              <span class="text-sm shrink-0">📅</span>
+              <svg class="w-4 h-4 shrink-0 text-purple-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
               <span class="sidebar-label truncate">Agenda & Prazos</span>
             </div>
             <span id="badge_nav_qtd_agenda" class="sidebar-badge px-1.5 py-0.5 text-[10px] font-mono rounded-full bg-purple-500/20 text-purple-300 font-bold shrink-0">0</span>
@@ -192,7 +192,7 @@
           <!-- Clientes (CRM) -->
           <button id="btn_nav_clientes" onclick="navegarParaAba('clientes')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-semibold group cursor-pointer sidebar-item-container" title="Clientes & CRM">
             <div class="flex items-center gap-2.5 truncate">
-              <span class="text-sm shrink-0">👥</span>
+              <svg class="w-4 h-4 shrink-0 text-indigo-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
               <span class="sidebar-label truncate">Clientes & CRM</span>
             </div>
             <span id="badge_nav_qtd_clientes" class="sidebar-badge px-1.5 py-0.5 text-[10px] font-mono rounded-full bg-slate-800 text-slate-300 font-bold shrink-0">0</span>
@@ -201,7 +201,7 @@
           <!-- Financeiro & Contas a Receber (Passo 5) -->
           <button id="btn_nav_financeiro" onclick="toggleSubmenuFinanceiro()" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-semibold group cursor-pointer sidebar-item-container" title="Clique para expandir/recolher os submenus do Financeiro">
             <div class="flex items-center gap-2.5 truncate">
-              <span class="text-sm shrink-0">💰</span>
+              <svg class="w-4 h-4 shrink-0 text-emerald-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               <span class="sidebar-label truncate">Financeiro</span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
@@ -216,25 +216,25 @@
           <div id="submenu_nav_financeiro" class="hidden pl-3.5 space-y-1 mt-1 border-l-2 border-slate-800 ml-3.5 transition-all duration-200">
             <button id="btn_subnav_fin_fluxo" onclick="navegarParaSubabaFinanceiro('fluxo')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Fluxo de Caixa (Extrato Consolidado)">
               <div class="flex items-center gap-2 truncate">
-                <span class="text-xs shrink-0">📊</span>
+                <svg class="w-3.5 h-3.5 shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
                 <span class="sidebar-label truncate">Fluxo de Caixa</span>
               </div>
             </button>
             <button id="btn_subnav_fin_receber" onclick="navegarParaSubabaFinanceiro('receber')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Contas a Receber (Pedidos & Clientes)">
               <div class="flex items-center gap-2 truncate">
-                <span class="text-xs shrink-0">💰</span>
+                <svg class="w-3.5 h-3.5 shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                 <span class="sidebar-label truncate">Contas a Receber</span>
               </div>
             </button>
             <button id="btn_subnav_fin_pagar" onclick="navegarParaSubabaFinanceiro('pagar')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Contas a Pagar (Despesas & Fornecedores)">
               <div class="flex items-center gap-2 truncate">
-                <span class="text-xs shrink-0">💸</span>
+                <svg class="w-3.5 h-3.5 shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
                 <span class="sidebar-label truncate">Contas a Pagar</span>
               </div>
             </button>
             <button id="btn_subnav_fin_bancos" onclick="navegarParaSubabaFinanceiro('bancos')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Contas Bancárias & Caixas">
               <div class="flex items-center gap-2 truncate">
-                <span class="text-xs shrink-0">🏦</span>
+                <svg class="w-3.5 h-3.5 shrink-0 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
                 <span class="sidebar-label truncate">Contas Bancárias</span>
               </div>
             </button>
@@ -243,7 +243,7 @@
           <!-- Cancelados & Recusas -->
           <button id="btn_nav_cancelados" onclick="navegarParaAba('cancelados')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-semibold group cursor-pointer sidebar-item-container" title="Propostas Canceladas / Recusadas">
             <div class="flex items-center gap-2.5 truncate">
-              <span class="text-sm shrink-0">❌</span>
+              <svg class="w-4 h-4 shrink-0 text-rose-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               <span class="sidebar-label truncate">Cancelados</span>
             </div>
             <span id="badge_nav_qtd_cancelados" class="sidebar-badge px-1.5 py-0.5 text-[10px] font-mono rounded-full bg-rose-500/20 text-rose-300 font-bold shrink-0">0</span>
@@ -258,7 +258,7 @@
           <!-- Fábrica / Fila de Corte (com Submenus) -->
           <button id="btn_nav_fabrica" onclick="toggleSubmenuFabrica()" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-semibold group cursor-pointer sidebar-item-container" title="Clique para expandir/recolher os submenus da Fila da Fábrica">
             <div class="flex items-center gap-2.5 truncate">
-              <span class="text-sm shrink-0">🏭</span>
+              <svg class="w-4 h-4 shrink-0 text-amber-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
               <span class="sidebar-label truncate">Fila da Fábrica</span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
@@ -273,21 +273,21 @@
           <div id="submenu_nav_fabrica" class="hidden pl-3.5 space-y-1 mt-1 border-l-2 border-slate-800 ml-3.5 transition-all duration-200">
             <button id="btn_subnav_fab_todos" onclick="navegarParaSubabaFabrica('todos')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Todos os pedidos na fábrica">
               <div class="flex items-center gap-2 truncate">
-                <span class="text-xs shrink-0">📋</span>
+                <svg class="w-3.5 h-3.5 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                 <span class="sidebar-label truncate">Todos</span>
               </div>
               <span id="badge_subnav_fab_todos" class="sidebar-badge px-1.5 py-0.2 text-[10px] font-mono rounded-full bg-slate-800 text-slate-300 font-bold shrink-0">0</span>
             </button>
             <button id="btn_subnav_fab_corte" onclick="navegarParaSubabaFabrica('aprovado')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Pedidos em fila de corte / acabamento">
               <div class="flex items-center gap-2 truncate">
-                <span class="text-xs shrink-0">🟢</span>
+                <svg class="w-3.5 h-3.5 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a3 3 0 11-4.242-4.242 3 3 0 014.242 0zM12 12L9.121 9.121a3 3 0 10-4.242 4.242 3 3 0 004.242 0z"></path></svg>
                 <span class="sidebar-label truncate">Em Corte</span>
               </div>
               <span id="badge_subnav_fab_corte" class="sidebar-badge px-1.5 py-0.2 text-[10px] font-mono rounded-full bg-amber-500/20 text-amber-300 font-bold shrink-0">0</span>
             </button>
             <button id="btn_subnav_fab_concluido" onclick="navegarParaSubabaFabrica('concluido')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Pedidos com produção concluída">
               <div class="flex items-center gap-2 truncate">
-                <span class="text-xs shrink-0">✅</span>
+                <svg class="w-3.5 h-3.5 shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span class="sidebar-label truncate">Concluídos</span>
               </div>
               <span id="badge_subnav_fab_concluido" class="sidebar-badge px-1.5 py-0.2 text-[10px] font-mono rounded-full bg-emerald-500/20 text-emerald-300 font-bold shrink-0">0</span>
@@ -297,7 +297,7 @@
           <!-- Entregas & Expedição (Novo!) -->
           <button id="btn_nav_entregas" onclick="navegarParaAba('entregas')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-semibold group cursor-pointer sidebar-item-container" title="Controle de Entregas e Expedição de Pedidos">
             <div class="flex items-center gap-2.5 truncate">
-              <span class="text-sm shrink-0">🚚</span>
+              <svg class="w-4 h-4 shrink-0 text-blue-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
               <span class="sidebar-label truncate">Entregas & Expedição</span>
             </div>
             <span id="badge_nav_qtd_entregas" class="sidebar-badge px-1.5 py-0.5 text-[10px] font-mono rounded-full bg-blue-500/20 text-blue-300 font-bold shrink-0">0</span>
@@ -318,17 +318,17 @@
         <span class="sidebar-label text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2.5 block mb-1">Tabelas</span>
         <div class="space-y-1">
           <button onclick="abrirModalGerenciarMateriais()" class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-medium group cursor-pointer sidebar-item-container" title="Catálogo de Pedras e Preços por m²">
-            <span class="text-sm shrink-0">🪨</span>
+            <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
             <span class="sidebar-label truncate">Pedras & Preços</span>
           </button>
 
           <button onclick="abrirModalGerenciarCubas()" class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-medium group cursor-pointer sidebar-item-container" title="Catálogo de Cubas e Acessórios">
-            <span class="text-sm shrink-0">🚰</span>
+            <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             <span class="sidebar-label truncate">Cubas & Acessórios</span>
           </button>
 
           <button onclick="abrirModalGerenciarUsuarios()" class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-medium group cursor-pointer sidebar-item-container" title="Gerenciar Colaboradores e Acessos">
-            <span class="text-sm shrink-0">👥</span>
+            <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             <span class="sidebar-label truncate">Usuários & Equipe</span>
           </button>
         </div>
@@ -369,7 +369,9 @@
 
         <!-- Título Dinâmico da Tela Ativa -->
         <div class="flex items-center gap-2.5">
-          <span id="topbar_icon" class="text-xl">📊</span>
+          <div id="topbar_icon" class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          </div>
           <div>
             <h1 id="topbar_title" class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-tight">Painel de Orçamentos</h1>
             <p id="topbar_subtitle" class="text-[11px] text-slate-500 font-medium hidden sm:block leading-none mt-0.5">Visão geral das propostas comerciais e vendas</p>
@@ -2531,14 +2533,13 @@
         }
       }
 
-      const topbarIcon = document.getElementById("topbar_icon");
       const topbarTitle = document.getElementById("topbar_title");
       const topbarSub = document.getElementById("topbar_subtitle");
 
       if (aba === "painel") {
         if (viewPainel) viewPainel.classList.remove("hidden");
         if (btnNavPainel) btnNavPainel.className = "w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-blue-600 text-white font-bold transition shadow-xs group cursor-pointer sidebar-item-container";
-        if (topbarIcon) topbarIcon.innerText = "📊";
+        definirIconeTopbar('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>', 'bg-blue-50 text-blue-600');
         if (topbarTitle) topbarTitle.innerText = "Painel de Orçamentos";
         if (topbarSub) topbarSub.innerText = "Visão geral das propostas comerciais e vendas";
         const labelCalc = document.getElementById("label_nav_calculadora");
@@ -2548,14 +2549,14 @@
       } else if (aba === "agenda") {
         if (viewAgenda) viewAgenda.classList.remove("hidden");
         if (btnNavAgenda) btnNavAgenda.className = "w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-purple-600 text-white font-bold transition shadow-xs group cursor-pointer sidebar-item-container";
-        if (topbarIcon) topbarIcon.innerText = "📅";
+        definirIconeTopbar('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>', 'bg-purple-50 text-purple-600');
         if (topbarTitle) topbarTitle.innerText = "Agenda & Prazos de Entrega";
         if (topbarSub) topbarSub.innerText = "Medições de fôrma na obra e radar de produção da fábrica";
         renderizarAgendaView();
       } else if (aba === "clientes") {
         if (viewClientes) viewClientes.classList.remove("hidden");
         if (btnNavClientes) btnNavClientes.className = "w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-indigo-600 text-white font-bold transition shadow-xs group cursor-pointer sidebar-item-container";
-        if (topbarIcon) topbarIcon.innerText = "👥";
+        definirIconeTopbar('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>', 'bg-indigo-50 text-indigo-600');
         if (topbarTitle) topbarTitle.innerText = "Clientes & CRM";
         if (topbarSub) topbarSub.innerText = "Base de clientes, arquitetos e histórico de obras";
         atualizarKpisCRM();
@@ -2563,14 +2564,14 @@
       } else if (aba === "financeiro") {
         if (viewFinanceiro) viewFinanceiro.classList.remove("hidden");
         if (btnNavFinanceiro) btnNavFinanceiro.className = "w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-emerald-600 text-white font-bold transition shadow-xs group cursor-pointer sidebar-item-container";
-        if (topbarIcon) topbarIcon.innerText = "💰";
+        definirIconeTopbar('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>', 'bg-emerald-50 text-emerald-600');
         if (topbarTitle) topbarTitle.innerText = "Controle Financeiro & Fluxo de Caixa";
         if (topbarSub) topbarSub.innerText = "Fluxo de caixa consolidado, contas a receber, contas a pagar e recibos";
         alternarSubabaFinanceiro(subabaFinanceiroAtiva || 'fluxo');
       } else if (aba === "fabrica") {
         if (viewFabrica) viewFabrica.classList.remove("hidden");
         if (btnNavFabrica) btnNavFabrica.className = "w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-black transition shadow-xs group cursor-pointer sidebar-item-container";
-        if (topbarIcon) topbarIcon.innerText = "🏭";
+        definirIconeTopbar('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>', 'bg-amber-50 text-amber-700');
         if (topbarTitle) topbarTitle.innerText = "Fila de Produção da Fábrica";
         if (topbarSub) topbarSub.innerText = "Ordens de corte, acabamento e conclusão de pedidos";
         if (typeof toggleSubmenuFabrica === "function") toggleSubmenuFabrica(true);
@@ -2579,14 +2580,14 @@
       } else if (aba === "entregas") {
         if (viewEntregas) viewEntregas.classList.remove("hidden");
         if (btnNavEntregas) btnNavEntregas.className = "w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-blue-600 text-white font-bold transition shadow-xs group cursor-pointer sidebar-item-container";
-        if (topbarIcon) topbarIcon.innerText = "🚚";
+        definirIconeTopbar('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>', 'bg-blue-50 text-blue-600');
         if (topbarTitle) topbarTitle.innerText = "Entregas & Expedição";
         if (topbarSub) topbarSub.innerText = "Controle de entregas pendentes e realizadas com status de recebimento";
         renderizarEntregasView();
       } else if (aba === "cancelados") {
         if (viewCancelados) viewCancelados.classList.remove("hidden");
         if (btnNavCancelados) btnNavCancelados.className = "w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-rose-600 text-white font-black transition shadow-xs group cursor-pointer sidebar-item-container";
-        if (topbarIcon) topbarIcon.innerText = "❌";
+        definirIconeTopbar('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>', 'bg-rose-50 text-rose-600');
         if (topbarTitle) topbarTitle.innerText = "Orçamentos Cancelados";
         if (topbarSub) topbarSub.innerText = "Reversão e renegociação de propostas perdidas";
         renderizarCanceladosView();
@@ -2596,7 +2597,7 @@
         const num = document.getElementById("orcamento_numero") ? document.getElementById("orcamento_numero").value : "ORC";
         const labelCalc = document.getElementById("label_nav_calculadora");
         if (labelCalc) labelCalc.innerText = `Calculadora (${num || 'Peças'})`;
-        if (topbarIcon) topbarIcon.innerText = "🧮";
+        definirIconeTopbar('<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>', 'bg-blue-50 text-blue-600');
         if (topbarTitle) topbarTitle.innerText = `Calculadora de Peças [${num || 'Novo'}]`;
         if (topbarSub) topbarSub.innerText = "Composição detalhada, m², acabamentos e rodabanca";
       }
