@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -1442,6 +1442,30 @@
     </main> <!-- fecha main -->
   </div> <!-- fecha flex-1 wrapper da direita -->
   <script>
+    // -------------------------------------------------------------
+    // IDENTIFICAÇÃO DINÂMICA DE TENANT & ISOLAMENTO DE STORAGE
+    // -------------------------------------------------------------
+    function getTenantId() {
+      try {
+        const host = window.location.hostname;
+        const parts = host.split('.');
+        if (parts.length > 2 && parts[0] !== 'admin' && parts[0] !== 'www') {
+          let sub = parts[0];
+          if (sub.startsWith('suporte-')) sub = sub.replace('suporte-', '');
+          return sub;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tenant')) return urlParams.get('tenant');
+        if (window.TENANT_INFO && window.TENANT_INFO.id) return window.TENANT_INFO.id;
+      } catch(e) {}
+      return 'marmobraz';
+    }
+
+    function getTenantStorageKey(baseKey) {
+      const tid = getTenantId();
+      return `marmoraria_${tid}_${baseKey}`;
+    }
+
     // Catálogo de pedras e chapas da Marmoraria Marmobraz (com persistência no localStorage)
     const MATERIAIS_PADRAO = [
       { id: "prime", nome: "Branco Prime", categoria: "Quartzo / Composto", precoM2: 600.0 },
@@ -1458,10 +1482,16 @@
 
     let MATERIAIS = [];
     try {
-      const salvoMat = localStorage.getItem("marmoraria_materiais");
-      MATERIAIS = salvoMat ? JSON.parse(salvoMat) : JSON.parse(JSON.stringify(MATERIAIS_PADRAO));
+      const salvoMat = localStorage.getItem(getTenantStorageKey("materiais"));
+      if (salvoMat) {
+        MATERIAIS = JSON.parse(salvoMat);
+      } else if (getTenantId() === "marmobraz") {
+        MATERIAIS = JSON.parse(JSON.stringify(MATERIAIS_PADRAO));
+      } else {
+        MATERIAIS = [];
+      }
     } catch(e) {
-      MATERIAIS = JSON.parse(JSON.stringify(MATERIAIS_PADRAO));
+      MATERIAIS = (getTenantId() === "marmobraz") ? JSON.parse(JSON.stringify(MATERIAIS_PADRAO)) : [];
     }
 
     // Catálogo de cubas e acessórios de bancada (com persistência no localStorage)
@@ -1480,13 +1510,19 @@
 
     let CUBAS = [];
     try {
-      const salvoCubas = localStorage.getItem("marmoraria_cubas");
-      CUBAS = salvoCubas ? JSON.parse(salvoCubas) : JSON.parse(JSON.stringify(CUBAS_PADRAO));
+      const salvoCubas = localStorage.getItem(getTenantStorageKey("cubas"));
+      if (salvoCubas) {
+        CUBAS = JSON.parse(salvoCubas);
+      } else if (getTenantId() === "marmobraz") {
+        CUBAS = JSON.parse(JSON.stringify(CUBAS_PADRAO));
+      } else {
+        CUBAS = [];
+      }
     } catch(e) {
-      CUBAS = JSON.parse(JSON.stringify(CUBAS_PADRAO));
+      CUBAS = (getTenantId() === "marmobraz") ? JSON.parse(JSON.stringify(CUBAS_PADRAO)) : [];
     }
 
-    // Catálogo de tipos de acabamento linear (com persistência no localStorage)
+    // Catálogo de tipos de acabamento linear (com persistência no localStorage - preservado em todos os bancos)
     const ACABAMENTOS_PADRAO = [
       { id: "45_graus", nome: "Meia-Esquadria (45°)", precoM: 80.0 },
       { id: "boleado", nome: "Boleado Simples", precoM: 20.0 },
@@ -1500,64 +1536,14 @@
 
     let TIPOS_ACABAMENTO = [];
     try {
-      const salvo = localStorage.getItem("marmoraria_tipos_acabamento");
+      const salvo = localStorage.getItem(getTenantStorageKey("tipos_acabamento"));
       TIPOS_ACABAMENTO = salvo ? JSON.parse(salvo) : JSON.parse(JSON.stringify(ACABAMENTOS_PADRAO));
     } catch(e) {
       TIPOS_ACABAMENTO = JSON.parse(JSON.stringify(ACABAMENTOS_PADRAO));
     }
 
-    // Initial items populated from the real spreadsheet (Marmobraz)
-    let itens = [
-      {
-        id: 1,
-        descricao: "Nicho para Banheiro",
-        materialId: "prime",
-        precoM2: 600.0,
-        qtd: 2,
-        comp: 0.805,
-        larg: 0.150,
-        rb: 0.0,
-        tipoAcabamentoId: "bisote",
-        regraAcab: "peitoril_2", // 2 * C * Qtd
-        precoMetroLinear: 10.0,
-        cubaId: "nenhuma",
-        cubaNome: "Sem Cuba",
-        cuba: 0.0
-      },
-      {
-        id: 2,
-        descricao: "Pia de Cozinha com Cuba",
-        materialId: "verde",
-        precoM2: 270.0,
-        qtd: 1,
-        comp: 1.92,
-        larg: 0.62,
-        rb: 0.889, // Acréscimo técnico / Recorte de boca
-        configRbDesc: "RB 20cm (2 Lados) + Saia 10cm",
-        tipoAcabamentoId: "45_graus",
-        regraAcab: "pia_2", // (C + L) * Qtd
-        precoMetroLinear: 80.0,
-        cubaId: "inox_n2",
-        cubaNome: "Cuba Inox Tramontina Nº 2 (40x34cm)",
-        cuba: 180.0
-      },
-      {
-        id: 3,
-        descricao: "Soleiras de Porta",
-        materialId: "arabesco",
-        precoM2: 220.0,
-        qtd: 4,
-        comp: 1.05,
-        larg: 0.14,
-        rb: 0.0,
-        tipoAcabamentoId: "soleira_peitoril",
-        regraAcab: "peitoril_2",
-        precoMetroLinear: 8.0,
-        cubaId: "nenhuma",
-        cubaNome: "Sem Cuba",
-        cuba: 0.0
-      }
-    ];
+    // Peças iniciais do orçamento atual (inicia 100% zerado para novos cadastros e orçamentos)
+    let itens = [];
 
     // Catálogo de regras de lados com acabamento (salvo no localStorage)
     const REGRAS_LADOS_PADRAO = [
@@ -1574,7 +1560,7 @@
 
     let REGRAS_LADOS = [];
     try {
-      const salvoLados = localStorage.getItem("marmoraria_regras_lados");
+      const salvoLados = localStorage.getItem(getTenantStorageKey("regras_lados"));
       REGRAS_LADOS = salvoLados ? JSON.parse(salvoLados) : JSON.parse(JSON.stringify(REGRAS_LADOS_PADRAO));
     } catch(e) {
       REGRAS_LADOS = JSON.parse(JSON.stringify(REGRAS_LADOS_PADRAO));
@@ -1588,7 +1574,7 @@
 
     let MODALIDADES_LOGISTICA = [];
     try {
-      const salvoLog = localStorage.getItem("marmoraria_modalidades_logistica");
+      const salvoLog = localStorage.getItem(getTenantStorageKey("modalidades_logistica"));
       MODALIDADES_LOGISTICA = salvoLog ? JSON.parse(salvoLog) : JSON.parse(JSON.stringify(MODALIDADES_LOGISTICA_PADRAO));
     } catch(e) {
       MODALIDADES_LOGISTICA = JSON.parse(JSON.stringify(MODALIDADES_LOGISTICA_PADRAO));
@@ -1649,9 +1635,9 @@
     const CLIENTES_EXEMPLO_LEGADOS = ["Jéssica Hupp de Souza", "Dr. Marcos Vinícius Resende", "Construtora Alvorada Ltda (Eng. Roberto)"];
     let clientesCadastrados = [];
     try {
-      clientesCadastrados = JSON.parse(localStorage.getItem("marmoraria_clientes")) || [];
+      clientesCadastrados = JSON.parse(localStorage.getItem(getTenantStorageKey("clientes"))) || [];
       clientesCadastrados = clientesCadastrados.filter(c => c && c.nome && !CLIENTES_EXEMPLO_LEGADOS.includes(c.nome.trim()));
-      localStorage.setItem("marmoraria_clientes", JSON.stringify(clientesCadastrados));
+      localStorage.setItem(getTenantStorageKey("clientes"), JSON.stringify(clientesCadastrados));
     } catch(e) {
       clientesCadastrados = [];
     }
@@ -1660,9 +1646,9 @@
     const CLIENTES_AGENDA_EXEMPLO = ["Dra. Camila Vasconcelos", "Eng. Ricardo Prado"];
     let agendaCompromissos = [];
     try {
-      agendaCompromissos = JSON.parse(localStorage.getItem("marmoraria_agenda")) || [];
+      agendaCompromissos = JSON.parse(localStorage.getItem(getTenantStorageKey("agenda"))) || [];
       agendaCompromissos = agendaCompromissos.filter(a => a && a.clienteNome && !CLIENTES_AGENDA_EXEMPLO.includes(a.clienteNome.trim()));
-      localStorage.setItem("marmoraria_agenda", JSON.stringify(agendaCompromissos));
+      localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
     } catch(e) {
       agendaCompromissos = [];
     }
@@ -1674,13 +1660,13 @@
       if (!sidebar) return;
       sidebar.classList.toggle("collapsed");
       const isCollapsed = sidebar.classList.contains("collapsed");
-      localStorage.setItem("marmoraria_sidebar_colapsada", isCollapsed ? "true" : "false");
+      localStorage.setItem(getTenantStorageKey("sidebar_colapsada"), isCollapsed ? "true" : "false");
       const txtRecolher = document.getElementById("texto_btn_recolher_sidebar");
       if (txtRecolher) txtRecolher.innerText = isCollapsed ? "▶" : "Recolher Menu ◀";
     }
 
     function carregarPreferenciaSidebar() {
-      const saved = localStorage.getItem("marmoraria_sidebar_colapsada");
+      const saved = localStorage.getItem(getTenantStorageKey("sidebar_colapsada"));
       const sidebar = document.getElementById("sidebar_principal");
       if (saved === "true" && sidebar) {
         sidebar.classList.add("collapsed");
@@ -1733,7 +1719,7 @@
       try {
         let listaExcluidos = [];
         try {
-          listaExcluidos = JSON.parse(localStorage.getItem("marmoraria_bancos_excluidos") || "[]");
+          listaExcluidos = JSON.parse(localStorage.getItem(getTenantStorageKey("bancos_excluidos")) || "[]");
         } catch(e) {
           listaExcluidos = [];
         }
@@ -1775,23 +1761,23 @@
               o.totalDebito = t.totalDebito;
               o.m2Total = t.m2Total;
             });
-            localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+            localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
           }
 
           if (data && data.clientes && Array.isArray(data.clientes)) {
             clientesCadastrados = data.clientes;
-            localStorage.setItem("marmoraria_clientes", JSON.stringify(clientesCadastrados));
+            localStorage.setItem(getTenantStorageKey("clientes"), JSON.stringify(clientesCadastrados));
             atualizarContadorClientesHeader();
           }
 
           if (data && data.agenda && Array.isArray(data.agenda)) {
             agendaCompromissos = data.agenda;
-            localStorage.setItem("marmoraria_agenda", JSON.stringify(agendaCompromissos));
+            localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
           }
 
           if (data && data.bancos && Array.isArray(data.bancos)) {
             bancosContas = data.bancos.filter(b => !listaExcluidos.includes(b.id));
-            localStorage.setItem("marmoraria_bancos_contas", JSON.stringify(bancosContas));
+            localStorage.setItem(getTenantStorageKey("bancos_contas"), JSON.stringify(bancosContas));
             popularSelectsBancos();
             renderizarCardsBancos();
           }
@@ -1799,23 +1785,23 @@
           if (data && data.catalogos) {
             if (data.catalogos.materiais && data.catalogos.materiais.length) {
               MATERIAIS = data.catalogos.materiais;
-              localStorage.setItem("marmoraria_materiais", JSON.stringify(MATERIAIS));
+              localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
             }
             if (data.catalogos.cubas && data.catalogos.cubas.length) {
               CUBAS = data.catalogos.cubas;
-              localStorage.setItem("marmoraria_cubas", JSON.stringify(CUBAS));
+              localStorage.setItem(getTenantStorageKey("cubas"), JSON.stringify(CUBAS));
             }
             if (data.catalogos.acabamentos && data.catalogos.acabamentos.length) {
               TIPOS_ACABAMENTO = data.catalogos.acabamentos;
-              localStorage.setItem("marmoraria_tipos_acabamento", JSON.stringify(TIPOS_ACABAMENTO));
+              localStorage.setItem(getTenantStorageKey("tipos_acabamento"), JSON.stringify(TIPOS_ACABAMENTO));
             }
             if (data.catalogos.regras_lados && data.catalogos.regras_lados.length) {
               REGRAS_LADOS = data.catalogos.regras_lados;
-              localStorage.setItem("marmoraria_regras_lados", JSON.stringify(REGRAS_LADOS));
+              localStorage.setItem(getTenantStorageKey("regras_lados"), JSON.stringify(REGRAS_LADOS));
             }
             if (data.catalogos.modalidades_logistica && data.catalogos.modalidades_logistica.length) {
               MODALIDADES_LOGISTICA = data.catalogos.modalidades_logistica;
-              localStorage.setItem("marmoraria_modalidades_logistica", JSON.stringify(MODALIDADES_LOGISTICA));
+              localStorage.setItem(getTenantStorageKey("modalidades_logistica"), JSON.stringify(MODALIDADES_LOGISTICA));
               const tipoSel = document.getElementById("tipo_entrega");
               if (tipoSel) popularSelectModalidadesLogistica(tipoSel.value);
             }
@@ -1923,6 +1909,22 @@
       const tbody = document.getElementById("corpo_tabela");
       tbody.innerHTML = "";
 
+      if (!itens || itens.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="12" class="p-8 text-center text-slate-400 bg-slate-50/50">
+              <div class="max-w-xs mx-auto space-y-2">
+                <span class="text-3xl block">📐</span>
+                <p class="text-sm font-semibold text-slate-600">Nenhuma peça adicionada ainda</p>
+                <p class="text-xs text-slate-400">Clique em "+ Nova Peça" para começar a orçar.</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        calcularTotais();
+        return;
+      }
+
       itens.forEach((item, index) => {
         // Calculation of Area (m²)
         const areaPeca = (item.comp * item.larg) * item.qtd + item.rb;
@@ -1944,7 +1946,7 @@
           </td>
           <td class="p-3">
             <select onchange="atualizarMaterial(${index}, this.value)" class="w-full px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-xs font-medium focus:ring-1 focus:ring-blue-500">
-              ${MATERIAIS.map(m => `<option value="${m.id}" ${m.id === item.materialId ? "selected" : ""}>${m.nome} (R$ ${m.precoM2.toFixed(2)}/m²)</option>`).join("")}
+              ${MATERIAIS.length > 0 ? MATERIAIS.map(m => `<option value="${m.id}" ${m.id === item.materialId ? "selected" : ""}>${m.nome} (R$ ${m.precoM2.toFixed(2)}/m²)</option>`).join("") : '<option value="">(Nenhum material cadastrado)</option>'}
               <option value="_novo_material_" class="font-bold text-emerald-600 bg-emerald-50">+ Cadastrar Pedra...</option>
             </select>
           </td>
@@ -1991,7 +1993,7 @@
           <td class="p-3">
             <div class="flex flex-col gap-1 min-w-[155px]">
               <select onchange="atualizarModeloCuba(${index}, this.value)" class="w-full px-2 py-1 rounded-lg border border-slate-200 bg-white text-[11px] font-medium focus:ring-1 focus:ring-blue-500">
-                ${CUBAS.map(c => `<option value="${c.id}" ${c.id === (item.cubaId || (item.cuba > 0 ? '' : 'nenhuma')) ? 'selected' : ''}>${c.nome}${c.preco > 0 ? ` (R$ ${c.preco.toFixed(2)})` : ''}</option>`).join('')}
+                ${CUBAS.length > 0 ? CUBAS.map(c => `<option value="${c.id}" ${c.id === (item.cubaId || (item.cuba > 0 ? '' : 'nenhuma')) ? 'selected' : ''}>${c.nome}${c.preco > 0 ? ` (R$ ${c.preco.toFixed(2)})` : ''}</option>`).join('') : '<option value="nenhuma">Sem Cuba (R$ 0,00)</option>'}
                 <option value="_nova_cuba_" class="font-bold text-blue-600 bg-blue-50">+ Cadastrar Cuba...</option>
               </select>
               <div class="flex items-center gap-1.5 justify-end">
@@ -2075,19 +2077,20 @@
     }
 
     function adicionarItem() {
-      const primeiroMat = MATERIAIS[0] || { id: "verde", precoM2: 270.0 };
+      const primeiroMat = MATERIAIS[0] || { id: "outro", precoM2: 0.0 };
+      const primeiroAcab = TIPOS_ACABAMENTO[0] || { id: "boleado", precoM: 20.0 };
       itens.push({
         id: Date.now(),
         descricao: "Nova Bancada / Peça",
         materialId: primeiroMat.id,
-        precoM2: primeiroMat.precoM2,
+        precoM2: primeiroMat.precoM2 || 0.0,
         qtd: 1,
         comp: 1.0,
         larg: 0.6,
         rb: 0.0,
-        tipoAcabamentoId: "boleado",
+        tipoAcabamentoId: primeiroAcab.id,
         regraAcab: "pia_frente",
-        precoMetroLinear: 20.0,
+        precoMetroLinear: primeiroAcab.precoM || 20.0,
         cubaId: "nenhuma",
         cubaNome: "Sem Cuba",
         cuba: 0.0
@@ -2096,12 +2099,8 @@
     }
 
     function removerItem(index) {
-      if (itens.length > 1) {
-        itens.splice(index, 1);
-        renderTabela();
-      } else {
-        alert("O orçamento deve conter pelo menos uma peça.");
-      }
+      itens.splice(index, 1);
+      renderTabela();
     }
 
     function calcularTotais() {
@@ -2184,7 +2183,7 @@
     // Inicialização e correção automática de orçamentos (evita valores zerados R$ 0,00)
     function corrigirTotaisOrcamentosSalvos() {
       try {
-        const salvo = localStorage.getItem("marmoraria_orcamentos_salvos");
+        const salvo = localStorage.getItem(getTenantStorageKey("orcamentos_salvos"));
         if (salvo) {
           orcamentosSalvos = JSON.parse(salvo);
         }
@@ -2208,7 +2207,7 @@
         o.m2Total = t.m2Total;
       });
 
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
     }
 
     // Navegação entre Visões da Barra Lateral e Topbar
@@ -2598,7 +2597,7 @@
       const orc = (orcamentosSalvos || []).find(o => o.id === id);
       if (!orc) return;
       orc.status = "aprovado";
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
       atualizarStatusOrcamentoNuvem(id, "aprovado");
       atualizarBadgesHeader();
       atualizarKpisDashboard();
@@ -2610,7 +2609,7 @@
       const orc = (orcamentosSalvos || []).find(o => o.id === id);
       if (!orc) return;
       orc.status = "em_aberto";
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
       atualizarStatusOrcamentoNuvem(id, "em_aberto");
       atualizarBadgesHeader();
       atualizarKpisDashboard();
@@ -2931,7 +2930,7 @@
       orc.responsavelBaixa = responsavel;
       orc.obsExpedicao = obs;
 
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
       enviarOrcamentoParaNuvem(orc);
       atualizarStatusOrcamentoNuvem(orc.id, "concluido");
 
@@ -2950,7 +2949,7 @@
 
       if (confirm(`Deseja reabrir o pedido ${orc.numero} para a Fila de Corte / Produção?`)) {
         orc.status = "aprovado";
-        localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+        localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
         enviarOrcamentoParaNuvem(orc);
         atualizarStatusOrcamentoNuvem(orc.id, "aprovado");
 
@@ -2967,7 +2966,7 @@
       const orc = (orcamentosSalvos || []).find(o => o.id === id);
       if (orc) {
         orc.status = novoStatus;
-        localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+        localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
         atualizarStatusOrcamentoNuvem(id, novoStatus);
         atualizarBadgesHeader();
         atualizarKpisDashboard();
@@ -3059,7 +3058,7 @@
       orc.dataPrevisaoRetomada = dataRetorno;
       orc.detalheMotivo = obs;
 
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
       enviarOrcamentoParaNuvem(orc);
       atualizarStatusOrcamentoNuvem(orc.id, "cancelado");
 
@@ -3078,7 +3077,7 @@
 
       if (confirm(`Deseja reativar o orçamento ${orc.numero} de ${orc.clienteNome} e colocá-lo de volta em Negociação (Em Aberto)?`)) {
         orc.status = "em_aberto";
-        localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+        localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
         enviarOrcamentoParaNuvem(orc);
         atualizarStatusOrcamentoNuvem(orc.id, "em_aberto");
 
@@ -3147,7 +3146,7 @@
       clone.m2Total = t.m2Total;
 
       orcamentosSalvos.unshift(clone);
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
       enviarOrcamentoParaNuvem(clone);
 
       atualizarBadgesHeader();
@@ -3438,7 +3437,7 @@
     let bancosContas = [];
     let bancosExcluidos = [];
     try {
-      bancosExcluidos = JSON.parse(localStorage.getItem("marmoraria_bancos_excluidos") || "[]");
+      bancosExcluidos = JSON.parse(localStorage.getItem(getTenantStorageKey("bancos_excluidos")) || "[]");
     } catch(e) {
       bancosExcluidos = [];
     }
@@ -3447,7 +3446,7 @@
 
     function inicializarBancosContasSeNecessario() {
       try {
-        const salvo = localStorage.getItem("marmoraria_bancos_contas");
+        const salvo = localStorage.getItem(getTenantStorageKey("bancos_contas"));
         if (salvo) {
           bancosContas = JSON.parse(salvo);
         }
@@ -3466,7 +3465,7 @@
           bancosContas = bancosContas.filter(b => b.id !== "caixa_fisico");
           if (!bancosExcluidos.includes("caixa_fisico")) {
             bancosExcluidos.push("caixa_fisico");
-            localStorage.setItem("marmoraria_bancos_excluidos", JSON.stringify(bancosExcluidos));
+            localStorage.setItem(getTenantStorageKey("bancos_excluidos"), JSON.stringify(bancosExcluidos));
           }
         }
       }
@@ -3480,7 +3479,7 @@
     }
 
     function salvarBancosContas(sincronizar = true) {
-      localStorage.setItem("marmoraria_bancos_contas", JSON.stringify(bancosContas));
+      localStorage.setItem(getTenantStorageKey("bancos_contas"), JSON.stringify(bancosContas));
       popularSelectsBancos();
       renderizarCardsBancos();
       if (sincronizar && typeof sincronizarComNuvem === "function") {
@@ -3490,7 +3489,7 @@
 
     function obterBancoPadrao() {
       if (!bancosContas || bancosContas.length === 0) {
-        return { id: "banco_itau", nome: "Banco Itaú PJ", cor: "#f97316", padrao: true };
+        return { id: "", nome: "Nenhum Banco Cadastrado", cor: "#64748b", padrao: true };
       }
       return bancosContas.find(b => b.padrao) || bancosContas[0];
     }
@@ -3521,11 +3520,16 @@
       if (selPag) {
         const valAtual = selPag.value || padrao.id;
         let opts = "";
-        (bancosContas || []).filter(b => b.ativo !== false).forEach(b => {
-          opts += `<option value="${b.id}">${b.nome} (${b.tipo === 'carteira_fisica' ? 'Gaveta / Espécie' : 'Conta ' + b.conta})</option>`;
-        });
+        const bancosAtivos = (bancosContas || []).filter(b => b.ativo !== false);
+        if (bancosAtivos.length === 0) {
+          opts = `<option value="">(Nenhuma conta cadastrada)</option>`;
+        } else {
+          bancosAtivos.forEach(b => {
+            opts += `<option value="${b.id}">${b.nome} (${b.tipo === 'carteira_fisica' ? 'Gaveta / Espécie' : 'Conta ' + (b.conta || 'S/N')})</option>`;
+          });
+        }
         selPag.innerHTML = opts;
-        selPag.value = valAtual;
+        selPag.value = valAtual || (bancosAtivos[0] ? bancosAtivos[0].id : "");
       }
 
       // 3. Select do Modal de Nova Conta a Pagar (Previsto)
@@ -3545,11 +3549,16 @@
       if (selBaixaCp) {
         const valAtual = selBaixaCp.value || padrao.id;
         let opts = "";
-        (bancosContas || []).filter(b => b.ativo !== false).forEach(b => {
-          opts += `<option value="${b.id}">${b.nome}</option>`;
-        });
+        const bancosAtivos = (bancosContas || []).filter(b => b.ativo !== false);
+        if (bancosAtivos.length === 0) {
+          opts = `<option value="">(Nenhuma conta cadastrada)</option>`;
+        } else {
+          bancosAtivos.forEach(b => {
+            opts += `<option value="${b.id}">${b.nome}</option>`;
+          });
+        }
         selBaixaCp.innerHTML = opts;
-        selBaixaCp.value = valAtual;
+        selBaixaCp.value = valAtual || (bancosAtivos[0] ? bancosAtivos[0].id : "");
       }
 
       // 5. Select do Modal de Receita Avulsa
@@ -3557,11 +3566,16 @@
       if (selRec) {
         const valAtual = selRec.value || padrao.id;
         let opts = "";
-        (bancosContas || []).filter(b => b.ativo !== false).forEach(b => {
-          opts += `<option value="${b.id}">${b.nome}</option>`;
-        });
+        const bancosAtivos = (bancosContas || []).filter(b => b.ativo !== false);
+        if (bancosAtivos.length === 0) {
+          opts = `<option value="">(Nenhuma conta cadastrada)</option>`;
+        } else {
+          bancosAtivos.forEach(b => {
+            opts += `<option value="${b.id}">${b.nome}</option>`;
+          });
+        }
         selRec.innerHTML = opts;
-        selRec.value = valAtual;
+        selRec.value = valAtual || (bancosAtivos[0] ? bancosAtivos[0].id : "");
       }
     }
 
@@ -3869,7 +3883,7 @@
 
       if (id && bancosExcluidos.includes(id)) {
         bancosExcluidos = bancosExcluidos.filter(item => item !== id);
-        localStorage.setItem("marmoraria_bancos_excluidos", JSON.stringify(bancosExcluidos));
+        localStorage.setItem(getTenantStorageKey("bancos_excluidos"), JSON.stringify(bancosExcluidos));
       }
 
       if (!bancosContas.some(b => b.padrao) && bancosContas.length > 0) {
@@ -3935,11 +3949,9 @@
               <button onclick="abrirModalEditarBanco('${b.id}')" class="px-2 py-1 text-[11px] font-bold text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 transition cursor-pointer">
                 Editar
               </button>
-              ${bancosContas.length > 1 ? `
-                <button onclick="excluirBancoConta('${b.id}')" class="px-2 py-1 text-[11px] font-bold text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition cursor-pointer">
-                  Excluir
-                </button>
-              ` : ''}
+              <button onclick="excluirBancoConta('${b.id}')" class="px-2 py-1 text-[11px] font-bold text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition cursor-pointer">
+                Excluir
+              </button>
             </div>
           </div>
         `;
@@ -3959,17 +3971,13 @@
     }
 
     async function excluirBancoConta(id) {
-      if (bancosContas.length <= 1) {
-        alert("Você deve manter pelo menos uma conta bancária cadastrada.");
-        return;
-      }
       const b = bancosContas.find(item => item.id === id);
       if (!confirm(`Deseja realmente excluir a conta "${b ? b.nome : id}"?`)) return;
 
       // Adiciona à lista persistente de bancos excluídos
       if (!bancosExcluidos.includes(id)) {
         bancosExcluidos.push(id);
-        localStorage.setItem("marmoraria_bancos_excluidos", JSON.stringify(bancosExcluidos));
+        localStorage.setItem(getTenantStorageKey("bancos_excluidos"), JSON.stringify(bancosExcluidos));
       }
 
       bancosContas = bancosContas.filter(item => item.id !== id);
@@ -4128,7 +4136,7 @@
 
     function inicializarContasPagarEReceitas() {
       try {
-        const salvoPagar = localStorage.getItem("marmoraria_contas_pagar");
+        const salvoPagar = localStorage.getItem(getTenantStorageKey("contas_pagar"));
         if (salvoPagar) {
           contasPagar = JSON.parse(salvoPagar);
         }
@@ -4142,7 +4150,7 @@
       }
 
       try {
-        const salvoRec = localStorage.getItem("marmoraria_receitas_avulsas");
+        const salvoRec = localStorage.getItem(getTenantStorageKey("receitas_avulsas"));
         if (salvoRec) {
           receitasAvulsas = JSON.parse(salvoRec);
         }
@@ -4152,11 +4160,11 @@
     }
 
     function salvarContasPagar() {
-      localStorage.setItem("marmoraria_contas_pagar", JSON.stringify(contasPagar));
+      localStorage.setItem(getTenantStorageKey("contas_pagar"), JSON.stringify(contasPagar));
     }
 
     function salvarReceitasAvulsas() {
-      localStorage.setItem("marmoraria_receitas_avulsas", JSON.stringify(receitasAvulsas));
+      localStorage.setItem(getTenantStorageKey("receitas_avulsas"), JSON.stringify(receitasAvulsas));
     }
 
     function toggleSubmenuFinanceiro(forcarAberto) {
@@ -5446,7 +5454,7 @@
         mostrarToast(`Orçamento ${orc.numero} aprovado automaticamente com o sinal!`, "🎉");
       }
 
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
       enviarOrcamentoParaNuvem(orc);
 
       fecharModalRegistrarPagamento();
@@ -5474,7 +5482,7 @@
       }
 
       orc.pagamentos = orc.pagamentos.filter(p => p.id !== pagId);
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
       enviarOrcamentoParaNuvem(orc);
 
       atualizarBadgesHeader();
@@ -5882,7 +5890,7 @@
         orcamentosSalvos.unshift(orcamentoObj);
       }
 
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
       enviarOrcamentoParaNuvem(orcamentoObj);
       autoSalvarClienteDoOrcamento(clienteNome, clienteFone, clienteEndereco, clientePontoRef, {
         cep: clienteCep,
@@ -5927,23 +5935,8 @@
         popularSelectModalidadesLogistica("entregar");
         document.getElementById("orcamento_obs").value = "";
 
-        // Reinicia com 1 item padrão
-        itens = [
-          {
-            id: Date.now(),
-            descricao: "Bancada Cozinha / Ilha",
-            materialId: "verde",
-            precoM2: 270.0,
-            qtd: 1,
-            comp: 1.50,
-            larg: 0.60,
-            rb: 0.0,
-            tipoAcabamentoId: "45_graus",
-            regraAcab: "pia_frente",
-            precoMetroLinear: 80.0,
-            cuba: 0.0
-          }
-        ];
+        // Reinicia com 0 peças (orçamento limpo em branco)
+        itens = [];
 
         renderTabela();
         atualizarBadgesHeader();
@@ -6146,7 +6139,7 @@
       clone.status = "em_aberto";
 
       orcamentosSalvos.unshift(clone);
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
       enviarOrcamentoParaNuvem(clone);
       atualizarBadgesHeader();
       atualizarKpisDashboard();
@@ -6161,7 +6154,7 @@
 
       if (confirm(`Tem certeza que deseja excluir o orçamento "${orc.numero}" de ${orc.clienteNome}?`)) {
         orcamentosSalvos = orcamentosSalvos.filter(o => o.id !== id);
-        localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+        localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
         excluirOrcamentoNuvem(id);
         atualizarBadgesHeader();
         atualizarKpisDashboard();
@@ -6372,7 +6365,7 @@
         document.getElementById("orcamento_status").value = novoStatus;
       }
 
-      localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
       atualizarBadgesHeader();
       renderizarFilaFabrica();
       mostrarToast(`Status do pedido ${orc.numero} alterado!`, "🔄");
@@ -7219,21 +7212,21 @@
         precoInput.value = "20";
       }
 
-      localStorage.setItem("marmoraria_tipos_acabamento", JSON.stringify(TIPOS_ACABAMENTO));
+      localStorage.setItem(getTenantStorageKey("tipos_acabamento"), JSON.stringify(TIPOS_ACABAMENTO));
       renderizarListaAcabamentosModal();
       renderTabela();
     }
 
     function editarPrecoAcabamento(index, novoPreco) {
       TIPOS_ACABAMENTO[index].precoM = novoPreco;
-      localStorage.setItem("marmoraria_tipos_acabamento", JSON.stringify(TIPOS_ACABAMENTO));
+      localStorage.setItem(getTenantStorageKey("tipos_acabamento"), JSON.stringify(TIPOS_ACABAMENTO));
       renderTabela();
     }
 
     function excluirTipoAcabamento(index) {
       if (confirm(`Deseja remover o acabamento "${TIPOS_ACABAMENTO[index].nome}" do catálogo?`)) {
         TIPOS_ACABAMENTO.splice(index, 1);
-        localStorage.setItem("marmoraria_tipos_acabamento", JSON.stringify(TIPOS_ACABAMENTO));
+        localStorage.setItem(getTenantStorageKey("tipos_acabamento"), JSON.stringify(TIPOS_ACABAMENTO));
         renderizarListaAcabamentosModal();
         renderTabela();
       }
@@ -7242,7 +7235,7 @@
     function restaurarPadroesAcabamento() {
       if (confirm("Deseja restaurar os acabamentos padrões da marmoraria?")) {
         TIPOS_ACABAMENTO = JSON.parse(JSON.stringify(ACABAMENTOS_PADRAO));
-        localStorage.setItem("marmoraria_tipos_acabamento", JSON.stringify(TIPOS_ACABAMENTO));
+        localStorage.setItem(getTenantStorageKey("tipos_acabamento"), JSON.stringify(TIPOS_ACABAMENTO));
         renderizarListaAcabamentosModal();
         renderTabela();
       }
@@ -7371,7 +7364,7 @@
         atualizarPreviewNovaRegraLados();
       }
 
-      localStorage.setItem("marmoraria_regras_lados", JSON.stringify(REGRAS_LADOS));
+      localStorage.setItem(getTenantStorageKey("regras_lados"), JSON.stringify(REGRAS_LADOS));
       renderizarListaLadosModal();
       renderTabela();
     }
@@ -7379,7 +7372,7 @@
     function excluirRegraLados(index) {
       if (confirm(`Deseja remover a regra "${REGRAS_LADOS[index].nome}" do catálogo?`)) {
         REGRAS_LADOS.splice(index, 1);
-        localStorage.setItem("marmoraria_regras_lados", JSON.stringify(REGRAS_LADOS));
+        localStorage.setItem(getTenantStorageKey("regras_lados"), JSON.stringify(REGRAS_LADOS));
         renderizarListaLadosModal();
         renderTabela();
       }
@@ -7388,7 +7381,7 @@
     function restaurarPadroesLados() {
       if (confirm("Deseja restaurar as regras padrões de lados da marmoraria?")) {
         REGRAS_LADOS = JSON.parse(JSON.stringify(REGRAS_LADOS_PADRAO));
-        localStorage.setItem("marmoraria_regras_lados", JSON.stringify(REGRAS_LADOS));
+        localStorage.setItem(getTenantStorageKey("regras_lados"), JSON.stringify(REGRAS_LADOS));
         renderizarListaLadosModal();
         renderTabela();
       }
@@ -7543,7 +7536,7 @@
         document.getElementById("novo_mat_preco").value = "280";
       }
 
-      localStorage.setItem("marmoraria_materiais", JSON.stringify(MATERIAIS));
+      localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
       renderizarListaMateriaisModal();
       renderTabela();
     }
@@ -7555,7 +7548,7 @@
         itens.forEach(it => {
           if (it.materialId === id) it.precoM2 = novoPreco;
         });
-        localStorage.setItem("marmoraria_materiais", JSON.stringify(MATERIAIS));
+        localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
         renderTabela();
         mostrarToast(`Preço do ${mat.nome} alterado para R$ ${novoPreco.toFixed(2)}/m²`, "💰");
       }
@@ -7565,7 +7558,7 @@
       const mat = MATERIAIS[index];
       if (confirm(`Deseja remover "${mat.nome}" do catálogo de pedras?`)) {
         MATERIAIS.splice(index, 1);
-        localStorage.setItem("marmoraria_materiais", JSON.stringify(MATERIAIS));
+        localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
         renderizarListaMateriaisModal();
         renderTabela();
         mostrarToast(`Pedra "${mat.nome}" removida.`, "🗑️");
@@ -7575,7 +7568,7 @@
     function restaurarPadroesMateriais() {
       if (confirm("Deseja restaurar as pedras e chapas padrões da marmoraria?")) {
         MATERIAIS = JSON.parse(JSON.stringify(MATERIAIS_PADRAO));
-        localStorage.setItem("marmoraria_materiais", JSON.stringify(MATERIAIS));
+        localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
         cancelarEdicaoMaterial();
         renderizarListaMateriaisModal();
         renderTabela();
@@ -7734,7 +7727,7 @@
         document.getElementById("nova_cuba_preco").value = "180";
       }
 
-      localStorage.setItem("marmoraria_cubas", JSON.stringify(CUBAS));
+      localStorage.setItem(getTenantStorageKey("cubas"), JSON.stringify(CUBAS));
       renderizarListaCubasModal();
       renderTabela();
     }
@@ -7746,7 +7739,7 @@
         itens.forEach(it => {
           if (it.cubaId === id) it.cuba = novoPreco;
         });
-        localStorage.setItem("marmoraria_cubas", JSON.stringify(CUBAS));
+        localStorage.setItem(getTenantStorageKey("cubas"), JSON.stringify(CUBAS));
         renderTabela();
         mostrarToast(`Preço da ${cuba.nome} alterado para R$ ${novoPreco.toFixed(2)}`, "💰");
       }
@@ -7756,7 +7749,7 @@
       const cuba = CUBAS[index];
       if (confirm(`Deseja remover a cuba "${cuba.nome}" do catálogo?`)) {
         CUBAS.splice(index, 1);
-        localStorage.setItem("marmoraria_cubas", JSON.stringify(CUBAS));
+        localStorage.setItem(getTenantStorageKey("cubas"), JSON.stringify(CUBAS));
         renderizarListaCubasModal();
         renderTabela();
         mostrarToast(`Cuba "${cuba.nome}" removida.`, "🗑️");
@@ -7916,7 +7909,7 @@
         mostrarToast(`Nova modalidade "${nome}" criada!`, "🚚");
       }
 
-      localStorage.setItem("marmoraria_modalidades_logistica", JSON.stringify(MODALIDADES_LOGISTICA));
+      localStorage.setItem(getTenantStorageKey("modalidades_logistica"), JSON.stringify(MODALIDADES_LOGISTICA));
       salvarCatalogoNuvem("modalidades_logistica", MODALIDADES_LOGISTICA);
       cancelarEdicaoLogistica();
       popularSelectModalidadesLogistica(idAtivo);
@@ -7933,7 +7926,7 @@
       const mod = MODALIDADES_LOGISTICA[index];
       if (confirm(`Deseja remover a modalidade "${mod.nome}"?`)) {
         MODALIDADES_LOGISTICA.splice(index, 1);
-        localStorage.setItem("marmoraria_modalidades_logistica", JSON.stringify(MODALIDADES_LOGISTICA));
+        localStorage.setItem(getTenantStorageKey("modalidades_logistica"), JSON.stringify(MODALIDADES_LOGISTICA));
         salvarCatalogoNuvem("modalidades_logistica", MODALIDADES_LOGISTICA);
         cancelarEdicaoLogistica();
         popularSelectModalidadesLogistica(document.getElementById("tipo_entrega").value);
@@ -7972,7 +7965,7 @@
           });
         });
         if (clientesCadastrados.length > 0) {
-          localStorage.setItem("marmoraria_clientes", JSON.stringify(clientesCadastrados));
+          localStorage.setItem(getTenantStorageKey("clientes"), JSON.stringify(clientesCadastrados));
         }
       }
       atualizarContadorClientesHeader();
@@ -8259,7 +8252,7 @@
         clientesCadastrados.unshift(cliente);
       }
 
-      localStorage.setItem("marmoraria_clientes", JSON.stringify(clientesCadastrados));
+      localStorage.setItem(getTenantStorageKey("clientes"), JSON.stringify(clientesCadastrados));
       atualizarContadorClientesHeader();
       enviarClienteParaNuvem(cliente);
     }
@@ -8868,7 +8861,7 @@
         mostrarToast(`Cliente ${nome} cadastrado com sucesso!`, "👤");
       }
 
-      localStorage.setItem("marmoraria_clientes", JSON.stringify(clientesCadastrados));
+      localStorage.setItem(getTenantStorageKey("clientes"), JSON.stringify(clientesCadastrados));
       fecharModalFormCliente();
       atualizarContadorClientesHeader();
       atualizarKpisCRM();
@@ -8881,7 +8874,7 @@
 
       if (confirm(`Tem certeza que deseja excluir o cadastro de "${cliente.nome}"?`)) {
         clientesCadastrados = clientesCadastrados.filter(c => c.id !== clienteId);
-        localStorage.setItem("marmoraria_clientes", JSON.stringify(clientesCadastrados));
+        localStorage.setItem(getTenantStorageKey("clientes"), JSON.stringify(clientesCadastrados));
         excluirClienteNuvem(clienteId);
         atualizarContadorClientesHeader();
         atualizarKpisCRM();
@@ -8973,7 +8966,7 @@
       }
       const NOMES_AGENDA_EXEMPLO = ["Dra. Camila Vasconcelos", "Eng. Ricardo Prado"];
       agendaCompromissos = agendaCompromissos.filter(a => a && a.clienteNome && !NOMES_AGENDA_EXEMPLO.includes(a.clienteNome.trim()));
-      localStorage.setItem("marmoraria_agenda", JSON.stringify(agendaCompromissos));
+      localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
     }
 
     function filtrarVisitasAgenda(tipo) {
@@ -9337,7 +9330,7 @@
         if (idx >= 0) agendaCompromissos[idx] = eventoObj;
       }
 
-      localStorage.setItem("marmoraria_agenda", JSON.stringify(agendaCompromissos));
+      localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
       fecharModalAgendarEvento();
       atualizarBadgesHeader();
       renderizarAgendaView();
@@ -9361,7 +9354,7 @@
 
       item.status = "concluido";
       item.updatedAt = new Date().toISOString();
-      localStorage.setItem("marmoraria_agenda", JSON.stringify(agendaCompromissos));
+      localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
       atualizarBadgesHeader();
       renderizarAgendaView();
       mostrarToast("Visita marcada como concluída! ✅", "🏆");
@@ -9378,7 +9371,7 @@
     async function excluirEventoAgenda(id) {
       if (!confirm("Deseja realmente remover este agendamento?")) return;
       agendaCompromissos = (agendaCompromissos || []).filter(a => a.id !== id);
-      localStorage.setItem("marmoraria_agenda", JSON.stringify(agendaCompromissos));
+      localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
       atualizarBadgesHeader();
       renderizarAgendaView();
       mostrarToast("Agendamento removido.", "🗑️");
