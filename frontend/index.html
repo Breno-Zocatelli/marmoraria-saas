@@ -255,14 +255,44 @@
       <div>
         <span class="sidebar-label text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2.5 block mb-1">Produção & Logística</span>
         <div class="space-y-1">
-          <!-- Fábrica / Fila de Corte -->
-          <button id="btn_nav_fabrica" onclick="navegarParaAba('fabrica')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-semibold group cursor-pointer sidebar-item-container" title="Fila de Corte da Fábrica">
+          <!-- Fábrica / Fila de Corte (com Submenus) -->
+          <button id="btn_nav_fabrica" onclick="toggleSubmenuFabrica()" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-semibold group cursor-pointer sidebar-item-container" title="Clique para expandir/recolher os submenus da Fila da Fábrica">
             <div class="flex items-center gap-2.5 truncate">
               <span class="text-sm shrink-0">🏭</span>
               <span class="sidebar-label truncate">Fila da Fábrica</span>
             </div>
-            <span id="badge_nav_qtd_fabrica" class="sidebar-badge px-1.5 py-0.5 text-[10px] font-mono rounded-full bg-amber-500/20 text-amber-300 font-bold shrink-0">0</span>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span id="badge_nav_qtd_fabrica" class="sidebar-badge px-1.5 py-0.5 text-[10px] font-mono rounded-full bg-amber-500/20 text-amber-300 font-bold">0</span>
+              <svg id="chevron_nav_fabrica" class="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-transform duration-200 sidebar-label" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
           </button>
+
+          <!-- Submenus da Fila da Fábrica -->
+          <div id="submenu_nav_fabrica" class="hidden pl-3.5 space-y-1 mt-1 border-l-2 border-slate-800 ml-3.5 transition-all duration-200">
+            <button id="btn_subnav_fab_todos" onclick="navegarParaSubabaFabrica('todos')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Todos os pedidos na fábrica">
+              <div class="flex items-center gap-2 truncate">
+                <span class="text-xs shrink-0">📋</span>
+                <span class="sidebar-label truncate">Todos</span>
+              </div>
+              <span id="badge_subnav_fab_todos" class="sidebar-badge px-1.5 py-0.2 text-[10px] font-mono rounded-full bg-slate-800 text-slate-300 font-bold shrink-0">0</span>
+            </button>
+            <button id="btn_subnav_fab_corte" onclick="navegarParaSubabaFabrica('aprovado')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Pedidos em fila de corte / acabamento">
+              <div class="flex items-center gap-2 truncate">
+                <span class="text-xs shrink-0">🟢</span>
+                <span class="sidebar-label truncate">Em Corte</span>
+              </div>
+              <span id="badge_subnav_fab_corte" class="sidebar-badge px-1.5 py-0.2 text-[10px] font-mono rounded-full bg-amber-500/20 text-amber-300 font-bold shrink-0">0</span>
+            </button>
+            <button id="btn_subnav_fab_concluido" onclick="navegarParaSubabaFabrica('concluido')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Pedidos com produção concluída">
+              <div class="flex items-center gap-2 truncate">
+                <span class="text-xs shrink-0">✅</span>
+                <span class="sidebar-label truncate">Concluídos</span>
+              </div>
+              <span id="badge_subnav_fab_concluido" class="sidebar-badge px-1.5 py-0.2 text-[10px] font-mono rounded-full bg-emerald-500/20 text-emerald-300 font-bold shrink-0">0</span>
+            </button>
+          </div>
 
           <!-- Entregas & Expedição (Novo!) -->
           <button id="btn_nav_entregas" onclick="navegarParaAba('entregas')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition font-semibold group cursor-pointer sidebar-item-container" title="Controle de Entregas e Expedição de Pedidos">
@@ -2465,9 +2495,14 @@
       if (btnNavCancelados) btnNavCancelados.className = inativoClass;
       if (btnNavCalc) btnNavCalc.className = inativoClass;
 
-      // Reseta destaque do submenu lateral se não estiver na aba financeiro
+      // Reseta destaque do submenu lateral se não estiver na aba financeiro ou fábrica
       if (aba !== "financeiro") {
         atualizarSubmenuSidebarFinanceiro(null);
+      }
+      if (aba !== "fabrica") {
+        if (typeof atualizarSubmenuSidebarFabrica === "function") {
+          atualizarSubmenuSidebarFabrica(null);
+        }
       }
 
       const topbarIcon = document.getElementById("topbar_icon");
@@ -2512,6 +2547,8 @@
         if (topbarIcon) topbarIcon.innerText = "🏭";
         if (topbarTitle) topbarTitle.innerText = "Fila de Produção da Fábrica";
         if (topbarSub) topbarSub.innerText = "Ordens de corte, acabamento e conclusão de pedidos";
+        if (typeof toggleSubmenuFabrica === "function") toggleSubmenuFabrica(true);
+        if (typeof atualizarSubmenuSidebarFabrica === "function") atualizarSubmenuSidebarFabrica(filtroEtapaFabricaAtivo || "todos");
         renderizarFilaFabricaView();
       } else if (aba === "entregas") {
         if (viewEntregas) viewEntregas.classList.remove("hidden");
@@ -2616,6 +2653,13 @@
       if (badgeNavFab) badgeNavFab.innerText = qtdFabrica;
 
       const todosConf = (orcamentosSalvos || []).filter(o => o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido");
+      const bSubFabTodos = document.getElementById("badge_subnav_fab_todos");
+      if (bSubFabTodos) bSubFabTodos.innerText = todosConf.length;
+      const bSubFabCorte = document.getElementById("badge_subnav_fab_corte");
+      if (bSubFabCorte) bSubFabCorte.innerText = todosConf.filter(o => o.status !== "concluido").length;
+      const bSubFabConcl = document.getElementById("badge_subnav_fab_concluido");
+      if (bSubFabConcl) bSubFabConcl.innerText = todosConf.filter(o => o.status === "concluido").length;
+
       const totalEntregasPendentes = todosConf.filter(o => o.statusEntrega !== "entregue" && o.statusEntrega !== "realizada").length;
       const badgeNavEntregas = document.getElementById("badge_nav_qtd_entregas");
       if (badgeNavEntregas) badgeNavEntregas.innerText = totalEntregasPendentes;
@@ -2849,6 +2893,46 @@
       mostrarToast(`Pedido ${orc.numero} retornado para Em Aberto na Tela Inicial.`, "↩️");
     }
 
+    function toggleSubmenuFabrica(forcarAberto) {
+      const submenu = document.getElementById("submenu_nav_fabrica");
+      const chevron = document.getElementById("chevron_nav_fabrica");
+      if (!submenu) return;
+
+      const estaOculto = submenu.classList.contains("hidden");
+      const deveAbrir = (forcarAberto !== undefined) ? forcarAberto : estaOculto;
+
+      if (deveAbrir) {
+        submenu.classList.remove("hidden");
+        if (chevron) chevron.style.transform = "rotate(180deg)";
+        const viewFabrica = document.getElementById("view_fila_fabrica");
+        if (viewFabrica && viewFabrica.classList.contains("hidden")) {
+          navegarParaAba("fabrica");
+        }
+      } else {
+        submenu.classList.add("hidden");
+        if (chevron) chevron.style.transform = "rotate(0deg)";
+      }
+    }
+
+    function navegarParaSubabaFabrica(etapa) {
+      toggleSubmenuFabrica(true);
+      navegarParaAba("fabrica");
+      setFiltroEtapaFabrica(etapa);
+    }
+
+    function atualizarSubmenuSidebarFabrica(etapaAtiva) {
+      const btnTodos = document.getElementById("btn_subnav_fab_todos");
+      const btnCorte = document.getElementById("btn_subnav_fab_corte");
+      const btnConcluido = document.getElementById("btn_subnav_fab_concluido");
+
+      const estiloSubAtivo = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-xs cursor-pointer sidebar-item-container";
+      const estiloSubInativo = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container";
+
+      if (btnTodos) btnTodos.className = (etapaAtiva === "todos") ? estiloSubAtivo : estiloSubInativo;
+      if (btnCorte) btnCorte.className = (etapaAtiva === "aprovado") ? estiloSubAtivo : estiloSubInativo;
+      if (btnConcluido) btnConcluido.className = (etapaAtiva === "concluido") ? estiloSubAtivo : estiloSubInativo;
+    }
+
     function setFiltroEtapaFabrica(etapa) {
       filtroEtapaFabricaAtivo = etapa;
       ["todos", "aprovado", "concluido"].forEach(e => {
@@ -2861,6 +2945,7 @@
           }
         }
       });
+      atualizarSubmenuSidebarFabrica(etapa);
       renderizarFilaFabricaView();
     }
 
@@ -2911,6 +2996,16 @@
       if (pillAprov) pillAprov.innerText = totalEmCorte;
       const pillConcl = document.getElementById("cont_pill_fab_concluido");
       if (pillConcl) pillConcl.innerText = totalConcluidos;
+
+      // Atualiza badges dos submenus da Fila da Fábrica na barra lateral
+      const bSubFabTodos = document.getElementById("badge_subnav_fab_todos");
+      if (bSubFabTodos) bSubFabTodos.innerText = totalPedidos;
+      const bSubFabCorte = document.getElementById("badge_subnav_fab_corte");
+      if (bSubFabCorte) bSubFabCorte.innerText = totalEmCorte;
+      const bSubFabConcl = document.getElementById("badge_subnav_fab_concluido");
+      if (bSubFabConcl) bSubFabConcl.innerText = totalConcluidos;
+
+      atualizarSubmenuSidebarFabrica(filtroEtapaFabricaAtivo);
 
       // Aplica filtros de etapa e busca
       const pedidosFabrica = todosConfirmados.filter(o => {
@@ -6749,8 +6844,18 @@
       if (badgeNavOrc) badgeNavOrc.innerText = totalAberto;
 
       const totalFabrica = (orcamentosSalvos || []).filter(o => o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido").length;
+      const totalFabConcluidos = (orcamentosSalvos || []).filter(o => o.status === "concluido").length;
+      const totalFabEmCorte = totalFabrica - totalFabConcluidos;
+
       const badgeFabrica = document.getElementById("badge_nav_qtd_fabrica");
       if (badgeFabrica) badgeFabrica.innerText = totalFabrica;
+
+      const bSubFabTodos = document.getElementById("badge_subnav_fab_todos");
+      if (bSubFabTodos) bSubFabTodos.innerText = totalFabrica;
+      const bSubFabCorte = document.getElementById("badge_subnav_fab_corte");
+      if (bSubFabCorte) bSubFabCorte.innerText = totalFabEmCorte;
+      const bSubFabConcl = document.getElementById("badge_subnav_fab_concluido");
+      if (bSubFabConcl) bSubFabConcl.innerText = totalFabConcluidos;
 
       const todosConfGeral = (orcamentosSalvos || []).filter(o => o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido");
       const totalEntregasPend = todosConfGeral.filter(o => o.statusEntrega !== "entregue" && o.statusEntrega !== "realizada").length;
