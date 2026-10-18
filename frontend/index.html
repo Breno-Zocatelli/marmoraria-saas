@@ -336,20 +336,12 @@
 
     </div>
 
-    <!-- Rodapé da Sidebar: Nuvem & Alternador Retrátil -->
-    <div class="p-2.5 border-t border-slate-800/80 bg-slate-950/40 space-y-2">
-      <!-- Status da Nuvem -->
-      <button id="badge_status_nuvem" onclick="sincronizarComNuvem(true)" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white transition text-xs cursor-pointer sidebar-item-container" title="Clique para sincronizar com a Nuvem">
-        <div class="flex items-center gap-2 truncate">
-          <span id="dot_status_nuvem" class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
-          <span id="texto_status_nuvem" class="sidebar-label truncate font-medium">Nuvem OK</span>
-        </div>
-        <svg class="w-3.5 h-3.5 text-slate-500 sidebar-label shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-      </button>
-
+    <!-- Rodapé da Sidebar: Alternador Retrátil -->
+    <div class="p-2 border-t border-slate-800/80 bg-slate-950/40">
       <!-- Botão Rápido de Recolher/Expandir Rodapé -->
-      <button onclick="alternarSidebarRetratil()" class="hidden md:flex w-full items-center justify-center gap-2 py-1 px-2 text-[11px] font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 rounded-lg transition cursor-pointer sidebar-item-container">
-        <span id="texto_btn_recolher_sidebar" class="sidebar-label">Recolher Menu ◀</span>
+      <button onclick="alternarSidebarRetratil()" class="hidden md:flex w-full items-center justify-center gap-2 py-1.5 px-2 text-[11px] font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 rounded-xl transition cursor-pointer sidebar-item-container" title="Recolher ou expandir a barra lateral">
+        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+        <span id="texto_btn_recolher_sidebar" class="sidebar-label">Recolher Menu</span>
       </button>
     </div>
   </aside>
@@ -1892,6 +1884,14 @@
       }
     }
 
+    let timerSyncNuvem = null;
+    function sincronizarComNuvemDebounced(delay = 500) {
+      if (timerSyncNuvem) clearTimeout(timerSyncNuvem);
+      timerSyncNuvem = setTimeout(() => {
+        sincronizarComNuvem(false);
+      }, delay);
+    }
+
     async function sincronizarComNuvem(manual = false) {
       if (manual) atualizarIndicadorNuvem("sincronizando", "Sincronizando...");
       try {
@@ -2482,6 +2482,7 @@
       });
 
       localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
+      if (typeof sincronizarComNuvemDebounced === "function") sincronizarComNuvemDebounced();
     }
 
     // Navegação entre Visões da Barra Lateral e Topbar
@@ -5062,10 +5063,12 @@
 
     function salvarContasPagar() {
       localStorage.setItem(getTenantStorageKey("contas_pagar"), JSON.stringify(contasPagar));
+      if (typeof sincronizarComNuvemDebounced === "function") sincronizarComNuvemDebounced();
     }
 
     function salvarReceitasAvulsas() {
       localStorage.setItem(getTenantStorageKey("receitas_avulsas"), JSON.stringify(receitasAvulsas));
+      if (typeof sincronizarComNuvemDebounced === "function") sincronizarComNuvemDebounced();
     }
 
     // -------------------------------------------------------------
@@ -5105,6 +5108,7 @@
     function salvarCategoriasDespesas(lista) {
       try {
         localStorage.setItem(getTenantStorageKey("categorias_despesas"), JSON.stringify(lista));
+        if (typeof sincronizarComNuvemDebounced === "function") sincronizarComNuvemDebounced();
       } catch (e) {
         console.error("Erro ao salvar categorias de despesas:", e);
       }
