@@ -7,6 +7,9 @@ services:
       - "127.0.0.1:8080:8080"
     volumes:
       - ./data:/app/data
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+      - ./index.html:/app/index.html
     environment:
       - PORT=8080
       - DATABASE_PATH=/app/data/marmoraria.db

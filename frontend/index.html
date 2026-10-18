@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -3445,6 +3445,11 @@
     let filtroFluxoPeriodo = 'todos';
 
     function inicializarBancosContasSeNecessario() {
+      // Limpa chaves legadas globais sem tenant se existirem
+      try {
+        localStorage.removeItem("marmoraria_bancos_contas");
+      } catch(e) {}
+
       try {
         const salvo = localStorage.getItem(getTenantStorageKey("bancos_contas"));
         if (salvo) {
@@ -3454,9 +3459,10 @@
         bancosContas = [];
       }
 
-      // Filtra bancos que foram deletados pelo usuário
+      // Filtra bancos que foram deletados pelo usuário e purga bancos de exemplo legados
+      const BANCOS_DEMO_IDS = ["banco_itau", "banco_sicoob", "banco_caixa_fisico", "caixa_fisico"];
       if (bancosContas && bancosContas.length > 0) {
-        bancosContas = bancosContas.filter(b => !bancosExcluidos.includes(b.id));
+        bancosContas = bancosContas.filter(b => b && !bancosExcluidos.includes(b.id) && !BANCOS_DEMO_IDS.includes(b.id));
 
         // Deduplicação automática: se existirem tanto 'banco_caixa_fisico' quanto 'caixa_fisico', remove a duplicata
         const temBancoCaixa = bancosContas.some(b => b.id === "banco_caixa_fisico");
@@ -4134,7 +4140,22 @@
     let filtroTipoFluxo = 'todos'; // 'todos', 'entradas', 'saidas'
     let filtroContasPagarAtivo = 'todos'; // 'todos', 'pendentes', 'vencidas', 'pagas'
 
+    const DESPESAS_EXEMPLO_LEGADAS = [
+      "cp_01", "cp_02", "cp_03", "cp_04", "cp_05",
+      "Energia Elétrica (Ponte de Serra & Compressor da Oficina)",
+      "Compra de 2 Chapas - Granito Preto São Gabriel 2cm",
+      "Adiantamento Quinzenal - Equipe de Acabamento & Corte",
+      "Discos de Corte Diamantados 350mm + Lixas D'água",
+      "Lote de 5 Cubas Inox Tramontina Nº 2 (40x34cm)"
+    ];
+
     function inicializarContasPagarEReceitas() {
+      // Limpa chaves legadas globais sem tenant se existirem
+      try {
+        localStorage.removeItem("marmoraria_contas_pagar");
+        localStorage.removeItem("marmoraria_receitas_avulsas");
+      } catch(e) {}
+
       try {
         const salvoPagar = localStorage.getItem(getTenantStorageKey("contas_pagar"));
         if (salvoPagar) {
@@ -4144,10 +4165,13 @@
         contasPagar = [];
       }
 
-      if (!contasPagar || !Array.isArray(contasPagar)) {
+      // Purga despesas de exemplo legadas se existirem no localStorage do cliente
+      if (contasPagar && Array.isArray(contasPagar)) {
+        contasPagar = contasPagar.filter(cp => cp && !DESPESAS_EXEMPLO_LEGADAS.includes(cp.id) && !DESPESAS_EXEMPLO_LEGADAS.includes(cp.descricao));
+      } else {
         contasPagar = [];
-        salvarContasPagar();
       }
+      salvarContasPagar();
 
       try {
         const salvoRec = localStorage.getItem(getTenantStorageKey("receitas_avulsas"));
