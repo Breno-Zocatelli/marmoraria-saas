@@ -1141,10 +1141,11 @@
       </div>
 
       <!-- Metadados da Proposta -->
+      <!-- Metadados da Proposta -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 p-3.5 rounded-xl bg-slate-50/80 border border-slate-100">
         <div>
           <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nº do Pedido / Orçamento</label>
-          <input type="text" id="orcamento_numero" value="ORC-2024-001" oninput="atualizarBadgeNumero(this.value)" class="w-full px-3 py-1.5 text-xs font-mono font-bold rounded-lg border border-slate-200 bg-white text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="orcamento_numero" value="" placeholder="Ex: ORC-001" oninput="atualizarBadgeNumero(this.value)" class="w-full px-3 py-1.5 text-xs font-mono font-bold rounded-lg border border-slate-200 bg-white text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <div>
           <label class="block text-[11px] font-semibold text-slate-600 mb-1">Status da Proposta</label>
@@ -1162,7 +1163,7 @@
         </div>
         <div>
           <label class="block text-[11px] font-semibold text-slate-600 mb-1">Vendedor / Atendente</label>
-          <input type="text" id="vendedor_nome" value="Carlos - Vendas" class="w-full px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="vendedor_nome" value="" placeholder="Nome do vendedor..." class="w-full px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <div>
           <label class="block text-[11px] font-semibold text-slate-600 mb-1">Validade da Proposta</label>
@@ -1173,14 +1174,14 @@
         </div>
       </div>
 
-      <!-- Dados de Contato e Local -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <!-- Dados de Contato e Logística -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div class="relative">
           <div class="flex items-center justify-between mb-1">
-            <label class="block text-xs font-semibold text-slate-600">Nome do Cliente / Construtor</label>
+            <label class="block text-xs font-semibold text-slate-600">Nome do Cliente / Construtor *</label>
             <span id="badge_cliente_reconhecido" class="hidden text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-md border border-emerald-200" title="Cliente já cadastrado">✓ Cadastrado</span>
           </div>
-          <input type="text" id="cliente_nome" value="Jéssica Hupp de Souza" autocomplete="off" oninput="aoDigitarClienteNome(this.value)" onfocus="aoFocarClienteNome(this.value)" placeholder="Digite o nome para autocompletar..." class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+          <input type="text" id="cliente_nome" value="" autocomplete="off" oninput="aoDigitarClienteNome(this.value)" onfocus="aoFocarClienteNome(this.value)" placeholder="Digite o nome para autocompletar..." class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
           
           <!-- Dropdown Auto-complete de Clientes -->
           <div id="autocomplete_clientes_lista" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-72 overflow-y-auto divide-y divide-slate-100">
@@ -1192,17 +1193,13 @@
             <label class="block text-xs font-semibold text-slate-600">Telefone / WhatsApp</label>
             <span id="btn_abrir_whats_cliente" onclick="abrirWhatsAppClienteAtual()" class="hidden text-[10px] font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer flex items-center gap-0.5" title="Conversar no WhatsApp">📱 Abrir</span>
           </div>
-          <input type="text" id="cliente_fone" value="(27) 99862-2076" autocomplete="off" oninput="aoDigitarClienteFone(this.value)" placeholder="(00) 00000-0000" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+          <input type="text" id="cliente_fone" value="" autocomplete="off" oninput="aoDigitarClienteFone(this.value)" placeholder="(00) 00000-0000" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
           
           <!-- Dropdown Auto-complete de Telefones -->
           <div id="autocomplete_fones_lista" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-72 overflow-y-auto divide-y divide-slate-100">
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Endereço da Obra & Cidade</label>
-          <input type="text" id="cliente_endereco" value="Av. Presidente Garrastazu Médice, 837 - Linhares-ES" placeholder="Rua, número, cidade..." class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
-        </div>
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-semibold text-slate-600">Modalidade de Logística</label>
@@ -1216,16 +1213,54 @@
         </div>
       </div>
 
-      <!-- Ponto de Referência e Observações -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Ponto de Referência / Bairro</label>
-          <input type="text" id="cliente_ponto_ref" value="Bairro BNH - Em frente ao Cemitério São José" placeholder="Ex: Bairro BNH, próximo ao posto..." class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700">
+      <!-- Bloco Estruturado de Endereço da Obra & Instalação -->
+      <div class="p-4 rounded-xl bg-slate-50/90 border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm">📍</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Endereço da Obra & Local de Instalação</span>
+          </div>
+          <span id="status_busca_cep" class="hidden text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200"></span>
         </div>
-        <div class="md:col-span-2">
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Observações Comerciais & Montagem</label>
-          <input type="text" id="orcamento_obs" value="Entrega e instalação inclusas. Pagamento: 50% de entrada e restante na conclusão." placeholder="Ex: Entrega em até 10 dias úteis após medição final no local..." class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700">
+
+        <!-- Linha 1 do Endereço: CEP, Rua, Número, Bairro -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div class="sm:col-span-3 md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">CEP</label>
+            <input type="text" id="cliente_cep" maxlength="9" placeholder="00000-000" oninput="aoDigitarCep(this.value)" class="w-full px-3 py-2 text-xs font-mono font-medium rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800">
+          </div>
+          <div class="sm:col-span-9 md:col-span-5">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Rua / Logradouro / Avenida *</label>
+            <input type="text" id="cliente_rua" placeholder="Ex: Av. Conceição da Barra, Rua das Acácias..." oninput="atualizarEnderecoCompleto()" class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+          </div>
+          <div class="sm:col-span-4 md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Número *</label>
+            <input type="text" id="cliente_numero" placeholder="Ex: 837 ou S/N" oninput="atualizarEnderecoCompleto()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-800">
+          </div>
+          <div class="sm:col-span-8 md:col-span-3">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Bairro *</label>
+            <input type="text" id="cliente_bairro" placeholder="Ex: Conceição, Centro, BNH..." oninput="atualizarEnderecoCompleto()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+          </div>
         </div>
+
+        <!-- Linha 2 do Endereço: Cidade/UF, Complemento/Ref, Observações -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div class="sm:col-span-4 md:col-span-3">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Cidade / UF *</label>
+            <input type="text" id="cliente_cidade" placeholder="Ex: Linhares - ES" oninput="atualizarEnderecoCompleto()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+          </div>
+          <div class="sm:col-span-8 md:col-span-4">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Complemento / Ponto de Referência</label>
+            <input type="text" id="cliente_ponto_ref" placeholder="Ex: Apto 201, próx. ao supermercado..." oninput="atualizarEnderecoCompleto()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700">
+          </div>
+          <div class="sm:col-span-12 md:col-span-5">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Observações Comerciais & Montagem</label>
+            <input type="text" id="orcamento_obs" value="" placeholder="Ex: Entrega e instalação inclusas. Pagamento: 50% de entrada..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700">
+          </div>
+        </div>
+
+        <!-- Campo oculto para compatibilidade canônica -->
+        <input type="hidden" id="cliente_endereco" value="">
       </div>
     </div>
 
@@ -5772,6 +5807,7 @@
     }
 
     function salvarOrcamentoAtual() {
+      atualizarEnderecoCompleto();
       const numero = document.getElementById("orcamento_numero").value.trim() || `ORC-${Date.now()}`;
       const status = document.getElementById("orcamento_status").value;
       const vendedor = document.getElementById("vendedor_nome").value.trim();
@@ -5779,7 +5815,12 @@
       const dataEntregaPrevista = document.getElementById("data_entrega_prevista").value;
       const clienteNome = document.getElementById("cliente_nome").value.trim() || "Cliente Sem Nome";
       const clienteFone = document.getElementById("cliente_fone").value.trim();
-      const clienteEndereco = document.getElementById("cliente_endereco").value.trim();
+      const clienteCep = (document.getElementById("cliente_cep") ? document.getElementById("cliente_cep").value.trim() : "");
+      const clienteRua = (document.getElementById("cliente_rua") ? document.getElementById("cliente_rua").value.trim() : "");
+      const clienteNumero = (document.getElementById("cliente_numero") ? document.getElementById("cliente_numero").value.trim() : "");
+      const clienteBairro = (document.getElementById("cliente_bairro") ? document.getElementById("cliente_bairro").value.trim() : "");
+      const clienteCidade = (document.getElementById("cliente_cidade") ? document.getElementById("cliente_cidade").value.trim() : "");
+      const clienteEndereco = (document.getElementById("cliente_endereco") ? document.getElementById("cliente_endereco").value.trim() : "");
       const clientePontoRef = document.getElementById("cliente_ponto_ref").value.trim();
       const tipoEntrega = document.getElementById("tipo_entrega").value;
       const observacoes = document.getElementById("orcamento_obs").value.trim();
@@ -5810,6 +5851,11 @@
         vendedor,
         clienteNome,
         clienteFone,
+        clienteCep,
+        clienteRua,
+        clienteNumero,
+        clienteBairro,
+        clienteCidade,
         clienteEndereco,
         clientePontoRef,
         tipoEntrega,
@@ -5838,7 +5884,13 @@
 
       localStorage.setItem("marmoraria_orcamentos_salvos", JSON.stringify(orcamentosSalvos));
       enviarOrcamentoParaNuvem(orcamentoObj);
-      autoSalvarClienteDoOrcamento(clienteNome, clienteFone, clienteEndereco, clientePontoRef);
+      autoSalvarClienteDoOrcamento(clienteNome, clienteFone, clienteEndereco, clientePontoRef, {
+        cep: clienteCep,
+        rua: clienteRua,
+        numero: clienteNumero,
+        bairro: clienteBairro,
+        cidade: clienteCidade
+      });
       atualizarBadgesHeader();
       atualizarKpisDashboard();
       renderizarPainelHomeOrcamentos();
@@ -5865,8 +5917,7 @@
         document.getElementById("data_entrega_prevista").value = "";
         document.getElementById("cliente_nome").value = "";
         document.getElementById("cliente_fone").value = "";
-        document.getElementById("cliente_endereco").value = "";
-        document.getElementById("cliente_ponto_ref").value = "";
+        limparCamposEndereco();
 
         const badgeReconhecido = document.getElementById("badge_cliente_reconhecido");
         if (badgeReconhecido) badgeReconhecido.classList.add("hidden");
@@ -5874,7 +5925,7 @@
         if (btnWhats) btnWhats.classList.add("hidden");
 
         popularSelectModalidadesLogistica("entregar");
-        document.getElementById("orcamento_obs").value = "Entrega e instalação inclusas. Pagamento: 50% de entrada e restante na entrega.";
+        document.getElementById("orcamento_obs").value = "";
 
         // Reinicia com 1 item padrão
         itens = [
@@ -6037,13 +6088,32 @@
       orcamentoAtualId = orc.id;
       document.getElementById("orcamento_numero").value = orc.numero || "ORC-001";
       document.getElementById("orcamento_status").value = orc.status || "em_aberto";
-      document.getElementById("vendedor_nome").value = orc.vendedor || "Carlos - Vendas";
+      document.getElementById("vendedor_nome").value = orc.vendedor || "";
       document.getElementById("validade_dias").value = orc.validadeDias || 15;
       document.getElementById("data_entrega_prevista").value = orc.dataEntregaPrevista || "";
       document.getElementById("cliente_nome").value = orc.clienteNome || "";
       document.getElementById("cliente_fone").value = orc.clienteFone || "";
-      document.getElementById("cliente_endereco").value = orc.clienteEndereco || "";
-      document.getElementById("cliente_ponto_ref").value = orc.clientePontoRef || "";
+
+      // Carrega campos estruturados de endereço ou decompõe formato legado
+      if (orc.clienteRua || orc.clienteNumero || orc.clienteBairro || orc.clienteCep) {
+        preencherCamposEnderecoEstruturado({
+          cep: orc.clienteCep || "",
+          rua: orc.clienteRua || "",
+          numero: orc.clienteNumero || "",
+          bairro: orc.clienteBairro || "",
+          cidade: orc.clienteCidade || "",
+          ref: orc.clientePontoRef || ""
+        });
+        if (orc.clienteEndereco && document.getElementById("cliente_endereco")) {
+          document.getElementById("cliente_endereco").value = orc.clienteEndereco;
+        }
+      } else if (orc.clienteEndereco) {
+        const dec = decomporEndereco(orc.clienteEndereco, orc.clientePontoRef, orc.clienteCidade);
+        preencherCamposEnderecoEstruturado(dec);
+      } else {
+        limparCamposEndereco();
+      }
+
       popularSelectModalidadesLogistica(orc.tipoEntrega || "entregar");
       document.getElementById("orcamento_obs").value = orc.observacoes || "";
       document.getElementById("valor_entrada").value = orc.entrada || 0;
@@ -6314,10 +6384,10 @@
     function abrirFichaProducaoAtual() {
       const numero = document.getElementById("orcamento_numero").value || "ORC-2024-001";
       const status = document.getElementById("orcamento_status").value;
-      const vendedor = document.getElementById("vendedor_nome").value || "Carlos - Vendas";
+      const vendedor = document.getElementById("vendedor_nome").value.trim() || "Consultor de Vendas";
       const clienteNome = document.getElementById("cliente_nome").value || "Cliente Não Informado";
       const clienteFone = document.getElementById("cliente_fone").value || "Não informado";
-      const clienteEndereco = document.getElementById("cliente_endereco").value || "Linhares-ES";
+      const clienteEndereco = document.getElementById("cliente_endereco").value || "Não informado";
       const clientePontoRef = document.getElementById("cliente_ponto_ref").value || "";
       const tipoEntrega = document.getElementById("tipo_entrega").value;
       const dataEntregaPrevista = document.getElementById("data_entrega_prevista").value;
@@ -6486,7 +6556,7 @@
             <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Cliente / Construtor:</span>
             <span class="font-extrabold text-slate-900 text-base block">${orc.clienteNome || 'Não informado'}</span>
             <span class="text-slate-700 block mt-1"><b>Telefone / WhatsApp:</b> ${orc.clienteFone || 'Não informado'}</span>
-            <span class="text-slate-700 block"><b>Vendedor / Atendente:</b> ${orc.vendedor || 'Carlos - Vendas'}</span>
+            <span class="text-slate-700 block"><b>Vendedor / Atendente:</b> ${orc.vendedor || 'Não informado'}</span>
           </div>
 
           <div>
@@ -6598,10 +6668,11 @@
       
       const numero = document.getElementById("orcamento_numero").value || "ORC-2024-001";
       const status = document.getElementById("orcamento_status").value;
-      const vendedor = document.getElementById("vendedor_nome").value || "Carlos - Consultor de Vendas";
+      const vendedor = document.getElementById("vendedor_nome").value.trim() || "Consultor de Vendas";
       const validadeDias = document.getElementById("validade_dias").value || "15";
       const clienteNome = document.getElementById("cliente_nome").value || "Não informado";
       const clienteFone = document.getElementById("cliente_fone").value || "Não informado";
+      const clienteEndereco = (document.getElementById("cliente_endereco") ? document.getElementById("cliente_endereco").value.trim() : "") || "Não informado";
       const tipoEntregaVal = document.getElementById("tipo_entrega").value;
       const modLog = obterModalidadeLogistica(tipoEntregaVal);
       const tipoEntregaTexto = `${modLog.icone || '🚚'} ${modLog.nome}`;
@@ -7923,8 +7994,227 @@
       }
     }
 
+    // -----------------------------------------------------------------
+    // UTILITÁRIOS DE ENDEREÇO ESTRUTURADO & BUSCA AUTOMÁTICA DE CEP (ViaCEP)
+    // -----------------------------------------------------------------
+
+    function formatarCep(v) {
+      v = (v || "").replace(/\D/g, "").slice(0, 8);
+      if (v.length > 5) {
+        return v.slice(0, 5) + "-" + v.slice(5);
+      }
+      return v;
+    }
+
+    function aoDigitarCep(valor) {
+      const inCep = document.getElementById("cliente_cep");
+      if (!inCep) return;
+      const formatado = formatarCep(valor);
+      inCep.value = formatado;
+
+      const limpo = formatado.replace(/\D/g, "");
+      if (limpo.length === 8) {
+        buscarCepViaCep(limpo);
+      }
+      atualizarEnderecoCompleto();
+    }
+
+    async function buscarCepViaCep(cepLimpo) {
+      const statusEl = document.getElementById("status_busca_cep");
+      if (statusEl) {
+        statusEl.innerText = "⏳ Buscando CEP...";
+        statusEl.className = "text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200";
+        statusEl.classList.remove("hidden");
+      }
+
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+        const data = await res.json();
+
+        if (data.erro) {
+          if (statusEl) {
+            statusEl.innerText = "⚠️ CEP não encontrado";
+            statusEl.className = "text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200";
+            setTimeout(() => statusEl.classList.add("hidden"), 3500);
+          }
+          return;
+        }
+
+        const inRua = document.getElementById("cliente_rua");
+        const inBairro = document.getElementById("cliente_bairro");
+        const inCid = document.getElementById("cliente_cidade");
+        const inNum = document.getElementById("cliente_numero");
+        const inRef = document.getElementById("cliente_ponto_ref");
+
+        if (inRua && data.logradouro) inRua.value = data.logradouro;
+        if (inBairro && data.bairro) inBairro.value = data.bairro;
+        if (inCid && data.localidade) {
+          inCid.value = `${data.localidade} - ${data.uf || ''}`.trim();
+        }
+        if (inRef && data.complemento && !inRef.value) {
+          inRef.value = data.complemento;
+        }
+
+        atualizarEnderecoCompleto();
+
+        if (statusEl) {
+          statusEl.innerText = `✓ ${data.localidade || 'Localizado'}`;
+          statusEl.className = "text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200";
+          setTimeout(() => statusEl.classList.add("hidden"), 3000);
+        }
+
+        if (inNum) {
+          inNum.focus();
+        }
+      } catch (err) {
+        console.warn("Erro ao buscar CEP no ViaCEP:", err);
+        if (statusEl) {
+          statusEl.innerText = "⚠️ Erro ao consultar CEP";
+          statusEl.className = "text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200";
+          setTimeout(() => statusEl.classList.add("hidden"), 3000);
+        }
+      }
+    }
+
+    function atualizarEnderecoCompleto() {
+      const inCep = document.getElementById("cliente_cep");
+      const inRua = document.getElementById("cliente_rua");
+      const inNum = document.getElementById("cliente_numero");
+      const inBairro = document.getElementById("cliente_bairro");
+      const inCid = document.getElementById("cliente_cidade");
+      const inEnd = document.getElementById("cliente_endereco");
+
+      if (!inEnd) return;
+
+      const rua = inRua ? inRua.value.trim() : "";
+      const num = inNum ? inNum.value.trim() : "";
+      const bairro = inBairro ? inBairro.value.trim() : "";
+      const cid = inCid ? inCid.value.trim() : "";
+      const cep = inCep ? inCep.value.trim() : "";
+
+      let partes = [];
+      if (rua) {
+        partes.push(rua + (num ? `, ${num}` : ""));
+      } else if (num) {
+        partes.push(`Nº ${num}`);
+      }
+
+      if (bairro) partes.push(bairro);
+      if (cid) partes.push(cid);
+      if (cep) partes.push(`(CEP ${cep})`);
+
+      inEnd.value = partes.join(" - ");
+    }
+
+    function decomporEndereco(texto, pontoRef = "", cidadePadrao = "") {
+      let rua = "";
+      let numero = "";
+      let bairro = "";
+      let cidade = cidadePadrao || "";
+      let cep = "";
+      let ref = pontoRef || "";
+
+      if (!texto) {
+        return { rua, numero, bairro, cidade, cep, ref };
+      }
+
+      let limpo = texto.trim();
+
+      // 1. Extrair CEP se existir
+      const cepMatch = limpo.match(/\(?CEP\s*:?\s*(\d{5}-?\d{3})\)?/i) || limpo.match(/(\d{5}-\d{3})/);
+      if (cepMatch) {
+        cep = formatarCep(cepMatch[1]);
+        limpo = limpo.replace(cepMatch[0], "").trim();
+        limpo = limpo.replace(/\(\s*\)/g, "").trim();
+      }
+
+      // 2. Extrair Cidade/UF no final se existir (ex: "- Linhares - ES" ou "- Linhares-ES" ou "- Linhares / ES")
+      const cidadeMatch = limpo.match(/[-–]\s*([^,–-]+?\s*[-–/]\s*[A-Za-z]{2})\s*$/);
+      if (cidadeMatch) {
+        cidade = cidadeMatch[1].trim();
+        limpo = limpo.substring(0, limpo.lastIndexOf(cidadeMatch[0])).trim();
+      } else if (!cidade) {
+        const finalHifen = limpo.match(/[-–]\s*([^-–,]+)\s*$/);
+        if (finalHifen && finalHifen[1].toLowerCase().includes("linhares")) {
+          cidade = finalHifen[1].trim();
+          limpo = limpo.substring(0, limpo.lastIndexOf(finalHifen[0])).trim();
+        }
+      }
+
+      // 3. Extrair Bairro se estiver separado por hífen: ex "Rua Tal, 123 - Centro"
+      const partesHifen = limpo.split(/[-–]/).map(p => p.trim()).filter(Boolean);
+      if (partesHifen.length > 1) {
+        bairro = partesHifen[partesHifen.length - 1];
+        limpo = partesHifen.slice(0, partesHifen.length - 1).join(" - ").trim();
+      }
+
+      // 4. Se ref contém "Bairro X", aproveitar para preencher se vazio
+      if (!bairro && ref) {
+        const bRefMatch = ref.match(/bairro\s+([^-,]+)/i);
+        if (bRefMatch) {
+          bairro = bRefMatch[1].trim();
+        }
+      }
+
+      // 5. Extrair Rua e Número
+      const numMatch = limpo.match(/,\s*(?:nº|n°|num|número)?\s*(\d+[A-Za-z]?|[Ss]\/[Nn]|\d+-\w+)\s*$/i);
+      if (numMatch) {
+        numero = numMatch[1].trim();
+        rua = limpo.substring(0, limpo.lastIndexOf(numMatch[0])).trim();
+      } else {
+        const numFinal = limpo.match(/\s+(\d+[A-Za-z]?|[Ss]\/[Nn])$/i);
+        if (numFinal) {
+          numero = numFinal[1].trim();
+          rua = limpo.substring(0, limpo.lastIndexOf(numFinal[0])).trim();
+        } else {
+          rua = limpo.trim();
+        }
+      }
+
+      return { rua, numero, bairro, cidade, cep, ref };
+    }
+
+    function preencherCamposEnderecoEstruturado(dados) {
+      if (!dados) return;
+      const inCep = document.getElementById("cliente_cep");
+      const inRua = document.getElementById("cliente_rua");
+      const inNum = document.getElementById("cliente_numero");
+      const inBairro = document.getElementById("cliente_bairro");
+      const inCid = document.getElementById("cliente_cidade");
+      const inRef = document.getElementById("cliente_ponto_ref");
+      
+      if (inCep && dados.cep !== undefined) inCep.value = dados.cep || "";
+      if (inRua && dados.rua !== undefined) inRua.value = dados.rua || "";
+      if (inNum && dados.numero !== undefined) inNum.value = dados.numero || "";
+      if (inBairro && dados.bairro !== undefined) inBairro.value = dados.bairro || "";
+      if (inCid && dados.cidade !== undefined) inCid.value = dados.cidade || "";
+      if (inRef && dados.ref !== undefined && dados.ref !== null) inRef.value = dados.ref || "";
+      
+      atualizarEnderecoCompleto();
+    }
+
+    function limparCamposEndereco() {
+      const inCep = document.getElementById("cliente_cep");
+      const inRua = document.getElementById("cliente_rua");
+      const inNum = document.getElementById("cliente_numero");
+      const inBairro = document.getElementById("cliente_bairro");
+      const inCid = document.getElementById("cliente_cidade");
+      const inRef = document.getElementById("cliente_ponto_ref");
+      const inEnd = document.getElementById("cliente_endereco");
+      const statusEl = document.getElementById("status_busca_cep");
+
+      if (inCep) inCep.value = "";
+      if (inRua) inRua.value = "";
+      if (inNum) inNum.value = "";
+      if (inBairro) inBairro.value = "";
+      if (inCid) inCid.value = "";
+      if (inRef) inRef.value = "";
+      if (inEnd) inEnd.value = "";
+      if (statusEl) statusEl.classList.add("hidden");
+    }
+
     // Auto-salva cliente ao salvar um orçamento se ainda não existir
-    function autoSalvarClienteDoOrcamento(nome, fone, endereco, pontoRef) {
+    function autoSalvarClienteDoOrcamento(nome, fone, endereco, pontoRef, extras = {}) {
       if (!nome || nome === "Novo Cliente" || nome === "Cliente Sem Nome") return;
       
       const nomeLimpo = nome.trim().toLowerCase();
@@ -7943,15 +8233,24 @@
         if (!cliente.fone && fone) cliente.fone = fone;
         if (endereco && endereco !== cliente.endereco) cliente.endereco = endereco;
         if (pontoRef && pontoRef !== cliente.ponto_ref) cliente.ponto_ref = pontoRef;
+        if (extras.cep && extras.cep !== cliente.cep) cliente.cep = extras.cep;
+        if (extras.rua && extras.rua !== cliente.rua) cliente.rua = extras.rua;
+        if (extras.numero && extras.numero !== cliente.numero) cliente.numero = extras.numero;
+        if (extras.bairro && extras.bairro !== cliente.bairro) cliente.bairro = extras.bairro;
+        if (extras.cidade && extras.cidade !== cliente.cidade) cliente.cidade = extras.cidade;
         cliente.updatedAt = agora;
       } else {
         cliente = {
           id: "cli_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 6),
           nome: nome.trim(),
           fone: fone ? fone.trim() : "",
+          cep: extras.cep || "",
+          rua: extras.rua || "",
+          numero: extras.numero || "",
+          bairro: extras.bairro || "",
+          cidade: extras.cidade || extrairCidadeDoTexto(endereco),
           endereco: endereco ? endereco.trim() : "",
           ponto_ref: pontoRef ? pontoRef.trim() : "",
-          cidade: extrairCidadeDoTexto(endereco),
           tipo: "consumidor",
           observacoes: "Cadastrado via orçamento",
           createdAt: agora,
@@ -8118,15 +8417,30 @@
 
       const nomeEl = document.getElementById("cliente_nome");
       const foneEl = document.getElementById("cliente_fone");
-      const endEl = document.getElementById("cliente_endereco");
-      const refEl = document.getElementById("cliente_ponto_ref");
       const badge = document.getElementById("badge_cliente_reconhecido");
       const btnWhats = document.getElementById("btn_abrir_whats_cliente");
 
       if (nomeEl) nomeEl.value = cliente.nome;
       if (foneEl) foneEl.value = cliente.fone || "";
-      if (endEl) endEl.value = cliente.endereco || "";
-      if (refEl) refEl.value = cliente.ponto_ref || "";
+
+      if (cliente.rua || cliente.numero || cliente.bairro || cliente.cep) {
+        preencherCamposEnderecoEstruturado({
+          cep: cliente.cep || "",
+          rua: cliente.rua || "",
+          numero: cliente.numero || "",
+          bairro: cliente.bairro || "",
+          cidade: cliente.cidade || "",
+          ref: cliente.ponto_ref || ""
+        });
+        if (cliente.endereco && document.getElementById("cliente_endereco")) {
+          document.getElementById("cliente_endereco").value = cliente.endereco;
+        }
+      } else if (cliente.endereco) {
+        const dec = decomporEndereco(cliente.endereco, cliente.ponto_ref, cliente.cidade);
+        preencherCamposEnderecoEstruturado(dec);
+      } else {
+        limparCamposEndereco();
+      }
 
       if (badge) {
         badge.classList.remove("hidden");
@@ -8398,8 +8712,25 @@
       
       document.getElementById("cliente_nome").value = cliente.nome;
       document.getElementById("cliente_fone").value = cliente.fone || "";
-      document.getElementById("cliente_endereco").value = cliente.endereco || "";
-      document.getElementById("cliente_ponto_ref").value = cliente.ponto_ref || "";
+      
+      if (cliente.rua || cliente.numero || cliente.bairro || cliente.cep) {
+        preencherCamposEnderecoEstruturado({
+          cep: cliente.cep || "",
+          rua: cliente.rua || "",
+          numero: cliente.numero || "",
+          bairro: cliente.bairro || "",
+          cidade: cliente.cidade || "",
+          ref: cliente.ponto_ref || ""
+        });
+        if (cliente.endereco && document.getElementById("cliente_endereco")) {
+          document.getElementById("cliente_endereco").value = cliente.endereco;
+        }
+      } else if (cliente.endereco) {
+        const dec = decomporEndereco(cliente.endereco, cliente.ponto_ref, cliente.cidade);
+        preencherCamposEnderecoEstruturado(dec);
+      } else {
+        limparCamposEndereco();
+      }
 
       const badge = document.getElementById("badge_cliente_reconhecido");
       if (badge) {
@@ -8495,6 +8826,8 @@
 
       const agora = new Date().toISOString();
 
+      const dec = decomporEndereco(endereco, ponto_ref, cidade);
+
       if (id) {
         const cliente = (clientesCadastrados || []).find(c => c.id === id);
         if (cliente) {
@@ -8505,6 +8838,10 @@
           cliente.ponto_ref = ponto_ref;
           cliente.cidade = cidade;
           cliente.observacoes = observacoes;
+          if (dec.rua) cliente.rua = dec.rua;
+          if (dec.numero) cliente.numero = dec.numero;
+          if (dec.bairro) cliente.bairro = dec.bairro;
+          if (dec.cep) cliente.cep = dec.cep;
           cliente.updatedAt = agora;
           enviarClienteParaNuvem(cliente);
           mostrarToast(`Cliente ${nome} atualizado com sucesso!`, "💾");
@@ -8515,9 +8852,13 @@
           nome,
           fone,
           tipo,
+          rua: dec.rua || "",
+          numero: dec.numero || "",
+          bairro: dec.bairro || "",
+          cep: dec.cep || "",
+          cidade: cidade || dec.cidade,
           endereco,
           ponto_ref,
-          cidade,
           observacoes,
           createdAt: agora,
           updatedAt: agora
