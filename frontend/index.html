@@ -5014,6 +5014,8 @@
       } catch(e) {
         receitasAvulsas = [];
       }
+
+      popularSelectCategoriasDespesas();
     }
 
     function salvarContasPagar() {
@@ -5023,6 +5025,211 @@
     function salvarReceitasAvulsas() {
       localStorage.setItem(getTenantStorageKey("receitas_avulsas"), JSON.stringify(receitasAvulsas));
     }
+
+    // -------------------------------------------------------------
+    // CATEGORIAS DE DESPESAS DINÂMICAS (CONTAS A PAGAR)
+    // -------------------------------------------------------------
+    const CATEGORIAS_DESPESAS_PADRAO = [
+      { id: "chapas", nome: "Chapas & Pedras", icone: "🪨", padrao: true },
+      { id: "insumos", nome: "Insumos & Discos", icone: "⚙️", padrao: true },
+      { id: "cubas", nome: "Cubas de Inox", icone: "🚰", padrao: true },
+      { id: "mao_de_obra", nome: "Mão de Obra / Salários", icone: "👷", padrao: true },
+      { id: "fixas", nome: "Contas Fixas", icone: "🏢", padrao: true },
+      { id: "frete", nome: "Frete & Logística", icone: "🚚", padrao: true },
+      { id: "outras", nome: "Outras Despesas", icone: "📦", padrao: true }
+    ];
+
+    function carregarCategoriasDespesas() {
+      try {
+        const salvo = localStorage.getItem(getTenantStorageKey("categorias_despesas"));
+        if (salvo) {
+          const parsed = JSON.parse(salvo);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const idsExistentes = new Set(parsed.map(c => c.id));
+            CATEGORIAS_DESPESAS_PADRAO.forEach(p => {
+              if (!idsExistentes.has(p.id)) {
+                parsed.push({ ...p });
+              }
+            });
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao carregar categorias de despesas:", e);
+      }
+      return [...CATEGORIAS_DESPESAS_PADRAO];
+    }
+
+    function salvarCategoriasDespesas(lista) {
+      try {
+        localStorage.setItem(getTenantStorageKey("categorias_despesas"), JSON.stringify(lista));
+      } catch (e) {
+        console.error("Erro ao salvar categorias de despesas:", e);
+      }
+    }
+
+    function obterCategoriaDespesa(catId) {
+      if (!catId) return { id: "outras", nome: "Outras Despesas", icone: "📦" };
+      const cats = carregarCategoriasDespesas();
+      const achada = cats.find(c => c.id === catId);
+      if (achada) return achada;
+      return { id: catId, nome: catId, icone: "🏷️" };
+    }
+
+    function popularSelectCategoriasDespesas(valorSelecionado = null) {
+      const select = document.getElementById("cp_categoria");
+      if (!select) return;
+
+      const cats = carregarCategoriasDespesas();
+      let html = "";
+      cats.forEach(c => {
+        const icone = c.icone || "🏷️";
+        html += `<option value="${c.id}">${icone} ${c.nome}</option>`;
+      });
+      html += `<option value="__NOVA_CATEGORIA__" class="font-bold text-rose-600 bg-rose-50">➕ Criar Nova Categoria...</option>`;
+      select.innerHTML = html;
+
+      if (valorSelecionado && cats.some(c => c.id === valorSelecionado)) {
+        select.value = valorSelecionado;
+      } else if (cats.length > 0) {
+        select.value = cats[0].id;
+      }
+    }
+
+    function aoMudarSelectCategoriaDespesa(valor) {
+      if (valor === "__NOVA_CATEGORIA__") {
+        abrirModalGerenciarCategoriasDespesas();
+      }
+    }
+
+    function abrirModalGerenciarCategoriasDespesas() {
+      const modal = document.getElementById("modal_gerenciar_categorias_despesas");
+      if (!modal) return;
+      const form = document.getElementById("form_nova_categoria_despesa");
+      if (form) form.reset();
+      const iconeEl = document.getElementById("nova_cat_despesa_icone");
+      if (iconeEl) iconeEl.value = "🏷️";
+      renderizarListaCategoriasDespesas();
+      modal.classList.remove("hidden");
+    }
+
+    function fecharModalGerenciarCategoriasDespesas() {
+      const modal = document.getElementById("modal_gerenciar_categorias_despesas");
+      if (modal) modal.classList.add("hidden");
+      const select = document.getElementById("cp_categoria");
+      if (select && select.value === "__NOVA_CATEGORIA__") {
+        popularSelectCategoriasDespesas();
+      }
+    }
+
+    function adicionarNovaCategoriaDespesa(event) {
+      if (event) event.preventDefault();
+      const nomeInput = document.getElementById("nova_cat_despesa_nome");
+      const iconeInput = document.getElementById("nova_cat_despesa_icone");
+      if (!nomeInput) return;
+
+      const nome = nomeInput.value.trim();
+      let icone = (iconeInput ? iconeInput.value.trim() : "") || "🏷️";
+
+      if (!nome) {
+        alert("Por favor, informe o nome da categoria.");
+        return;
+      }
+
+      const cats = carregarCategoriasDespesas();
+      if (cats.some(c => c.nome.toLowerCase() === nome.toLowerCase())) {
+        alert("Já existe uma categoria cadastrada com este nome.");
+        return;
+      }
+
+      const novoId = "cat_" + Date.now();
+      const novaCat = {
+        id: novoId,
+        nome: nome,
+        icone: icone,
+        padrao: false
+      };
+
+      cats.push(novaCat);
+      salvarCategoriasDespesas(cats);
+      popularSelectCategoriasDespesas(novoId);
+      renderizarListaCategoriasDespesas();
+      if (nomeInput) nomeInput.value = "";
+      if (iconeInput) iconeInput.value = "🏷️";
+
+      mostrarToast(`Categoria "${nome}" criada com sucesso!`, "🏷️");
+    }
+
+    function excluirCategoriaDespesa(catId) {
+      const cats = carregarCategoriasDespesas();
+      const cat = cats.find(c => c.id === catId);
+      if (!cat) return;
+
+      if (cat.padrao) {
+        alert("Categorias padrão do sistema não podem ser excluídas.");
+        return;
+      }
+
+      const emUso = (contasPagar || []).filter(c => c.categoria === catId);
+      if (emUso.length > 0) {
+        const confirmar = confirm(`Esta categoria está vinculada a ${emUso.length} conta(s) a pagar. Se você excluir, essas contas continuarão registradas, mas serão exibidas com ícone padrão. Deseja realmente excluir a categoria "${cat.nome}"?`);
+        if (!confirmar) return;
+      } else {
+        const confirmar = confirm(`Deseja realmente excluir a categoria "${cat.nome}"?`);
+        if (!confirmar) return;
+      }
+
+      const novaLista = cats.filter(c => c.id !== catId);
+      salvarCategoriasDespesas(novaLista);
+      popularSelectCategoriasDespesas();
+      renderizarListaCategoriasDespesas();
+      renderizarContasPagarView();
+      mostrarToast(`Categoria "${cat.nome}" excluída com sucesso!`, "🗑️");
+    }
+
+    function renderizarListaCategoriasDespesas() {
+      const container = document.getElementById("lista_categorias_despesas_container");
+      const contador = document.getElementById("contador_categorias_despesas");
+      if (!container) return;
+
+      const cats = carregarCategoriasDespesas();
+      if (contador) contador.innerText = `${cats.length} categoria(s)`;
+
+      if (cats.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">Nenhuma categoria encontrada.</div>`;
+        return;
+      }
+
+      let html = "";
+      cats.forEach(c => {
+        const isPadrao = !!c.padrao;
+        html += `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 shadow-xs hover:border-slate-300 transition">
+            <div class="flex items-center gap-2">
+              <span class="text-base">${c.icone || "🏷️"}</span>
+              <span class="text-xs font-bold text-slate-800">${c.nome}</span>
+              ${isPadrao ? `
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">Sistema</span>
+              ` : `
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">Personalizada</span>
+              `}
+            </div>
+            <div>
+              ${!isPadrao ? `
+                <button type="button" onclick="excluirCategoriaDespesa('${c.id}')" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer" title="Excluir Categoria">
+                  🗑️
+                </button>
+              ` : `
+                <span class="text-xs text-slate-300 px-1" title="Categoria protegida do sistema">🔒</span>
+              `}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
 
     function toggleSubmenuFinanceiro(forcarAberto) {
       const submenu = document.getElementById("submenu_nav_financeiro");
@@ -5309,13 +5516,8 @@
 
       // 3. Saídas (Contas a Pagar Quitadas)
       (contasPagar || []).forEach(c => {
-        let catNome = "Outras";
-        if (c.categoria === "chapas") catNome = "Chapas & Pedras";
-        else if (c.categoria === "insumos") catNome = "Insumos & Discos";
-        else if (c.categoria === "cubas") catNome = "Cubas de Inox";
-        else if (c.categoria === "mao_de_obra") catNome = "Mão de Obra";
-        else if (c.categoria === "fixas") catNome = "Contas Fixas";
-        else if (c.categoria === "frete") catNome = "Frete & Logística";
+        const catInfo = obterCategoriaDespesa(c.categoria);
+        const catNome = catInfo.nome || "Outras";
 
         if (c.status === "pago") {
           const bId = c.bancoId || c.bancoPrevistoId || bancoPadrao.id;
@@ -5574,9 +5776,11 @@
       // Aplica busca
       if (termo) {
         lista = lista.filter(c => {
+          const catInfo = obterCategoriaDespesa(c.categoria);
           return (c.descricao || "").toLowerCase().includes(termo) ||
                  (c.fornecedor || "").toLowerCase().includes(termo) ||
                  (c.categoria || "").toLowerCase().includes(termo) ||
+                 (catInfo.nome || "").toLowerCase().includes(termo) ||
                  (c.numDoc || "").toLowerCase().includes(termo) ||
                  (c.obs || "").toLowerCase().includes(termo);
         });
@@ -5635,13 +5839,8 @@
           statusBadge = `<span class="px-2 py-0.5 rounded-full font-bold text-[10px] bg-slate-100 text-slate-700 border border-slate-300">⏳ A Pagar</span>`;
         }
 
-        let catNome = "Outras";
-        if (c.categoria === "chapas") catNome = "🪨 Chapas";
-        else if (c.categoria === "insumos") catNome = "⚙️ Insumos";
-        else if (c.categoria === "cubas") catNome = "🚰 Cubas";
-        else if (c.categoria === "mao_de_obra") catNome = "👷 Salários";
-        else if (c.categoria === "fixas") catNome = "🏢 Fixas";
-        else if (c.categoria === "frete") catNome = "🚚 Frete";
+        const catInfo = obterCategoriaDespesa(c.categoria);
+        const catNome = `${catInfo.icone || "🏷️"} ${catInfo.nome}`;
 
         const vencFmt = c.vencimento ? c.vencimento.split('-').reverse().join('/') : '-';
         const valorFmt = Number(c.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -5705,7 +5904,7 @@
         if (tit) tit.innerText = "Editar Conta a Pagar";
         document.getElementById("cp_descricao").value = c.descricao || "";
         document.getElementById("cp_fornecedor").value = c.fornecedor || "";
-        document.getElementById("cp_categoria").value = c.categoria || "chapas";
+        popularSelectCategoriasDespesas(c.categoria || "chapas");
         document.getElementById("cp_valor").value = c.valor || "";
         document.getElementById("cp_vencimento").value = c.vencimento || "";
         document.getElementById("cp_forma").value = c.formaPrevista || "boleto";
@@ -5716,7 +5915,7 @@
         if (tit) tit.innerText = "Nova Conta a Pagar";
         document.getElementById("cp_descricao").value = "";
         document.getElementById("cp_fornecedor").value = "";
-        document.getElementById("cp_categoria").value = "chapas";
+        popularSelectCategoriasDespesas("chapas");
         document.getElementById("cp_valor").value = "";
         document.getElementById("cp_vencimento").value = new Date().toISOString().split("T")[0];
         document.getElementById("cp_forma").value = "boleto";
@@ -5745,6 +5944,11 @@
       const bancoPrevistoId = document.getElementById("cp_banco_previsto") ? document.getElementById("cp_banco_previsto").value : "";
       const numDoc = document.getElementById("cp_doc").value.trim();
       const obs = document.getElementById("cp_obs").value.trim();
+
+      if (!categoria || categoria === "__NOVA_CATEGORIA__") {
+        alert("Por favor, selecione uma categoria válida para a despesa.");
+        return;
+      }
 
       if (valor <= 0) {
         alert("O valor da conta deve ser maior que zero.");
@@ -11918,15 +12122,14 @@
             <input type="text" id="cp_fornecedor" required placeholder="Ex: Mineração Vitória / EDP Energia" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium">
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Categoria da Despesa *</label>
-            <select id="cp_categoria" class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
-              <option value="chapas">🪨 Chapas & Pedras Brutas</option>
-              <option value="insumos">⚙️ Insumos, Discos & Lixas</option>
-              <option value="cubas">🚰 Cubas de Inox & Acessórios</option>
-              <option value="mao_de_obra">👷 Mão de Obra & Salários</option>
-              <option value="fixas">🏢 Contas Fixas (Água, Luz, Aluguel)</option>
-              <option value="frete">🚚 Frete & Logística</option>
-              <option value="outras">📦 Outras Despesas</option>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block font-bold text-slate-700">Categoria da Despesa *</label>
+              <button type="button" onclick="abrirModalGerenciarCategoriasDespesas()" class="text-[11px] text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 transition cursor-pointer" title="Criar ou gerenciar categorias de despesas">
+                <span>⚙️ + Criar Categoria</span>
+              </button>
+            </div>
+            <select id="cp_categoria" onchange="aoMudarSelectCategoriaDespesa(this.value)" class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
+              <!-- Populado dinamicamente por popularSelectCategoriasDespesas() -->
             </select>
           </div>
         </div>
@@ -11981,6 +12184,72 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL GERENCIAR CATEGORIAS DE DESPESAS -->
+  <div id="modal_gerenciar_categorias_despesas" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print">
+    <div class="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 my-auto animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-lg">🏷️</span>
+          <div>
+            <h3 class="text-base font-black text-slate-900">Categorias de Despesas</h3>
+            <p class="text-xs text-slate-500">Crie e gerencie categorias personalizadas para Contas a Pagar</p>
+          </div>
+        </div>
+        <button onclick="fecharModalGerenciarCategoriasDespesas()" class="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer">✕</button>
+      </div>
+
+      <!-- Formulário de Nova Categoria -->
+      <form id="form_nova_categoria_despesa" onsubmit="adicionarNovaCategoriaDespesa(event)" class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+        <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+          <span>➕</span> Nova Categoria
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+          <div class="sm:col-span-1">
+            <label class="block font-bold text-slate-700 text-[11px] mb-1">Ícone / Emoji</label>
+            <input type="text" id="nova_cat_despesa_icone" maxlength="4" value="🏷️" class="w-full text-center px-2 py-2 text-base rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 font-bold" title="Digite um emoji ou símbolo">
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block font-bold text-slate-700 text-[11px] mb-1">Nome da Categoria *</label>
+            <input type="text" id="nova_cat_despesa_nome" required placeholder="Ex: Combustível, Marketing, Alimentação..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium">
+          </div>
+        </div>
+        <div class="flex items-center justify-between pt-1">
+          <div class="flex items-center gap-1 text-[11px] text-slate-500">
+            <span>Sugestões:</span>
+            <button type="button" onclick="document.getElementById('nova_cat_despesa_icone').value='⛽'" class="hover:scale-125 transition">⛽</button>
+            <button type="button" onclick="document.getElementById('nova_cat_despesa_icone').value='⚡'" class="hover:scale-125 transition">⚡</button>
+            <button type="button" onclick="document.getElementById('nova_cat_despesa_icone').value='🔧'" class="hover:scale-125 transition">🔧</button>
+            <button type="button" onclick="document.getElementById('nova_cat_despesa_icone').value='🍽️'" class="hover:scale-125 transition">🍽️</button>
+            <button type="button" onclick="document.getElementById('nova_cat_despesa_icone').value='📢'" class="hover:scale-125 transition">📢</button>
+            <button type="button" onclick="document.getElementById('nova_cat_despesa_icone').value='🛡️'" class="hover:scale-125 transition">🛡️</button>
+            <button type="button" onclick="document.getElementById('nova_cat_despesa_icone').value='💻'" class="hover:scale-125 transition">💻</button>
+            <button type="button" onclick="document.getElementById('nova_cat_despesa_icone').value='📋'" class="hover:scale-125 transition">📋</button>
+          </div>
+          <button type="submit" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1 cursor-pointer">
+            <span>➕</span> <span>Salvar Categoria</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Lista de Categorias Ativas -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider">Categorias Cadastradas</h4>
+          <span id="contador_categorias_despesas" class="text-[11px] text-slate-400 font-semibold">7 categorias</span>
+        </div>
+        <div id="lista_categorias_despesas_container" class="max-h-60 overflow-y-auto space-y-1.5 border border-slate-200 rounded-xl p-2 bg-slate-50/50">
+          <!-- Populado dinamicamente por renderizarListaCategoriasDespesas() -->
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end pt-2 border-t border-slate-100">
+        <button type="button" onclick="fecharModalGerenciarCategoriasDespesas()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+          Fechar
+        </button>
+      </div>
     </div>
   </div>
 
