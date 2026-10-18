@@ -1999,7 +1999,7 @@
           orcamentos: (orcamentosSalvos || []).filter(o => o && o.id && !String(o.id).startsWith("orc_padrao_")),
           clientes: (clientesCadastrados || []).filter(c => c && c.nome && !CLIENTES_EXEMPLO_LEGADOS.includes(c.nome.trim())),
           agenda: (agendaCompromissos || []).filter(a => a && a.clienteNome && !CLIENTES_AGENDA_EXEMPLO.includes(a.clienteNome.trim())),
-          bancos: (bancosContas || []).filter(b => b && b.id && !listaExcluidos.includes(b.id) && !["banco_itau", "banco_sicoob", "banco_caixa_fisico"].includes(b.id)),
+          bancos: (bancosContas || []).filter(b => b && b.id && !listaExcluidos.includes(b.id)),
           bancos_excluidos: listaExcluidos,
           catalogos: {
             materiais: MATERIAIS,
@@ -2047,10 +2047,23 @@
           }
 
           if (data && data.bancos && Array.isArray(data.bancos)) {
-            bancosContas = data.bancos.filter(b => !listaExcluidos.includes(b.id));
+            bancosContas = data.bancos.filter(b => !listaExcluidos.includes(b.id)).map(b => {
+              const s = parseFloat(b.saldoInicial !== undefined ? b.saldoInicial : (b.saldo_inicial !== undefined ? b.saldo_inicial : 0)) || 0;
+              return {
+                ...b,
+                saldoInicial: s,
+                saldo_inicial: s
+              };
+            });
             localStorage.setItem(getTenantStorageKey("bancos_contas"), JSON.stringify(bancosContas));
             popularSelectsBancos();
             renderizarCardsBancos();
+            if (subabaFinanceiroAtiva === "fluxo" && typeof renderizarFluxoCaixaView === "function") {
+              renderizarFluxoCaixaView();
+            }
+            if (typeof renderizarTabelaDetalheBancos === "function") {
+              renderizarTabelaDetalheBancos();
+            }
           }
 
           if (data && data.catalogos) {
@@ -4479,7 +4492,14 @@
       // Filtra bancos que foram deletados pelo usuário e purga bancos de exemplo legados
       const BANCOS_DEMO_IDS = ["banco_itau", "banco_sicoob", "banco_caixa_fisico", "caixa_fisico"];
       if (bancosContas && bancosContas.length > 0) {
-        bancosContas = bancosContas.filter(b => b && !bancosExcluidos.includes(b.id) && !BANCOS_DEMO_IDS.includes(b.id));
+        bancosContas = bancosContas.filter(b => b && !bancosExcluidos.includes(b.id) && !BANCOS_DEMO_IDS.includes(b.id)).map(b => {
+          const s = parseFloat(b.saldoInicial !== undefined ? b.saldoInicial : (b.saldo_inicial !== undefined ? b.saldo_inicial : 0)) || 0;
+          return {
+            ...b,
+            saldoInicial: s,
+            saldo_inicial: s
+          };
+        });
 
         // Deduplicação automática: se existirem tanto 'banco_caixa_fisico' quanto 'caixa_fisico', remove a duplicata
         const temBancoCaixa = bancosContas.some(b => b.id === "banco_caixa_fisico");
@@ -4611,15 +4631,16 @@
       let totalGeralProjetado = 0;
 
       (bancosContas || []).forEach(b => {
+        const saldoIni = parseFloat(b.saldoInicial !== undefined ? b.saldoInicial : (b.saldo_inicial !== undefined ? b.saldo_inicial : 0)) || 0;
         resultado[b.id] = {
           banco: b,
-          saldoInicial: parseFloat(b.saldoInicial) || 0,
+          saldoInicial: saldoIni,
           entradasRealizadas: 0,
           saidasRealizadas: 0,
           entradasFuturas: 0,
           saidasFuturas: 0,
-          saldoRealizado: parseFloat(b.saldoInicial) || 0,
-          saldoProjetado: parseFloat(b.saldoInicial) || 0
+          saldoRealizado: saldoIni,
+          saldoProjetado: saldoIni
         };
       });
 
@@ -4812,6 +4833,24 @@
       container.innerHTML = html;
     }
 
+    function parseCurrencyInput(val) {
+      if (val === null || val === undefined) return 0;
+      let str = String(val).trim();
+      if (!str) return 0;
+      str = str.replace(/[^\d.,-]/g, "");
+      if (str.includes(",") && str.includes(".")) {
+        if (str.lastIndexOf(",") > str.lastIndexOf(".")) {
+          str = str.replace(/\./g, "").replace(",", ".");
+        } else {
+          str = str.replace(/,/g, "");
+        }
+      } else if (str.includes(",")) {
+        str = str.replace(",", ".");
+      }
+      const n = parseFloat(str);
+      return isNaN(n) ? 0 : n;
+    }
+
     function abrirModalNovoBanco() {
       document.getElementById("banco_form_id").value = "";
       document.getElementById("titulo_modal_banco").innerText = "Cadastrar Conta Bancária";
@@ -4835,7 +4874,8 @@
       document.getElementById("titulo_modal_banco").innerText = "Editar Conta Bancária";
       document.getElementById("banco_form_nome").value = b.nome || "";
       document.getElementById("banco_form_tipo").value = b.tipo || "corrente";
-      document.getElementById("banco_form_saldo_inicial").value = b.saldoInicial !== undefined ? b.saldoInicial : "0.00";
+      const saldo = (b.saldoInicial !== undefined && b.saldoInicial !== null) ? b.saldoInicial : (b.saldo_inicial !== undefined && b.saldo_inicial !== null ? b.saldo_inicial : 0);
+      document.getElementById("banco_form_saldo_inicial").value = Number(saldo).toFixed(2);
       document.getElementById("banco_form_agencia").value = b.agencia || "";
       document.getElementById("banco_form_conta").value = b.conta || "";
       document.getElementById("banco_form_titular").value = b.titular || "";
@@ -4855,7 +4895,8 @@
       const id = document.getElementById("banco_form_id").value;
       const nome = document.getElementById("banco_form_nome").value.trim();
       const tipo = document.getElementById("banco_form_tipo").value;
-      const saldoInicial = parseFloat(document.getElementById("banco_form_saldo_inicial").value) || 0;
+      const rawSaldo = document.getElementById("banco_form_saldo_inicial").value;
+      const saldoInicial = parseCurrencyInput(rawSaldo);
       const agencia = document.getElementById("banco_form_agencia").value.trim();
       const conta = document.getElementById("banco_form_conta").value.trim();
       const titular = document.getElementById("banco_form_titular").value.trim();
@@ -4871,6 +4912,8 @@
         bancosContas.forEach(b => b.padrao = false);
       }
 
+      let bancoSalvoObj = null;
+
       if (id) {
         const idx = bancosContas.findIndex(b => b.id === id);
         if (idx !== -1) {
@@ -4879,12 +4922,14 @@
             nome,
             tipo,
             saldoInicial,
+            saldo_inicial: saldoInicial,
             agencia,
             conta,
             titular,
             cor,
             padrao
           };
+          bancoSalvoObj = bancosContas[idx];
           mostrarToast("Conta bancária atualizada!", "🏦");
         }
       } else {
@@ -4893,6 +4938,7 @@
           nome,
           tipo,
           saldoInicial,
+          saldo_inicial: saldoInicial,
           agencia,
           conta,
           titular,
@@ -4901,6 +4947,7 @@
           ativo: true
         };
         bancosContas.push(novoBanco);
+        bancoSalvoObj = novoBanco;
         mostrarToast("Nova conta bancária cadastrada com sucesso!", "🏦");
       }
 
@@ -4919,6 +4966,17 @@
       if (subabaFinanceiroAtiva === "fluxo") renderizarFluxoCaixaView();
       renderizarListaGerenciarBancos();
       renderizarTabelaDetalheBancos();
+
+      // Salva imediatamente no backend via POST /api/bancos
+      if (bancoSalvoObj) {
+        try {
+          fetch(`${API_BASE_URL}/api/bancos`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bancoSalvoObj)
+          }).catch(err => console.warn("Aviso ao salvar banco na API:", err));
+        } catch(e) {}
+      }
     }
 
     function abrirModalGerenciarBancos() {
@@ -13554,7 +13612,7 @@
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">Saldo Inicial / Abertura (R$)</label>
-            <input type="number" id="banco_form_saldo_inicial" step="0.01" placeholder="0,00" class="w-full px-3 py-2 text-xs font-bold font-mono rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" inputmode="decimal" id="banco_form_saldo_inicial" placeholder="0,00" class="w-full px-3 py-2 text-xs font-bold font-mono rounded-xl border border-slate-300 text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
         </div>
 

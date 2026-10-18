@@ -681,7 +681,12 @@ def listar_bancos():
     cursor.execute("SELECT * FROM bancos WHERE ativo = 1 ORDER BY padrao DESC, nome ASC;")
     rows = cursor.fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+    res = []
+    for r in rows:
+        d = dict(r)
+        d["saldoInicial"] = float(d.get("saldo_inicial") or 0.0)
+        res.append(d)
+    return res
 
 @app.post("/api/bancos")
 def salvar_banco(banco: Dict[str, Any] = Body(...)):
@@ -695,7 +700,15 @@ def salvar_banco(banco: Dict[str, Any] = Body(...)):
     conta = str(banco.get("conta") or "").strip()
     titular = str(banco.get("titular") or "").strip()
     cor = str(banco.get("cor") or "#0284c7").strip()
-    saldo_inicial = float(banco.get("saldoInicial") or banco.get("saldo_inicial") or 0.0)
+    
+    raw_saldo = banco.get("saldoInicial")
+    if raw_saldo is None:
+        raw_saldo = banco.get("saldo_inicial")
+    try:
+        saldo_inicial = float(raw_saldo or 0.0)
+    except (ValueError, TypeError):
+        saldo_inicial = 0.0
+        
     padrao = 1 if banco.get("padrao") else 0
     ativo = 1 if banco.get("ativo", True) else 0
     agora_iso = datetime.now().isoformat()
@@ -733,6 +746,8 @@ def salvar_banco(banco: Dict[str, Any] = Body(...)):
     banco["id"] = b_id
     banco["padrao"] = bool(padrao)
     banco["ativo"] = bool(ativo)
+    banco["saldo_inicial"] = saldo_inicial
+    banco["saldoInicial"] = saldo_inicial
     banco["createdAt"] = created_at
     banco["updatedAt"] = agora_iso
     return banco
@@ -866,28 +881,53 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
     bancos_locais = payload.get("bancos") or []
     for b in bancos_locais:
         b_id = b.get("id")
-        if not b_id or b_id in bancos_excluidos or b_id in ["banco_itau", "banco_sicoob", "banco_caixa_fisico"]:
+        if not b_id or b_id in bancos_excluidos or b_id in ["caixa_fisico"]:
             continue
-        cursor.execute("SELECT id FROM bancos WHERE id = ?;", (b_id,))
-        if not cursor.fetchone():
-            agora = datetime.now().isoformat()
-            cursor.execute("""
-            INSERT INTO bancos (id, nome, tipo, agencia, conta, titular, cor, saldo_inicial, padrao, ativo, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            """, (
-                b_id,
-                b.get("nome", ""),
-                b.get("tipo", "corrente"),
-                b.get("agencia", ""),
-                b.get("conta", ""),
-                b.get("titular", ""),
-                b.get("cor", "#0284c7"),
-                float(b.get("saldoInicial") or b.get("saldo_inicial") or 0.0),
-                1 if b.get("padrao") else 0,
-                1 if b.get("ativo", True) else 0,
-                agora,
-                agora
-            ))
+        
+        raw_saldo = b.get("saldoInicial")
+        if raw_saldo is None:
+            raw_saldo = b.get("saldo_inicial")
+        try:
+            saldo_inicial = float(raw_saldo or 0.0)
+        except (ValueError, TypeError):
+            saldo_inicial = 0.0
+
+        padrao = 1 if b.get("padrao") else 0
+        ativo = 1 if b.get("ativo", True) else 0
+        agora = datetime.now().isoformat()
+
+        cursor.execute("SELECT created_at FROM bancos WHERE id = ?;", (b_id,))
+        existente = cursor.fetchone()
+        created_at = existente["created_at"] if existente else agora
+
+        cursor.execute("""
+        INSERT INTO bancos (id, nome, tipo, agencia, conta, titular, cor, saldo_inicial, padrao, ativo, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            nome = excluded.nome,
+            tipo = excluded.tipo,
+            agencia = excluded.agencia,
+            conta = excluded.conta,
+            titular = excluded.titular,
+            cor = excluded.cor,
+            saldo_inicial = excluded.saldo_inicial,
+            padrao = excluded.padrao,
+            ativo = excluded.ativo,
+            updated_at = excluded.updated_at;
+        """, (
+            b_id,
+            b.get("nome", ""),
+            b.get("tipo", "corrente"),
+            b.get("agencia", ""),
+            b.get("conta", ""),
+            b.get("titular", ""),
+            b.get("cor", "#0284c7"),
+            saldo_inicial,
+            padrao,
+            ativo,
+            created_at,
+            agora
+        ))
     
     conn.commit()
     
@@ -910,7 +950,13 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
     todos_age = [dict(r) for r in cursor.fetchall()]
 
     cursor.execute("SELECT * FROM bancos WHERE ativo = 1 ORDER BY padrao DESC, nome ASC;")
-    todos_ban = [dict(r) for r in cursor.fetchall() if r["id"] not in bancos_excluidos]
+    todos_ban = []
+    for r in cursor.fetchall():
+        if r["id"] in bancos_excluidos:
+            continue
+        d = dict(r)
+        d["saldoInicial"] = float(d.get("saldo_inicial") or 0.0)
+        todos_ban.append(d)
     
     conn.close()
     
