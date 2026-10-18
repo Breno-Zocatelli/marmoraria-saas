@@ -1172,21 +1172,21 @@
             </div>
 
             <div class="flex items-center gap-1 overflow-x-auto p-1 bg-slate-300/70 border border-slate-300 rounded-xl text-xs font-semibold text-slate-600 shrink-0">
-              <button onclick="setFiltroFinanceiro('todos')" id="pill_fin_todos" class="px-3.5 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm transition font-bold flex items-center gap-1.5">
-                <span>📋 Todos</span>
-                <span id="cont_pill_fin_todos" class="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-800 text-[10px] font-mono font-bold">0</span>
+              <button onclick="setFiltroFinanceiro('com_saldo')" id="pill_fin_com_saldo" class="px-3.5 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm transition font-bold flex items-center gap-1.5 cursor-pointer">
+                <span>🟡 Com Saldo a Pagar</span>
+                <span id="cont_pill_fin_com_saldo" class="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 text-[10px] font-mono font-bold">0</span>
               </button>
-              <button onclick="setFiltroFinanceiro('aguardando_entrada')" id="pill_fin_aguardando_entrada" class="px-3.5 py-1.5 rounded-lg hover:text-slate-900 transition flex items-center gap-1.5 text-slate-600">
+              <button onclick="setFiltroFinanceiro('aguardando_entrada')" id="pill_fin_aguardando_entrada" class="px-3.5 py-1.5 rounded-lg hover:text-slate-900 transition flex items-center gap-1.5 text-slate-600 cursor-pointer">
                 <span>⏳ Aguardando Entrada</span>
                 <span id="cont_pill_fin_aguardando_entrada" class="px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-900 text-[10px] font-mono font-bold">0</span>
               </button>
-              <button onclick="setFiltroFinanceiro('com_saldo')" id="pill_fin_com_saldo" class="px-3.5 py-1.5 rounded-lg hover:text-slate-900 transition flex items-center gap-1.5 text-slate-600">
-                <span>🟡 Com Saldo a Receber</span>
-                <span id="cont_pill_fin_com_saldo" class="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 text-[10px] font-mono font-bold">0</span>
-              </button>
-              <button onclick="setFiltroFinanceiro('quitados')" id="pill_fin_quitados" class="px-3.5 py-1.5 rounded-lg hover:text-slate-900 transition flex items-center gap-1.5 text-slate-600">
+              <button onclick="setFiltroFinanceiro('quitados')" id="pill_fin_quitados" class="px-3.5 py-1.5 rounded-lg hover:text-slate-900 transition flex items-center gap-1.5 text-slate-600 cursor-pointer">
                 <span>✅ 100% Quitados</span>
                 <span id="cont_pill_fin_quitados" class="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-mono font-bold">0</span>
+              </button>
+              <button onclick="setFiltroFinanceiro('todos')" id="pill_fin_todos" class="px-3.5 py-1.5 rounded-lg hover:text-slate-900 transition flex items-center gap-1.5 text-slate-600 cursor-pointer">
+                <span>📋 Todos</span>
+                <span id="cont_pill_fin_todos" class="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-800 text-[10px] font-mono font-bold">0</span>
               </button>
             </div>
           </div>
@@ -4359,7 +4359,7 @@
     // =================================================================
     // MÓDULO FINANCEIRO, CONTAS A RECEBER & RECIBOS (PASSO 5)
     // =================================================================
-    let filtroFinanceiroAtivo = "todos";
+    let filtroFinanceiroAtivo = "com_saldo";
     let reciboAtivoDados = null;
 
     // Converte valor monetário para extenso em português
@@ -6521,14 +6521,14 @@
     // -------------------------------------------------------------
     function setFiltroFinanceiro(status) {
       filtroFinanceiroAtivo = status;
-      const tabs = ["todos", "aguardando_entrada", "com_saldo", "quitados"];
+      const tabs = ["com_saldo", "aguardando_entrada", "quitados", "todos"];
       tabs.forEach(t => {
         const btn = document.getElementById("pill_fin_" + t);
         if (btn) {
           if (t === status) {
-            btn.className = "px-3.5 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm transition font-bold flex items-center gap-1.5";
+            btn.className = "px-3.5 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm transition font-bold flex items-center gap-1.5 cursor-pointer";
           } else {
-            btn.className = "px-3.5 py-1.5 rounded-lg hover:text-slate-900 transition flex items-center gap-1.5 text-slate-600";
+            btn.className = "px-3.5 py-1.5 rounded-lg hover:text-slate-900 transition flex items-center gap-1.5 text-slate-600 cursor-pointer";
           }
         }
       });
