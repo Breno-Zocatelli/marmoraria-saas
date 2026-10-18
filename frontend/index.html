@@ -2528,6 +2528,15 @@
       if (typeof sincronizarComNuvemDebounced === "function") sincronizarComNuvemDebounced();
     }
 
+    // Atualização de ícone vetorial da barra superior (Topbar)
+    function definirIconeTopbar(svgHtml, classes) {
+      const el = document.getElementById("topbar_icon");
+      if (el) {
+        el.className = `w-8 h-8 rounded-xl ${classes || 'bg-blue-50 text-blue-600'} flex items-center justify-center shrink-0 shadow-2xs`;
+        el.innerHTML = svgHtml || '';
+      }
+    }
+
     // Navegação entre Visões da Barra Lateral e Topbar
     function navegarParaAba(aba) {
       const viewPainel = document.getElementById("view_painel_orcamentos");
@@ -3020,6 +3029,7 @@
     }
 
     function navegarParaSubabaFabrica(etapa) {
+      filtroEtapaFabricaAtivo = etapa;
       toggleSubmenuFabrica(true);
       navegarParaAba("fabrica");
       setFiltroEtapaFabrica(etapa);
@@ -5365,7 +5375,10 @@
       if (deveAbrir) {
         submenu.classList.remove("hidden");
         if (chevron) chevron.style.transform = "rotate(180deg)";
-        navegarParaAba("financeiro");
+        const viewFin = document.getElementById("view_financeiro");
+        if (viewFin && viewFin.classList.contains("hidden")) {
+          navegarParaAba("financeiro");
+        }
       } else {
         submenu.classList.add("hidden");
         if (chevron) chevron.style.transform = "rotate(0deg)";
