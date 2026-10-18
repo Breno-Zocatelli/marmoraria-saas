@@ -2423,6 +2423,10 @@
     let orcamentoAtualId = null;
     let filtroStatusAtivo = "todos";
     let filtroPainelAtivo = "em_aberto";
+    let paginaPainelOrcamentos = 1;
+    const ITENS_POR_PAGINA_PAINEL = 30;
+    let paginaModalMeusOrcamentos = 1;
+    const ITENS_POR_PAGINA_MODAL = 30;
     let filtroEtapaFabricaAtivo = "todos";
     let orcamentosSalvos = [];
 
@@ -2608,6 +2612,7 @@
 
     // Filtros e busca rápida no Painel Inicial
     function setFiltroPainel(status) {
+      paginaPainelOrcamentos = 1;
       filtroPainelAtivo = status;
       const pillAberto = document.getElementById("pill_filtro_em_aberto");
       const pillTodos = document.getElementById("pill_filtro_todos");
@@ -2629,6 +2634,12 @@
     }
 
     function filtrarPainelOrcamentos() {
+      paginaPainelOrcamentos = 1;
+      renderizarPainelHomeOrcamentos();
+    }
+
+    function carregarMaisOrcamentosPainel() {
+      paginaPainelOrcamentos++;
       renderizarPainelHomeOrcamentos();
     }
 
@@ -2728,12 +2739,24 @@
         return matchesStatus && matchesTermo;
       });
 
+      const totalFiltrados = filtrados.length;
+      const limiteExibicao = paginaPainelOrcamentos * ITENS_POR_PAGINA_PAINEL;
+      const itensParaExibir = filtrados.slice(0, limiteExibicao);
+
       const contador = document.getElementById("painel_contador_exibicao");
       if (contador) {
         if (filtroPainelAtivo === "em_aberto") {
-          contador.innerText = `Exibindo ${filtrados.length} orçamento(s) em aberto (não fechados)`;
+          if (totalFiltrados > itensParaExibir.length) {
+            contador.innerText = `Exibindo ${itensParaExibir.length} de ${totalFiltrados} orçamentos em aberto (não fechados)`;
+          } else {
+            contador.innerText = `Exibindo ${totalFiltrados} orçamento(s) em aberto (não fechados)`;
+          }
         } else {
-          contador.innerText = `Exibindo ${filtrados.length} de ${orcamentosSalvos.length} orçamento(s) (histórico geral)`;
+          if (totalFiltrados > itensParaExibir.length) {
+            contador.innerText = `Exibindo ${itensParaExibir.length} de ${totalFiltrados} orçamentos (${orcamentosSalvos.length} no histórico total)`;
+          } else {
+            contador.innerText = `Exibindo ${totalFiltrados} de ${orcamentosSalvos.length} orçamento(s) (histórico geral)`;
+          }
         }
       }
 
@@ -2756,7 +2779,7 @@
         return;
       }
 
-      filtrados.forEach(o => {
+      itensParaExibir.forEach(o => {
         const card = document.createElement("div");
         const isAtual = o.id === orcamentoAtualId;
         const corLateral = isAtual 
@@ -2894,6 +2917,21 @@
         `;
         container.appendChild(card);
       });
+
+      if (totalFiltrados > limiteExibicao) {
+        const restantes = totalFiltrados - limiteExibicao;
+        const divMais = document.createElement("div");
+        divMais.className = "pt-4 pb-2 text-center";
+        divMais.innerHTML = `
+          <button onclick="carregarMaisOrcamentosPainel()" class="px-6 py-3 rounded-2xl bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-blue-500 text-slate-700 hover:text-blue-600 font-bold text-sm shadow-sm hover:shadow-md transition-all flex items-center gap-2.5 mx-auto cursor-pointer group">
+            <svg class="w-4 h-4 text-blue-600 group-hover:translate-y-0.5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+            <span>Carregar mais propostas (+${Math.min(restantes, ITENS_POR_PAGINA_PAINEL)} de ${restantes} restantes)</span>
+          </button>
+        `;
+        container.appendChild(divMais);
+      }
     }
 
     // Ações Rápidas de Fechamento e Logística entre Painel e Fábrica
@@ -7271,6 +7309,7 @@
     // MODAL MEUS ORÇAMENTOS (HISTÓRICO, BUSCA, CARREGAR, CLONAR, EXCLUIR)
     // -----------------------------------------------------------------
     function abrirModalMeusOrcamentos() {
+      paginaModalMeusOrcamentos = 1;
       document.getElementById("filtro_busca_orcamento").value = "";
       filtroStatusAtivo = "todos";
       atualizarTabsFiltroStatus();
@@ -7283,6 +7322,7 @@
     }
 
     function setStatusFiltro(status) {
+      paginaModalMeusOrcamentos = 1;
       filtroStatusAtivo = status;
       atualizarTabsFiltroStatus();
       renderizarListaMeusOrcamentos();
@@ -7303,6 +7343,12 @@
     }
 
     function filtrarMeusOrcamentos() {
+      paginaModalMeusOrcamentos = 1;
+      renderizarListaMeusOrcamentos();
+    }
+
+    function carregarMaisMeusOrcamentos() {
+      paginaModalMeusOrcamentos++;
       renderizarListaMeusOrcamentos();
     }
 
@@ -7322,7 +7368,18 @@
         return matchesStatus && matchesTermo;
       });
 
-      document.getElementById("resumo_qtd_orcamentos").innerText = `Exibindo ${filtrados.length} de ${orcamentosSalvos.length} orçamento(s)`;
+      const totalFiltrados = filtrados.length;
+      const limiteExibicao = paginaModalMeusOrcamentos * ITENS_POR_PAGINA_MODAL;
+      const itensParaExibir = filtrados.slice(0, limiteExibicao);
+
+      const resumoQtd = document.getElementById("resumo_qtd_orcamentos");
+      if (resumoQtd) {
+        if (totalFiltrados > itensParaExibir.length) {
+          resumoQtd.innerText = `Exibindo ${itensParaExibir.length} de ${totalFiltrados} orçamento(s) (${orcamentosSalvos.length} no total)`;
+        } else {
+          resumoQtd.innerText = `Exibindo ${totalFiltrados} de ${orcamentosSalvos.length} orçamento(s)`;
+        }
+      }
 
       if (filtrados.length === 0) {
         container.innerHTML = `
@@ -7334,7 +7391,7 @@
         return;
       }
 
-      filtrados.forEach(o => {
+      itensParaExibir.forEach(o => {
         const div = document.createElement("div");
         const isAtual = o.id === orcamentoAtualId;
         div.className = `p-3.5 rounded-xl border transition flex flex-col md:flex-row md:items-center justify-between gap-3 ${isAtual ? 'border-blue-500 bg-blue-50/50 shadow-sm ring-1 ring-blue-500/20' : 'border-slate-200 bg-white hover:bg-slate-50'}`;
@@ -7394,6 +7451,21 @@
         `;
         container.appendChild(div);
       });
+
+      if (totalFiltrados > limiteExibicao) {
+        const restantes = totalFiltrados - limiteExibicao;
+        const divMais = document.createElement("div");
+        divMais.className = "pt-3 pb-1 text-center";
+        divMais.innerHTML = `
+          <button onclick="carregarMaisMeusOrcamentos()" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-bold text-xs shadow-xs transition-all flex items-center gap-2 mx-auto cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+            <span>Carregar mais (+${Math.min(restantes, ITENS_POR_PAGINA_MODAL)} de ${restantes} restantes)</span>
+          </button>
+        `;
+        container.appendChild(divMais);
+      }
     }
 
     function carregarOrcamento(id, mudarAba = true) {
