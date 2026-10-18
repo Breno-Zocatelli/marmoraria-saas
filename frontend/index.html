@@ -1022,6 +1022,10 @@
             </div>
           </div>
           <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button onclick="abrirModalRelatorioFinanceiro('geral')" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5 shadow-md cursor-pointer" title="Imprimir Relatório Consolidado do Financeiro">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+              <span>Imprimir Relatório Geral</span>
+            </button>
             <button onclick="navegarParaAba('painel')" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700 cursor-pointer">
               ← Voltar aos Orçamentos
             </button>
@@ -1110,6 +1114,33 @@
             </div>
           </div>
 
+          <!-- Filtro por Período de Datas & Atalhos Rápidos -->
+          <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-300">
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-bold text-slate-600 uppercase">📅 Período:</span>
+                <input type="date" id="filtro_fluxo_data_inicio" onchange="renderizarFluxoCaixaView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" title="Data Inicial">
+                <span class="text-xs text-slate-400 font-medium">até</span>
+                <input type="date" id="filtro_fluxo_data_fim" onchange="renderizarFluxoCaixaView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" title="Data Final">
+              </div>
+
+              <!-- Atalhos de Período -->
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="definirPeriodoRapidoFluxo('hoje')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Hoje</button>
+                <button type="button" onclick="definirPeriodoRapidoFluxo('7dias')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">7 Dias</button>
+                <button type="button" onclick="definirPeriodoRapidoFluxo('mes_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Mês</button>
+                <button type="button" onclick="definirPeriodoRapidoFluxo('mes_anterior')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Mês Anterior</button>
+                <button type="button" onclick="definirPeriodoRapidoFluxo('todos')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition cursor-pointer">Todos</button>
+              </div>
+            </div>
+
+            <!-- Botão de Impressão do Extrato do Fluxo de Caixa -->
+            <button onclick="abrirModalRelatorioFinanceiro('fluxo')" class="px-3.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs" title="Imprimir Extrato Consolidado Filtrado">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+              <span>Imprimir Extrato</span>
+            </button>
+          </div>
+
           <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-300 gap-2">
             <span id="fluxo_contador_exibicao">Exibindo movimentações financeiras</span>
             <div class="flex items-center gap-2">
@@ -1158,6 +1189,31 @@
                 <span id="cont_pill_fin_quitados" class="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-mono font-bold">0</span>
               </button>
             </div>
+          </div>
+
+          <!-- Filtro por Período de Datas & Atalhos Rápidos -->
+          <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-300">
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-bold text-slate-600 uppercase">📅 Data do Pedido:</span>
+                <input type="date" id="filtro_receber_data_inicio" onchange="renderizarFinanceiroView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" title="Data Inicial">
+                <span class="text-xs text-slate-400 font-medium">até</span>
+                <input type="date" id="filtro_receber_data_fim" onchange="renderizarFinanceiroView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" title="Data Final">
+              </div>
+
+              <!-- Atalhos Rápidos -->
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="definirPeriodoRapidoReceber('mes_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Mês</button>
+                <button type="button" onclick="definirPeriodoRapidoReceber('mes_anterior')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Mês Anterior</button>
+                <button type="button" onclick="definirPeriodoRapidoReceber('todos')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition cursor-pointer">Todos</button>
+              </div>
+            </div>
+
+            <!-- Botão de Impressão do Relatório de Contas a Receber -->
+            <button onclick="abrirModalRelatorioFinanceiro('receber')" class="px-3.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs" title="Imprimir Relatório de Contas a Receber">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+              <span>Imprimir Relatório</span>
+            </button>
           </div>
 
           <div class="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-300">
@@ -1209,6 +1265,32 @@
             </div>
           </div>
 
+          <!-- Filtro por Período de Datas & Atalhos Rápidos -->
+          <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-300">
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-bold text-slate-600 uppercase">📅 Vencimento / Pagto:</span>
+                <input type="date" id="filtro_pagar_data_inicio" onchange="renderizarContasPagarView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500" title="Data Inicial">
+                <span class="text-xs text-slate-400 font-medium">até</span>
+                <input type="date" id="filtro_pagar_data_fim" onchange="renderizarContasPagarView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500" title="Data Final">
+              </div>
+
+              <!-- Atalhos Rápidos -->
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="definirPeriodoRapidoPagar('hoje')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Hoje</button>
+                <button type="button" onclick="definirPeriodoRapidoPagar('mes_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Mês</button>
+                <button type="button" onclick="definirPeriodoRapidoPagar('mes_anterior')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Mês Anterior</button>
+                <button type="button" onclick="definirPeriodoRapidoPagar('todos')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition cursor-pointer">Todos</button>
+              </div>
+            </div>
+
+            <!-- Botão de Impressão do Relatório de Contas a Pagar -->
+            <button onclick="abrirModalRelatorioFinanceiro('pagar')" class="px-3.5 py-1.5 rounded-xl bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-300 font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs" title="Imprimir Relatório de Contas a Pagar">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+              <span>Imprimir Relatório</span>
+            </button>
+          </div>
+
           <div class="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-300">
             <span id="pagar_contador_exibicao">Exibindo contas a pagar</span>
             <button onclick="abrirModalContaPagar()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
@@ -1238,6 +1320,10 @@
               </div>
             </div>
             <div class="flex items-center gap-2">
+              <button onclick="abrirModalRelatorioFinanceiro('bancos')" class="px-3 py-1.5 rounded-xl border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Imprimir Posição Bancária">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                <span>Imprimir Saldos</span>
+              </button>
               <button onclick="abrirModalGerenciarBancos()" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Configurar agência, conta e bancos">
                 <span>⚙️</span> <span>Gerenciar Bancos</span>
               </button>
@@ -5543,6 +5629,88 @@
       renderizarFluxoCaixaView();
     }
 
+    function definirPeriodoRapidoFluxo(tipo) {
+      const hoje = new Date();
+      const hojeStr = hoje.toISOString().split("T")[0];
+      const inInicio = document.getElementById("filtro_fluxo_data_inicio");
+      const inFim = document.getElementById("filtro_fluxo_data_fim");
+      if (!inInicio || !inFim) return;
+
+      if (tipo === "hoje") {
+        inInicio.value = hojeStr;
+        inFim.value = hojeStr;
+      } else if (tipo === "7dias") {
+        const d7 = new Date();
+        d7.setDate(d7.getDate() - 7);
+        inInicio.value = d7.toISOString().split("T")[0];
+        inFim.value = hojeStr;
+      } else if (tipo === "mes_atual") {
+        const y = hoje.getFullYear();
+        const m = hoje.getMonth();
+        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
+        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
+      } else if (tipo === "mes_anterior") {
+        const y = hoje.getFullYear();
+        const m = hoje.getMonth() - 1;
+        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
+        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
+      } else if (tipo === "todos") {
+        inInicio.value = "";
+        inFim.value = "";
+      }
+      renderizarFluxoCaixaView();
+    }
+
+    function definirPeriodoRapidoReceber(tipo) {
+      const hoje = new Date();
+      const inInicio = document.getElementById("filtro_receber_data_inicio");
+      const inFim = document.getElementById("filtro_receber_data_fim");
+      if (!inInicio || !inFim) return;
+
+      if (tipo === "mes_atual") {
+        const y = hoje.getFullYear();
+        const m = hoje.getMonth();
+        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
+        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
+      } else if (tipo === "mes_anterior") {
+        const y = hoje.getFullYear();
+        const m = hoje.getMonth() - 1;
+        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
+        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
+      } else if (tipo === "todos") {
+        inInicio.value = "";
+        inFim.value = "";
+      }
+      renderizarFinanceiroView();
+    }
+
+    function definirPeriodoRapidoPagar(tipo) {
+      const hoje = new Date();
+      const hojeStr = hoje.toISOString().split("T")[0];
+      const inInicio = document.getElementById("filtro_pagar_data_inicio");
+      const inFim = document.getElementById("filtro_pagar_data_fim");
+      if (!inInicio || !inFim) return;
+
+      if (tipo === "hoje") {
+        inInicio.value = hojeStr;
+        inFim.value = hojeStr;
+      } else if (tipo === "mes_atual") {
+        const y = hoje.getFullYear();
+        const m = hoje.getMonth();
+        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
+        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
+      } else if (tipo === "mes_anterior") {
+        const y = hoje.getFullYear();
+        const m = hoje.getMonth() - 1;
+        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
+        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
+      } else if (tipo === "todos") {
+        inInicio.value = "";
+        inFim.value = "";
+      }
+      renderizarContasPagarView();
+    }
+
     function renderizarFluxoCaixaView() {
       const container = document.getElementById("container_tabela_fluxo_caixa");
       if (!container) return;
@@ -5690,6 +5858,16 @@
         movimentos = movimentos.filter(m => !m.isFuturo && !m.isPrevisao);
       } else if (filtroPeriodo === "futuros") {
         movimentos = movimentos.filter(m => m.isFuturo || m.isPrevisao);
+      }
+
+      // Filtra por Range de Datas
+      const dtInicioFluxo = document.getElementById("filtro_fluxo_data_inicio") ? document.getElementById("filtro_fluxo_data_inicio").value : "";
+      const dtFimFluxo = document.getElementById("filtro_fluxo_data_fim") ? document.getElementById("filtro_fluxo_data_fim").value : "";
+      if (dtInicioFluxo) {
+        movimentos = movimentos.filter(m => (m.data || "") >= dtInicioFluxo);
+      }
+      if (dtFimFluxo) {
+        movimentos = movimentos.filter(m => (m.data || "") <= dtFimFluxo);
       }
 
       // Filtra por termo de busca
@@ -5875,6 +6053,16 @@
         lista = lista.filter(c => c.status !== "pago" && c.vencimento && c.vencimento < hojeStr);
       } else if (filtroContasPagarAtivo === "pagas") {
         lista = lista.filter(c => c.status === "pago");
+      }
+
+      // Filtra por Range de Datas (Vencimento ou Data de Pagamento)
+      const dtInicioPag = document.getElementById("filtro_pagar_data_inicio") ? document.getElementById("filtro_pagar_data_inicio").value : "";
+      const dtFimPag = document.getElementById("filtro_pagar_data_fim") ? document.getElementById("filtro_pagar_data_fim").value : "";
+      if (dtInicioPag) {
+        lista = lista.filter(c => (c.dataPagamento || c.vencimento || "") >= dtInicioPag);
+      }
+      if (dtFimPag) {
+        lista = lista.filter(c => (c.dataPagamento || c.vencimento || "") <= dtFimPag);
       }
 
       // Aplica busca
@@ -6310,6 +6498,24 @@
         lista = lista.filter(o => calcularStatusFinanceiro(o).saldoDevedor > 0.01);
       } else if (filtroFinanceiroAtivo === "quitados") {
         lista = lista.filter(o => calcularStatusFinanceiro(o).statusFin === "quitado");
+      }
+
+      // Filtra por Range de Datas do Pedido / Pagamentos
+      const dtInicioRec = document.getElementById("filtro_receber_data_inicio") ? document.getElementById("filtro_receber_data_inicio").value : "";
+      const dtFimRec = document.getElementById("filtro_receber_data_fim") ? document.getElementById("filtro_receber_data_fim").value : "";
+      if (dtInicioRec) {
+        lista = lista.filter(o => {
+          const dtCriacao = (o.dataCriacao || "").split("T")[0];
+          const temPag = (o.pagamentos || []).some(p => (p.data || "") >= dtInicioRec);
+          return (dtCriacao >= dtInicioRec) || temPag;
+        });
+      }
+      if (dtFimRec) {
+        lista = lista.filter(o => {
+          const dtCriacao = (o.dataCriacao || "").split("T")[0];
+          const temPag = (o.pagamentos || []).some(p => (p.data || "") <= dtFimRec);
+          return (dtCriacao <= dtFimRec) || temPag;
+        });
       }
 
       // Aplica busca por termo
@@ -7029,6 +7235,697 @@
 
       modRec.classList.add("modal-print-active");
       window.print();
+    }
+
+    // -----------------------------------------------------------------
+    // RELATÓRIOS FINANCEIROS FORMAIS TIMBRADOS (A4 / IMPRESSÃO / PDF)
+    // -----------------------------------------------------------------
+    function fecharModalRelatorioFinanceiro() {
+      const modal = document.getElementById("modal_relatorio_financeiro");
+      if (modal) {
+        modal.classList.remove("modal-print-active");
+        modal.classList.add("hidden");
+      }
+    }
+
+    function imprimirRelatorioFinanceiroModal() {
+      const modRel = document.getElementById("modal_relatorio_financeiro");
+      if (!modRel) return;
+
+      const modProp = document.getElementById("modal_proposta");
+      if (modProp) modProp.classList.remove("modal-print-active");
+      const modFicha = document.getElementById("modal_ficha_producao");
+      if (modFicha) modFicha.classList.remove("modal-print-active");
+      const modRec = document.getElementById("modal_recibo_pagamento");
+      if (modRec) modRec.classList.remove("modal-print-active");
+
+      modRel.classList.add("modal-print-active");
+      window.print();
+    }
+
+    function abrirModalRelatorioFinanceiro(tipo = 'fluxo') {
+      const modal = document.getElementById("modal_relatorio_financeiro");
+      const folha = document.getElementById("folha_relatorio_financeiro_a4");
+      const tituloModal = document.getElementById("titulo_modal_relatorio_fin");
+      if (!modal || !folha) return;
+
+      const hojeFmt = new Date().toLocaleDateString('pt-BR');
+      const horaFmt = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const bancoPadrao = typeof obterBancoPadrao === "function" ? obterBancoPadrao() : { id: "banco_empresa", nome: "Caixa Empresa" };
+
+      // Cabeçalho institucional padronizado
+      const cabecalhoHtml = (tituloDoc, subtituloDoc) => `
+        <div class="flex items-start justify-between border-b-2 border-slate-900 pb-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <h2 class="text-2xl font-black uppercase text-slate-900 tracking-tight">MARMORARIA MARMOBRAZ</h2>
+              <span class="px-2.5 py-0.5 text-xs font-mono font-bold bg-slate-900 text-white rounded">${tituloDoc}</span>
+            </div>
+            <p class="text-xs text-slate-600 font-medium">CNPJ: 12.345.678/0001-90 • Inscrição Estadual: 082.123.456</p>
+            <p class="text-xs text-slate-600 font-medium">📍 Av. Pres. Garrastazu Médice, 837 - BNH - Linhares/ES • Tel: 27-3373-3778 / 27-99862-2076</p>
+            <p class="text-[11px] text-slate-500 italic mt-0.5">${subtituloDoc}</p>
+          </div>
+          <div class="text-right space-y-1 shrink-0">
+            <div class="text-xs text-slate-500 font-medium">Data de Emissão: <b class="text-slate-800 font-mono">${hojeFmt} às ${horaFmt}</b></div>
+            <div class="text-xs text-slate-500 font-medium">Responsável: <b class="text-slate-800">Depto. Financeiro</b></div>
+          </div>
+        </div>
+      `;
+
+      const rodapeHtml = `
+        <div class="pt-6 border-t border-slate-300 text-xs text-slate-500 flex items-center justify-between">
+          <span>Marmoraria Marmobraz • Relatório Oficial emitido pelo Sistema de Gestão</span>
+          <span>Página 1 de 1</span>
+        </div>
+      `;
+
+      if (tipo === 'fluxo') {
+        if (tituloModal) tituloModal.innerText = "Extrato do Fluxo de Caixa (A4)";
+
+        // Obtém filtros atuais
+        const termo = (document.getElementById("filtro_fluxo_busca") ? document.getElementById("filtro_fluxo_busca").value : "").toLowerCase().trim();
+        const filtroBanco = document.getElementById("filtro_fluxo_banco") ? document.getElementById("filtro_fluxo_banco").value : "todos";
+        const filtroPeriodo = document.getElementById("filtro_fluxo_periodo") ? document.getElementById("filtro_fluxo_periodo").value : "todos";
+        const dtInicio = document.getElementById("filtro_fluxo_data_inicio") ? document.getElementById("filtro_fluxo_data_inicio").value : "";
+        const dtFim = document.getElementById("filtro_fluxo_data_fim") ? document.getElementById("filtro_fluxo_data_fim").value : "";
+        const hojeStr = new Date().toISOString().split("T")[0];
+
+        // Monta movimentos usando a mesma lógica consolidada
+        let movimentos = [];
+        (orcamentosSalvos || []).forEach(orc => {
+          if (orc.status === "cancelado" || orc.status === "recusado") return;
+          (orc.pagamentos || []).forEach(p => {
+            const bId = p.bancoId || bancoPadrao.id;
+            const bancoObj = typeof obterBancoPorId === "function" ? obterBancoPorId(bId) : { nome: "Caixa" };
+            const dt = p.data || orc.dataCriacao || hojeStr;
+            movimentos.push({
+              data: dt,
+              tipo: "entrada",
+              documento: orc.numero || "ORC",
+              entidade: orc.clienteNome || "Consumidor",
+              descricao: `Recebimento • ${orc.numero}`,
+              categoria: "Pedido Marmoraria",
+              forma: p.forma || "PIX",
+              valor: parseFloat(p.valor) || 0,
+              bancoId: bId,
+              bancoNome: bancoObj.nome,
+              isFuturo: (dt > hojeStr)
+            });
+          });
+        });
+
+        (receitasAvulsas || []).forEach(r => {
+          const bId = r.bancoId || bancoPadrao.id;
+          const bancoObj = typeof obterBancoPorId === "function" ? obterBancoPorId(bId) : { nome: "Caixa" };
+          const dt = r.data || hojeStr;
+          movimentos.push({
+            data: dt,
+            tipo: "entrada",
+            documento: "AVULSO",
+            entidade: r.cliente || "Balcão / Avulso",
+            descricao: r.descricao || "Receita Avulsa",
+            categoria: r.categoria === "retalhos" ? "Retalhos" : "Receita Avulsa",
+            forma: r.forma || "PIX",
+            valor: parseFloat(r.valor) || 0,
+            bancoId: bId,
+            bancoNome: bancoObj.nome,
+            isFuturo: (dt > hojeStr)
+          });
+        });
+
+        (contasPagar || []).forEach(c => {
+          const catInfo = typeof obterCategoriaDespesa === "function" ? obterCategoriaDespesa(c.categoria) : { nome: "Outras" };
+          if (c.status === "pago") {
+            const bId = c.bancoId || c.bancoPrevistoId || bancoPadrao.id;
+            const bancoObj = typeof obterBancoPorId === "function" ? obterBancoPorId(bId) : { nome: "Caixa" };
+            const dt = c.dataPagamento || c.vencimento || hojeStr;
+            movimentos.push({
+              data: dt,
+              tipo: "saida",
+              documento: c.numDoc || "DESPESA",
+              entidade: c.fornecedor || "Fornecedor",
+              descricao: c.descricao || "Despesa Paga",
+              categoria: catInfo.nome || "Despesa",
+              forma: c.formaPaga || c.formaPrevista || "Boleto",
+              valor: parseFloat(c.valorPago || c.valor) || 0,
+              bancoId: bId,
+              bancoNome: bancoObj.nome,
+              isFuturo: (dt > hojeStr)
+            });
+          } else if (filtroPeriodo === "futuros" || filtroPeriodo === "todos") {
+            const bId = c.bancoPrevistoId || bancoPadrao.id;
+            const bancoObj = typeof obterBancoPorId === "function" ? obterBancoPorId(bId) : { nome: "Caixa" };
+            const dt = c.vencimento || hojeStr;
+            movimentos.push({
+              data: dt,
+              tipo: "saida",
+              documento: c.numDoc || "PREVISTO",
+              entidade: c.fornecedor || "Fornecedor",
+              descricao: `[Previsão] ${c.descricao || 'Despesa a Vencer'}`,
+              categoria: catInfo.nome || "Despesa",
+              forma: c.formaPrevista || "Boleto",
+              valor: parseFloat(c.valor) || 0,
+              bancoId: bId,
+              bancoNome: bancoObj.nome,
+              isFuturo: true
+            });
+          }
+        });
+
+        if (filtroTipoFluxo === "entradas") movimentos = movimentos.filter(m => m.tipo === "entrada");
+        else if (filtroTipoFluxo === "saidas") movimentos = movimentos.filter(m => m.tipo === "saida");
+
+        if (filtroBanco !== "todos") movimentos = movimentos.filter(m => m.bancoId === filtroBanco);
+        if (filtroPeriodo === "realizados") movimentos = movimentos.filter(m => !m.isFuturo);
+        else if (filtroPeriodo === "futuros") movimentos = movimentos.filter(m => m.isFuturo);
+
+        if (dtInicio) movimentos = movimentos.filter(m => m.data >= dtInicio);
+        if (dtFim) movimentos = movimentos.filter(m => m.data <= dtFim);
+
+        if (termo) {
+          movimentos = movimentos.filter(m => 
+            (m.documento || "").toLowerCase().includes(termo) ||
+            (m.entidade || "").toLowerCase().includes(termo) ||
+            (m.descricao || "").toLowerCase().includes(termo) ||
+            (m.categoria || "").toLowerCase().includes(termo)
+          );
+        }
+
+        movimentos.sort((a, b) => (b.data || "").localeCompare(a.data || ""));
+
+        const totalEnt = movimentos.filter(m => m.tipo === "entrada").reduce((a, b) => a + b.valor, 0);
+        const totalSai = movimentos.filter(m => m.tipo === "saida").reduce((a, b) => a + b.valor, 0);
+        const saldoConsolidado = totalEnt - totalSai;
+
+        const infoFiltro = [
+          dtInicio || dtFim ? `Período: ${dtInicio ? dtInicio.split('-').reverse().join('/') : 'Início'} até ${dtFim ? dtFim.split('-').reverse().join('/') : 'Hoje'}` : 'Período: Histórico Geral Completo',
+          filtroBanco !== "todos" ? `Banco Selecionado: ${(obterBancoPorId(filtroBanco) || {}).nome || filtroBanco}` : 'Todos os Bancos / Caixas',
+          filtroTipoFluxo !== "todos" ? `Lançamentos: ${filtroTipoFluxo.toUpperCase()}` : 'Entradas e Saídas'
+        ].join(' • ');
+
+        folha.innerHTML = `
+          ${cabecalhoHtml("EXTRATO CONSOLIDADO", infoFiltro)}
+
+          <!-- Cards de Resumo -->
+          <div class="grid grid-cols-3 gap-3">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase font-bold text-emerald-800 block">Total Entradas (+)</span>
+              <span class="text-xl font-black text-emerald-700 font-mono">R$ ${totalEnt.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-500 block">${movimentos.filter(m => m.tipo === 'entrada').length} recebimento(s)</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase font-bold text-rose-800 block">Total Saídas (-)</span>
+              <span class="text-xl font-black text-rose-700 font-mono">R$ ${totalSai.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-500 block">${movimentos.filter(m => m.tipo === 'saida').length} pagamento(s)</span>
+            </div>
+            <div class="p-3.5 rounded-xl ${saldoConsolidado >= 0 ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'} border">
+              <span class="text-[10px] uppercase font-bold ${saldoConsolidado >= 0 ? 'text-emerald-900' : 'text-rose-900'} block">Saldo do Período</span>
+              <span class="text-xl font-black font-mono ${saldoConsolidado >= 0 ? 'text-emerald-800' : 'text-rose-800'}">
+                ${saldoConsolidado >= 0 ? '+ ' : ''}R$ ${saldoConsolidado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span class="text-[10px] text-slate-600 block">Total de ${movimentos.length} lançamento(s)</span>
+            </div>
+          </div>
+
+          <!-- Tabela de Movimentações -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+            <table class="w-full text-left">
+              <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="py-2 px-2.5 w-20">Data</th>
+                  <th class="py-2 px-2.5">Doc / Ref</th>
+                  <th class="py-2 px-2.5">Cliente / Fornecedor</th>
+                  <th class="py-2 px-2.5">Descrição</th>
+                  <th class="py-2 px-2.5">Categoria</th>
+                  <th class="py-2 px-2.5">Banco / Conta</th>
+                  <th class="py-2 px-2.5">Forma</th>
+                  <th class="py-2 px-2.5 text-right w-28">Valor</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${movimentos.length === 0 ? `
+                  <tr><td colspan="8" class="py-6 text-center text-slate-400 font-medium">Nenhum lançamento encontrado para os critérios selecionados.</td></tr>
+                ` : movimentos.map(m => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-2 px-2.5 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                      ${m.data ? m.data.split('-').reverse().join('/') : '-'}
+                    </td>
+                    <td class="py-2 px-2.5 font-mono font-bold text-slate-800 text-[11px] whitespace-nowrap">${m.documento}</td>
+                    <td class="py-2 px-2.5 font-medium text-slate-900 truncate max-w-[150px]">${m.entidade}</td>
+                    <td class="py-2 px-2.5 text-slate-700 truncate max-w-[180px]">${m.descricao}</td>
+                    <td class="py-2 px-2.5 text-slate-600">${m.categoria}</td>
+                    <td class="py-2 px-2.5 text-slate-600 text-[11px]">${m.bancoNome}</td>
+                    <td class="py-2 px-2.5 text-[10px] uppercase font-bold text-slate-600">${m.forma}</td>
+                    <td class="py-2 px-2.5 text-right font-mono font-bold whitespace-nowrap ${m.tipo === 'entrada' ? 'text-emerald-700' : 'text-rose-700'}">
+                      ${m.tipo === 'entrada' ? '+' : '-'} R$ ${m.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+              <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-black">
+                <tr>
+                  <td colspan="7" class="py-2.5 px-3 text-right uppercase text-slate-700 text-xs">Saldo Consolidado do Extrato:</td>
+                  <td class="py-2.5 px-3 text-right font-mono text-sm ${saldoConsolidado >= 0 ? 'text-emerald-800' : 'text-rose-800'} whitespace-nowrap">
+                    ${saldoConsolidado >= 0 ? '+ ' : ''}R$ ${saldoConsolidado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          ${rodapeHtml}
+        `;
+
+      } else if (tipo === 'receber') {
+        if (tituloModal) tituloModal.innerText = "Relatório de Contas a Receber (A4)";
+
+        const termo = (document.getElementById("filtro_financeiro_busca") ? document.getElementById("filtro_financeiro_busca").value : "").toLowerCase().trim();
+        const dtInicio = document.getElementById("filtro_receber_data_inicio") ? document.getElementById("filtro_receber_data_inicio").value : "";
+        const dtFim = document.getElementById("filtro_receber_data_fim") ? document.getElementById("filtro_receber_data_fim").value : "";
+
+        let lista = (orcamentosSalvos || []).filter(o => o.status !== "cancelado" && o.status !== "recusado");
+
+        if (filtroFinanceiroAtivo === "aguardando_entrada") {
+          lista = lista.filter(o => calcularStatusFinanceiro(o).statusFin === "aguardando_entrada");
+        } else if (filtroFinanceiroAtivo === "com_saldo") {
+          lista = lista.filter(o => calcularStatusFinanceiro(o).saldoDevedor > 0.01);
+        } else if (filtroFinanceiroAtivo === "quitados") {
+          lista = lista.filter(o => calcularStatusFinanceiro(o).statusFin === "quitado");
+        }
+
+        if (dtInicio) {
+          lista = lista.filter(o => {
+            const dt = (o.dataCriacao || "").split("T")[0];
+            const temPag = (o.pagamentos || []).some(p => (p.data || "") >= dtInicio);
+            return dt >= dtInicio || temPag;
+          });
+        }
+        if (dtFim) {
+          lista = lista.filter(o => {
+            const dt = (o.dataCriacao || "").split("T")[0];
+            const temPag = (o.pagamentos || []).some(p => (p.data || "") <= dtFim);
+            return dt <= dtFim || temPag;
+          });
+        }
+
+        if (termo) {
+          lista = lista.filter(o => 
+            (o.clienteNome || "").toLowerCase().includes(termo) ||
+            (o.numero || "").toLowerCase().includes(termo) ||
+            (o.clienteFone || "").toLowerCase().includes(termo)
+          );
+        }
+
+        let totalGeral = 0;
+        let totalRecebido = 0;
+        let totalPendente = 0;
+
+        const itensFormatados = lista.map(o => {
+          const st = calcularStatusFinanceiro(o);
+          totalGeral += st.total;
+          totalRecebido += st.totalPago;
+          totalPendente += st.saldoDevedor;
+          return { orc: o, st };
+        });
+
+        const infoFiltro = [
+          dtInicio || dtFim ? `Período: ${dtInicio ? dtInicio.split('-').reverse().join('/') : 'Início'} até ${dtFim ? dtFim.split('-').reverse().join('/') : 'Hoje'}` : 'Período: Todos os Pedidos Ativos',
+          filtroFinanceiroAtivo !== 'todos' ? `Status: ${filtroFinanceiroAtivo.toUpperCase()}` : 'Todos os Status Financeiros',
+          `${lista.length} pedido(s) listado(s)`
+        ].join(' • ');
+
+        folha.innerHTML = `
+          ${cabecalhoHtml("CONTAS A RECEBER", infoFiltro)}
+
+          <div class="grid grid-cols-3 gap-3">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase font-bold text-slate-700 block">Total Negociado</span>
+              <span class="text-xl font-black text-slate-900 font-mono">R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-500 block">${lista.length} orçamento(s)</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase font-bold text-emerald-800 block">Já Recebido em Caixa</span>
+              <span class="text-xl font-black text-emerald-700 font-mono">R$ ${totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-500 block">Recebimentos baixados</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-300">
+              <span class="text-[10px] uppercase font-bold text-amber-900 block">Saldo a Receber Pendente</span>
+              <span class="text-xl font-black text-amber-800 font-mono">R$ ${totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-amber-900/80 block">Aguardando entrada ou entrega</span>
+            </div>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+            <table class="w-full text-left">
+              <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="py-2 px-2.5 w-24">Orçamento</th>
+                  <th class="py-2 px-2.5">Cliente</th>
+                  <th class="py-2 px-2.5">Contato</th>
+                  <th class="py-2 px-2.5 text-right w-24">Total</th>
+                  <th class="py-2 px-2.5 text-right w-24">Já Pago</th>
+                  <th class="py-2 px-2.5 text-right w-24">Saldo Restante</th>
+                  <th class="py-2 px-2.5 text-center w-28">Status Financeiro</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${itensFormatados.length === 0 ? `
+                  <tr><td colspan="7" class="py-6 text-center text-slate-400 font-medium">Nenhum registro financeiro encontrado.</td></tr>
+                ` : itensFormatados.map(({ orc, st }) => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-2 px-2.5 font-mono font-bold text-slate-800 text-[11px]">${orc.numero}</td>
+                    <td class="py-2 px-2.5 font-medium text-slate-900">${orc.clienteNome || 'Consumidor'}</td>
+                    <td class="py-2 px-2.5 text-slate-600 font-mono text-[11px]">${orc.clienteFone || '-'}</td>
+                    <td class="py-2 px-2.5 text-right font-mono font-bold text-slate-800">R$ ${st.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td class="py-2 px-2.5 text-right font-mono font-semibold text-emerald-700">R$ ${st.totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td class="py-2 px-2.5 text-right font-mono font-bold ${st.saldoDevedor <= 0.01 ? 'text-emerald-700' : 'text-amber-700'}">
+                      R$ ${st.saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td class="py-2 px-2.5 text-center">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold ${st.saldoDevedor <= 0.01 ? 'bg-emerald-100 text-emerald-800' : (st.totalPago === 0 ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800')}">
+                        ${st.badgeTexto}
+                      </span>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+              <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-black">
+                <tr>
+                  <td colspan="3" class="py-2.5 px-3 text-right uppercase text-slate-700 text-xs">Totais Gerais a Receber:</td>
+                  <td class="py-2.5 px-3 text-right font-mono text-xs text-slate-900">R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td class="py-2.5 px-3 text-right font-mono text-xs text-emerald-700">R$ ${totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td class="py-2.5 px-3 text-right font-mono text-xs text-amber-800">R$ ${totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          ${rodapeHtml}
+        `;
+
+      } else if (tipo === 'pagar') {
+        if (tituloModal) tituloModal.innerText = "Relatório de Contas a Pagar & Despesas (A4)";
+
+        const termo = (document.getElementById("filtro_pagar_busca") ? document.getElementById("filtro_pagar_busca").value : "").toLowerCase().trim();
+        const dtInicio = document.getElementById("filtro_pagar_data_inicio") ? document.getElementById("filtro_pagar_data_inicio").value : "";
+        const dtFim = document.getElementById("filtro_pagar_data_fim") ? document.getElementById("filtro_pagar_data_fim").value : "";
+        const hojeStr = new Date().toISOString().split("T")[0];
+
+        let lista = [...(contasPagar || [])];
+
+        if (filtroContasPagarAtivo === "pendentes") {
+          lista = lista.filter(c => c.status !== "pago");
+        } else if (filtroContasPagarAtivo === "vencidas") {
+          lista = lista.filter(c => c.status !== "pago" && c.vencimento && c.vencimento < hojeStr);
+        } else if (filtroContasPagarAtivo === "pagas") {
+          lista = lista.filter(c => c.status === "pago");
+        }
+
+        if (dtInicio) {
+          lista = lista.filter(c => (c.dataPagamento || c.vencimento || "") >= dtInicio);
+        }
+        if (dtFim) {
+          lista = lista.filter(c => (c.dataPagamento || c.vencimento || "") <= dtFim);
+        }
+
+        if (termo) {
+          lista = lista.filter(c => {
+            const catInfo = typeof obterCategoriaDespesa === "function" ? obterCategoriaDespesa(c.categoria) : {};
+            return (c.descricao || "").toLowerCase().includes(termo) ||
+                   (c.fornecedor || "").toLowerCase().includes(termo) ||
+                   (catInfo.nome || "").toLowerCase().includes(termo) ||
+                   (c.numDoc || "").toLowerCase().includes(termo);
+          });
+        }
+
+        lista.sort((a, b) => (a.vencimento || "").localeCompare(b.vencimento || ""));
+
+        const totalGeral = lista.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+        const totalPagas = lista.filter(c => c.status === "pago").reduce((acc, c) => acc + (parseFloat(c.valorPago || c.valor) || 0), 0);
+        const totalPend = lista.filter(c => c.status !== "pago").reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+        const totalVenc = lista.filter(c => c.status !== "pago" && c.vencimento && c.vencimento < hojeStr).reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+
+        const infoFiltro = [
+          dtInicio || dtFim ? `Período: ${dtInicio ? dtInicio.split('-').reverse().join('/') : 'Início'} até ${dtFim ? dtFim.split('-').reverse().join('/') : 'Hoje'}` : 'Período: Todas as Despesas',
+          filtroContasPagarAtivo !== 'todos' ? `Status: ${filtroContasPagarAtivo.toUpperCase()}` : 'Todos os Status',
+          `${lista.length} conta(s) listada(s)`
+        ].join(' • ');
+
+        folha.innerHTML = `
+          ${cabecalhoHtml("CONTAS A PAGAR & DESPESAS", infoFiltro)}
+
+          <div class="grid grid-cols-4 gap-3">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase font-bold text-slate-700 block">Total de Despesas</span>
+              <span class="text-lg font-black text-slate-900 font-mono">R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-500 block">${lista.length} despesa(s)</span>
+            </div>
+            <div class="p-3 rounded-xl bg-amber-50 border border-amber-300">
+              <span class="text-[10px] uppercase font-bold text-amber-900 block">Total Pendente</span>
+              <span class="text-lg font-black text-amber-800 font-mono">R$ ${totalPend.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-amber-900/80 block">A vencer</span>
+            </div>
+            <div class="p-3 rounded-xl ${totalVenc > 0 ? 'bg-rose-50 border-rose-300' : 'bg-slate-50 border-slate-200'}">
+              <span class="text-[10px] uppercase font-bold ${totalVenc > 0 ? 'text-rose-900' : 'text-slate-600'} block">Vencidas em Atraso</span>
+              <span class="text-lg font-black ${totalVenc > 0 ? 'text-rose-700' : 'text-slate-700'} font-mono">R$ ${totalVenc.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-500 block">Exigem atenção</span>
+            </div>
+            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-300">
+              <span class="text-[10px] uppercase font-bold text-emerald-900 block">Total Quitado</span>
+              <span class="text-lg font-black text-emerald-700 font-mono">R$ ${totalPagas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-emerald-800 block">Já pagas</span>
+            </div>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+            <table class="w-full text-left">
+              <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="py-2 px-2.5 w-20">Vencimento</th>
+                  <th class="py-2 px-2.5">Fornecedor / Favorecido</th>
+                  <th class="py-2 px-2.5">Descrição</th>
+                  <th class="py-2 px-2.5">Categoria</th>
+                  <th class="py-2 px-2.5">Doc / NF</th>
+                  <th class="py-2 px-2.5 text-right w-24">Valor</th>
+                  <th class="py-2 px-2.5 text-center w-24">Status</th>
+                  <th class="py-2 px-2.5 text-center w-24">Data Pagto</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${lista.length === 0 ? `
+                  <tr><td colspan="8" class="py-6 text-center text-slate-400 font-medium">Nenhuma conta a pagar encontrada.</td></tr>
+                ` : lista.map(c => {
+                  const catInfo = typeof obterCategoriaDespesa === "function" ? obterCategoriaDespesa(c.categoria) : {};
+                  const isPaga = c.status === "pago";
+                  const isVencida = !isPaga && c.vencimento && c.vencimento < hojeStr;
+                  return `
+                    <tr class="hover:bg-slate-50">
+                      <td class="py-2 px-2.5 font-mono text-[11px] ${isVencida ? 'text-rose-600 font-bold' : 'text-slate-700'}">
+                        ${c.vencimento ? c.vencimento.split('-').reverse().join('/') : '-'}
+                      </td>
+                      <td class="py-2 px-2.5 font-bold text-slate-900 truncate max-w-[140px]">${c.fornecedor || 'Fornecedor'}</td>
+                      <td class="py-2 px-2.5 text-slate-700 truncate max-w-[160px]">${c.descricao || '-'}</td>
+                      <td class="py-2 px-2.5 text-slate-600">${catInfo.nome || c.categoria || '-'}</td>
+                      <td class="py-2 px-2.5 font-mono text-[11px] text-slate-600">${c.numDoc || '-'}</td>
+                      <td class="py-2 px-2.5 text-right font-mono font-bold text-slate-900">
+                        R$ ${(parseFloat(c.valor) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td class="py-2 px-2.5 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isPaga ? 'bg-emerald-100 text-emerald-800' : (isVencida ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800')}">
+                          ${isPaga ? 'PAGO' : (isVencida ? 'VENCIDA' : 'PENDENTE')}
+                        </span>
+                      </td>
+                      <td class="py-2 px-2.5 text-center font-mono text-[11px] text-slate-500">
+                        ${c.dataPagamento ? c.dataPagamento.split('-').reverse().join('/') : '-'}
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+              <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-black">
+                <tr>
+                  <td colspan="5" class="py-2.5 px-3 text-right uppercase text-slate-700 text-xs">Totalizador das Contas:</td>
+                  <td class="py-2.5 px-3 text-right font-mono text-xs text-slate-900">R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td colspan="2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          ${rodapeHtml}
+        `;
+
+      } else if (tipo === 'bancos') {
+        if (tituloModal) tituloModal.innerText = "Posição de Contas Bancárias & Caixas (A4)";
+
+        const saldos = typeof calcularSaldosBancos === "function" ? calcularSaldosBancos() : { totalRealizado: 0, totalProjetado: 0, porBanco: {} };
+        const bancosAtivos = (bancosContas || []).filter(b => b.ativo !== false);
+
+        folha.innerHTML = `
+          ${cabecalhoHtml("POSIÇÃO CONSOLIDADA DAS CONTAS BANCÁRIAS", "Posição financeira das contas correntes e carteiras físicas em tempo real")}
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-300">
+              <span class="text-xs uppercase font-bold text-emerald-900 block">Saldo Realizado em Caixa</span>
+              <span class="text-2xl font-black text-emerald-800 font-mono">R$ ${saldos.totalRealizado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-xs text-slate-600 block mt-0.5">Disponibilidade imediata consolidada</span>
+            </div>
+            <div class="p-4 rounded-xl bg-amber-50 border border-amber-300">
+              <span class="text-xs uppercase font-bold text-amber-900 block">Saldo Projetado Futuro</span>
+              <span class="text-2xl font-black text-amber-800 font-mono">R$ ${saldos.totalProjetado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-xs text-slate-600 block mt-0.5">Considerando entradas e saídas previstas</span>
+            </div>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+            <table class="w-full text-left">
+              <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Instituição / Conta</th>
+                  <th class="py-2.5 px-3">Tipo</th>
+                  <th class="py-2.5 px-3">Agência / Conta</th>
+                  <th class="py-2.5 px-3 text-right">Saldo Inicial</th>
+                  <th class="py-2.5 px-3 text-right">Entradas</th>
+                  <th class="py-2.5 px-3 text-right">Saídas</th>
+                  <th class="py-2.5 px-3 text-right font-black">Saldo Atual</th>
+                  <th class="py-2.5 px-3 text-right font-black">Projeção Futura</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${bancosAtivos.map(b => {
+                  const s = saldos.porBanco[b.id] || { saldoRealizado: b.saldoInicial || 0, saldoProjetado: b.saldoInicial || 0, entradasRealizadas: 0, saidasRealizadas: 0 };
+                  const tipoTexto = b.tipo === "corrente" ? "Conta Corrente" : (b.tipo === "poupanca" ? "Poupança" : "Caixa Gaveta");
+                  return `
+                    <tr class="hover:bg-slate-50">
+                      <td class="py-2.5 px-3 font-bold text-slate-900">
+                        ${b.nome} ${b.padrao ? '<span class="text-[10px] text-emerald-700 font-bold">(Padrão)</span>' : ''}
+                      </td>
+                      <td class="py-2.5 px-3 text-slate-600">${tipoTexto}</td>
+                      <td class="py-2.5 px-3 font-mono text-slate-600 text-[11px]">${b.agencia || '-'} / ${b.conta || '-'}</td>
+                      <td class="py-2.5 px-3 text-right font-mono text-slate-600">R$ ${(b.saldoInicial || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td class="py-2.5 px-3 text-right font-mono text-emerald-700">+ R$ ${s.entradasRealizadas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td class="py-2.5 px-3 text-right font-mono text-rose-700">- R$ ${s.saidasRealizadas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td class="py-2.5 px-3 text-right font-mono font-black text-sm ${s.saldoRealizado >= 0 ? 'text-emerald-800' : 'text-rose-700'}">
+                        R$ ${s.saldoRealizado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td class="py-2.5 px-3 text-right font-mono font-bold text-xs ${s.saldoProjetado >= 0 ? 'text-amber-800' : 'text-rose-700'}">
+                        R$ ${s.saldoProjetado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          ${rodapeHtml}
+        `;
+
+      } else {
+        // tipo === 'geral' (DRE / Resumo Executivo Financeiro Geral)
+        if (tituloModal) tituloModal.innerText = "Relatório Financeiro Geral Consolidado (A4)";
+
+        const saldosBancos = typeof calcularSaldosBancos === "function" ? calcularSaldosBancos() : { totalRealizado: 0, totalProjetado: 0 };
+        const ativos = (orcamentosSalvos || []).filter(o => o.status !== "cancelado" && o.status !== "recusado");
+        let totalRecebidoPedidos = 0;
+        let saldoAReceber = 0;
+        ativos.forEach(o => {
+          const st = calcularStatusFinanceiro(o);
+          totalRecebidoPedidos += st.totalPago;
+          saldoAReceber += st.saldoDevedor;
+        });
+
+        let totalDespesasPagas = 0;
+        let totalDespesasPendentes = 0;
+        (contasPagar || []).forEach(c => {
+          if (c.status === "pago") totalDespesasPagas += (parseFloat(c.valorPago || c.valor) || 0);
+          else totalDespesasPendentes += (parseFloat(c.valor) || 0);
+        });
+
+        let totalReceitasAvulsas = (receitasAvulsas || []).reduce((acc, r) => acc + (parseFloat(r.valor) || 0), 0);
+        const totalReceitasGeral = totalRecebidoPedidos + totalReceitasAvulsas;
+
+        folha.innerHTML = `
+          ${cabecalhoHtml("RELATÓRIO FINANCEIRO GERAL CONSOLIDADO", "Demonstrativo Executivo de Resultados e Saúde Financeira da Empresa")}
+
+          <!-- Quadro de Indicadores Globais -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300">
+              <span class="text-[10px] uppercase font-bold text-emerald-900 block">💵 Saldo Atual em Caixa</span>
+              <span class="text-xl font-black text-emerald-800 font-mono">R$ ${saldosBancos.totalRealizado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-600 block">Receitas - Despesas Quitadas</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase font-bold text-emerald-700 block">🟢 Total Entradas (Receitas)</span>
+              <span class="text-xl font-black text-emerald-700 font-mono">R$ ${totalReceitasGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-500 block">Pedidos + Avulsas</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase font-bold text-rose-700 block">🔴 Total Saídas (Despesas)</span>
+              <span class="text-xl font-black text-rose-700 font-mono">R$ ${totalDespesasPagas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-500 block">Despesas quitadas</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-300">
+              <span class="text-[10px] uppercase font-bold text-amber-900 block">🔮 Saldo Projetado Futuro</span>
+              <span class="text-xl font-black text-amber-800 font-mono">R$ ${saldosBancos.totalProjetado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-600 block">Caixa + A Receber - A Pagar</span>
+            </div>
+          </div>
+
+          <!-- Demonstrativo DRE Sintético -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+            <div class="bg-slate-100 px-4 py-2.5 font-black uppercase text-slate-800 text-xs border-b border-slate-200 flex items-center justify-between">
+              <span>Demonstrativo Financeiro Sintético (Resultados)</span>
+              <span>Exercício Atual</span>
+            </div>
+            <table class="w-full text-left">
+              <tbody class="divide-y divide-slate-100">
+                <tr class="bg-slate-50/50">
+                  <td class="py-2.5 px-4 font-bold text-slate-900">(+) Receitas de Pedidos (Orçamentos Pagos)</td>
+                  <td class="py-2.5 px-4 text-right font-mono font-bold text-emerald-700">R$ ${totalRecebidoPedidos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+                <tr class="bg-slate-50/50">
+                  <td class="py-2.5 px-4 font-bold text-slate-900">(+) Receitas Avulsas (Retalhos e Serviços)</td>
+                  <td class="py-2.5 px-4 text-right font-mono font-bold text-emerald-700">R$ ${totalReceitasAvulsas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+                <tr class="bg-emerald-50/70 font-black">
+                  <td class="py-2.5 px-4 text-emerald-950 uppercase">= RECEITA OPERACIONAL BRUTA REALIZADA</td>
+                  <td class="py-2.5 px-4 text-right font-mono text-emerald-900 text-sm">R$ ${totalReceitasGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 px-4 font-bold text-slate-900">(-) Despesas Operacionais & Insumos Pagos</td>
+                  <td class="py-2.5 px-4 text-right font-mono font-bold text-rose-700">- R$ ${totalDespesasPagas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+                <tr class="bg-slate-100 font-black border-t-2 border-slate-300">
+                  <td class="py-3 px-4 text-slate-900 uppercase text-xs">= SALDO LÍQUIDO DISPONÍVEL EM CAIXA</td>
+                  <td class="py-3 px-4 text-right font-mono text-base ${saldosBancos.totalRealizado >= 0 ? 'text-emerald-800' : 'text-rose-700'}">
+                    R$ ${saldosBancos.totalRealizado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Projeção a Curto e Médio Prazo -->
+          <div class="grid grid-cols-2 gap-4 text-xs">
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <span class="font-bold text-slate-900 block uppercase">📦 Carteira a Receber</span>
+              <p class="text-slate-600">Total contratado em orçamentos aprovados com entrega pendente:</p>
+              <div class="text-lg font-black text-amber-700 font-mono">R$ ${saldoAReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <span class="font-bold text-slate-900 block uppercase">🧾 Compromissos a Pagar</span>
+              <p class="text-slate-600">Total de boletos e despesas agendadas aguardando quitação:</p>
+              <div class="text-lg font-black text-rose-700 font-mono">R$ ${totalDespesasPendentes.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+          </div>
+
+          ${rodapeHtml}
+        `;
+      }
+
+      modal.classList.remove("hidden");
     }
 
     function copiarReciboWhatsApp() {
@@ -12587,6 +13484,40 @@
       </div>
     </div>
   </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL DE RELATÓRIO FINANCEIRO FORMAL TIMBRADO / IMPRESSÃO A4 -->
+  <!-- ============================================================ -->
+  <div id="modal_relatorio_financeiro" class="modal-scroll-otimizado fixed inset-0 bg-slate-950/85 z-50 hidden p-4 md:p-8 flex justify-center items-start">
+    <div class="relative w-full max-w-4xl my-4 md:my-8">
+      
+      <!-- Barra superior do modal (oculta na impressão) -->
+      <div class="flex items-center justify-between bg-slate-900 text-white px-6 py-3.5 rounded-t-2xl shadow-lg no-print">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">📊</span>
+          <div>
+            <h3 class="text-sm font-bold" id="titulo_modal_relatorio_fin">Relatório Financeiro A4</h3>
+            <p class="text-[11px] text-slate-400">Documento oficial timbrado da Marmoraria Marmobraz</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="imprimirRelatorioFinanceiroModal()" class="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black transition flex items-center gap-1.5 shadow-md shadow-emerald-500/30 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            <span>Imprimir / Salvar PDF</span>
+          </button>
+          <button onclick="fecharModalRelatorioFinanceiro()" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">
+            ✕ Fechar
+          </button>
+        </div>
+      </div>
+
+      <!-- Folha A4 do Relatório Financeiro -->
+      <div id="folha_relatorio_financeiro_a4" class="folha-a4-impressao bg-white p-8 md:p-12 rounded-b-2xl shadow-xl border border-slate-300 text-slate-800 space-y-6">
+        <!-- Preenchido dinamicamente por abrirModalRelatorioFinanceiro() -->
+      </div>
+    </div>
+  </div>
+
   <!-- ============================================================ -->
   <!-- MODAL DE CADASTRO / EDIÇÃO DE CONTA BANCÁRIA (MÓDULO FINANCEIRO) -->
   <!-- ============================================================ -->
