@@ -52,32 +52,74 @@
       contain-intrinsic-size: 0 100px;
     }
     @media print {
-      body {
+      @page {
+        size: A4 portrait;
+        margin: 8mm;
+      }
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+      html, body {
+        background: white !important;
         background-color: white !important;
         color: black !important;
         padding: 0 !important;
         margin: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
       }
-      .no-print {
-        display: none !important;
-      }
-      #painel_principal_app {
-        display: none !important;
-      }
+      .no-print,
+      #app_sistema_wrapper,
+      #modal_login_tenant,
+      #sidebar_principal,
+      #sidebar_backdrop,
+      #painel_principal_app,
+      #toast_notificacao,
       #modal_meus_orcamentos,
       #modal_fila_fabrica,
       #modal_acabamentos,
       #modal_lados,
-      #modal_rb {
+      #modal_rb,
+      #modal_clientes_crm,
+      #modal_form_cliente,
+      #modal_agenda_visitas,
+      #modal_agendar_evento,
+      #modal_gerenciar_bancos,
+      #modal_banco_conta,
+      #modal_dar_baixa,
+      #modal_receita_avulsa,
+      #modal_form_despesa {
         display: none !important;
       }
+
+      /* Oculta modais inativos durante a impressão */
+      .modal-scroll-otimizado:not(.modal-print-active),
+      div.fixed:not(.modal-print-active) {
+        display: none !important;
+      }
+
       .modal-print-active {
         display: block !important;
         position: static !important;
         background: white !important;
         padding: 0 !important;
         margin: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
         overflow: visible !important;
+        box-shadow: none !important;
+        border: none !important;
+        page-break-before: avoid !important;
+        break-before: avoid !important;
+      }
+      .modal-print-active > div {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
         box-shadow: none !important;
         border: none !important;
       }
@@ -85,8 +127,19 @@
         box-shadow: none !important;
         border: none !important;
         padding: 0 !important;
+        margin: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
+        page-break-before: avoid !important;
+        break-before: avoid !important;
+      }
+      table {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
     }
 
