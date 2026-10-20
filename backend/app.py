@@ -612,7 +612,16 @@ def listar_agenda(status: Optional[str] = None):
         cursor.execute("SELECT * FROM agenda ORDER BY data ASC, created_at ASC;")
     rows = cursor.fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+    res = []
+    for r in rows:
+        d = dict(r)
+        d["clienteNome"] = d.get("cliente_nome") or ""
+        d["clienteFone"] = d.get("cliente_fone") or ""
+        d["orcamentoId"] = d.get("orcamento_id") or ""
+        d["createdAt"] = d.get("created_at") or ""
+        d["updatedAt"] = d.get("updated_at") or ""
+        res.append(d)
+    return res
 
 @app.post("/api/agenda")
 def salvar_evento_agenda(evento: Dict[str, Any] = Body(...)):
@@ -659,8 +668,16 @@ def salvar_evento_agenda(evento: Dict[str, Any] = Body(...)):
     conn.close()
     
     evento["id"] = e_id
+    evento["clienteNome"] = cliente_nome
+    evento["cliente_nome"] = cliente_nome
+    evento["clienteFone"] = cliente_fone
+    evento["cliente_fone"] = cliente_fone
+    evento["orcamentoId"] = orc_id
+    evento["orcamento_id"] = orc_id
     evento["createdAt"] = created_at
+    evento["created_at"] = created_at
     evento["updatedAt"] = agora_iso
+    evento["updated_at"] = agora_iso
     return evento
 
 @app.delete("/api/agenda/{evento_id}")
@@ -851,27 +868,40 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
         c_nome = (item.get("clienteNome") or item.get("cliente_nome") or "").strip()
         if not a_id or c_nome in SAMPLE_AGENDA_NAMES or str(a_id).startswith("age_179224"):
             continue
-        cursor.execute("SELECT id FROM agenda WHERE id = ?;", (a_id,))
-        if not cursor.fetchone():
-            agora = datetime.now().isoformat()
-            cursor.execute("""
-            INSERT INTO agenda (id, orcamento_id, cliente_nome, cliente_fone, endereco, tipo, data, turno, responsavel, status, observacoes, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            """, (
-                a_id,
-                item.get("orcamentoId") or item.get("orcamento_id") or "",
-                item.get("clienteNome") or item.get("cliente_nome") or "",
-                item.get("clienteFone") or item.get("cliente_fone") or "",
-                item.get("endereco") or "",
-                item.get("tipo") or "medicao",
-                item.get("data") or agora[:10],
-                item.get("turno") or "comercial",
-                item.get("responsavel") or "",
-                item.get("status") or "agendado",
-                item.get("observacoes") or "",
-                agora,
-                agora
-            ))
+        cursor.execute("SELECT created_at FROM agenda WHERE id = ?;", (a_id,))
+        existente = cursor.fetchone()
+        agora = datetime.now().isoformat()
+        created_at = existente["created_at"] if existente else agora
+        cursor.execute("""
+        INSERT INTO agenda (id, orcamento_id, cliente_nome, cliente_fone, endereco, tipo, data, turno, responsavel, status, observacoes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            orcamento_id = excluded.orcamento_id,
+            cliente_nome = excluded.cliente_nome,
+            cliente_fone = excluded.cliente_fone,
+            endereco = excluded.endereco,
+            tipo = excluded.tipo,
+            data = excluded.data,
+            turno = excluded.turno,
+            responsavel = excluded.responsavel,
+            status = excluded.status,
+            observacoes = excluded.observacoes,
+            updated_at = excluded.updated_at;
+        """, (
+            a_id,
+            item.get("orcamentoId") or item.get("orcamento_id") or "",
+            c_nome,
+            item.get("clienteFone") or item.get("cliente_fone") or "",
+            item.get("endereco") or "",
+            item.get("tipo") or "medicao",
+            item.get("data") or agora[:10],
+            item.get("turno") or "comercial",
+            item.get("responsavel") or "",
+            item.get("status") or "agendado",
+            item.get("observacoes") or "",
+            created_at,
+            agora
+        ))
             
     # 5. Processa exclusões e sincroniza contas bancárias
     bancos_excluidos = payload.get("bancos_excluidos") or []
@@ -947,7 +977,15 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
     todos_cli = [dict(r) for r in cursor.fetchall()]
 
     cursor.execute("SELECT * FROM agenda ORDER BY data ASC, created_at ASC;")
-    todos_age = [dict(r) for r in cursor.fetchall()]
+    todos_age = []
+    for r in cursor.fetchall():
+        d = dict(r)
+        d["clienteNome"] = d.get("cliente_nome") or ""
+        d["clienteFone"] = d.get("cliente_fone") or ""
+        d["orcamentoId"] = d.get("orcamento_id") or ""
+        d["createdAt"] = d.get("created_at") or ""
+        d["updatedAt"] = d.get("updated_at") or ""
+        todos_age.append(d)
 
     cursor.execute("SELECT * FROM bancos WHERE ativo = 1 ORDER BY padrao DESC, nome ASC;")
     todos_ban = []

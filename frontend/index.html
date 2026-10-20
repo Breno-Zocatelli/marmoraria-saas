@@ -1982,12 +1982,32 @@
       clientesCadastrados = [];
     }
 
+    // Função utilitária para normalizar eventos da agenda (garante compatibilidade camelCase e snake_case)
+    function normalizarEventoAgenda(a) {
+      if (!a) return null;
+      const orcId = a.orcamentoId || a.orcamento_id || "";
+      const orc = orcId && typeof orcamentosSalvos !== 'undefined' ? (orcamentosSalvos || []).find(o => o && o.id === orcId) : null;
+      const cNome = (a.clienteNome || a.cliente_nome || (orc ? orc.clienteNome : "") || "").trim();
+      const cFone = (a.clienteFone || a.cliente_fone || (orc ? orc.clienteFone : "") || "").trim();
+      const end = (a.endereco || (orc ? (orc.clienteEndereco || orc.endereco) : "") || "").trim();
+      return {
+        ...a,
+        orcamentoId: orcId,
+        orcamento_id: orcId,
+        clienteNome: cNome,
+        cliente_nome: cNome,
+        clienteFone: cFone,
+        cliente_fone: cFone,
+        endereco: end
+      };
+    }
+
     // Controle de Prazos & Agenda de Medições / Instalações (Passo 4)
     const CLIENTES_AGENDA_EXEMPLO = ["Dra. Camila Vasconcelos", "Eng. Ricardo Prado"];
     let agendaCompromissos = [];
     try {
       agendaCompromissos = JSON.parse(localStorage.getItem(getTenantStorageKey("agenda"))) || [];
-      agendaCompromissos = agendaCompromissos.filter(a => a && a.clienteNome && !CLIENTES_AGENDA_EXEMPLO.includes(a.clienteNome.trim()));
+      agendaCompromissos = agendaCompromissos.map(normalizarEventoAgenda).filter(a => a && a.clienteNome && !CLIENTES_AGENDA_EXEMPLO.includes(a.clienteNome.trim()));
       localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
     } catch(e) {
       agendaCompromissos = [];
@@ -2075,7 +2095,7 @@
         const payload = {
           orcamentos: (orcamentosSalvos || []).filter(o => o && o.id && !String(o.id).startsWith("orc_padrao_")),
           clientes: (clientesCadastrados || []).filter(c => c && c.nome && !CLIENTES_EXEMPLO_LEGADOS.includes(c.nome.trim())),
-          agenda: (agendaCompromissos || []).filter(a => a && a.clienteNome && !CLIENTES_AGENDA_EXEMPLO.includes(a.clienteNome.trim())),
+          agenda: (agendaCompromissos || []).map(normalizarEventoAgenda).filter(a => a && a.clienteNome && !CLIENTES_AGENDA_EXEMPLO.includes(a.clienteNome.trim())),
           bancos: (bancosContas || []).filter(b => b && b.id && !listaExcluidos.includes(b.id)),
           bancos_excluidos: listaExcluidos,
           catalogos: {
@@ -2119,8 +2139,11 @@
           }
 
           if (data && data.agenda && Array.isArray(data.agenda)) {
-            agendaCompromissos = data.agenda;
+            agendaCompromissos = data.agenda.map(normalizarEventoAgenda).filter(Boolean);
             localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
+            if (typeof renderizarListaAgendaCompromissos === "function") {
+              renderizarListaAgendaCompromissos();
+            }
           }
 
           if (data && data.bancos && Array.isArray(data.bancos)) {
@@ -11469,7 +11492,7 @@
         agendaCompromissos = [];
       }
       const NOMES_AGENDA_EXEMPLO = ["Dra. Camila Vasconcelos", "Eng. Ricardo Prado"];
-      agendaCompromissos = agendaCompromissos.filter(a => a && a.clienteNome && !NOMES_AGENDA_EXEMPLO.includes(a.clienteNome.trim()));
+      agendaCompromissos = agendaCompromissos.map(normalizarEventoAgenda).filter(a => a && a.clienteNome && !NOMES_AGENDA_EXEMPLO.includes(a.clienteNome.trim()));
       localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
     }
 
@@ -11558,25 +11581,31 @@
       });
 
       container.innerHTML = lista.map(item => {
+        const norm = (typeof normalizarEventoAgenda === "function" ? normalizarEventoAgenda(item) : null) || item;
+        const orcId = norm.orcamentoId || norm.orcamento_id;
+        const orcAssociado = orcId && typeof orcamentosSalvos !== "undefined" ? (orcamentosSalvos || []).find(o => o && o.id === orcId) : null;
+        const nomeClienteExibicao = (norm.clienteNome || norm.cliente_nome || (orcAssociado ? orcAssociado.clienteNome : "") || "Cliente").trim();
+        const enderecoExibicao = (norm.endereco || (orcAssociado ? (orcAssociado.clienteEndereco || orcAssociado.endereco) : "") || "Endereço não informado").trim();
+
         let tipoBadge = "";
-        if (item.tipo === "medicao") {
+        if (norm.tipo === "medicao") {
           tipoBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-100 text-purple-800">📐 Medição de Fôrma</span>`;
-        } else if (item.tipo === "instalacao") {
+        } else if (norm.tipo === "instalacao") {
           tipoBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-100 text-blue-800">🛠️ Instalação / Obra</span>`;
-        } else if (item.tipo === "visita") {
+        } else if (norm.tipo === "visita") {
           tipoBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-100 text-emerald-800">🔍 Visita Técnica</span>`;
         } else {
           tipoBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-slate-100 text-slate-700">🔧 Vistoria</span>`;
         }
 
-        let turnoTexto = item.turno === "manha" ? "🌅 Manhã (08h às 12h)" : (item.turno === "tarde" ? "🌇 Tarde (13h às 18h)" : "🕒 Horário Comercial");
+        let turnoTexto = norm.turno === "manha" ? "🌅 Manhã (08h às 12h)" : (norm.turno === "tarde" ? "🌇 Tarde (13h às 18h)" : "🕒 Horário Comercial");
         
-        const isConcluido = item.status === "concluido";
+        const isConcluido = norm.status === "concluido";
         const cardClass = isConcluido ? "opacity-60 bg-slate-200 border border-slate-300" : "card-agenda-item";
 
-        let dataFormatada = item.data;
-        if (item.data) {
-          const partes = item.data.split("-");
+        let dataFormatada = norm.data;
+        if (norm.data) {
+          const partes = norm.data.split("-");
           if (partes.length === 3) dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
         }
 
@@ -11597,31 +11626,36 @@
 
             <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div class="space-y-1">
-                <h4 class="text-xs sm:text-sm font-extrabold text-slate-900">${item.clienteNome || 'Cliente'}</h4>
+                <h4 class="text-xs sm:text-sm font-extrabold text-slate-900">${nomeClienteExibicao}</h4>
                 <p class="text-xs text-slate-600 flex items-center gap-1.5">
-                  <span>📍</span> <span>${item.endereco || 'Endereço não informado'}</span>
+                  <span>📍</span> <span>${enderecoExibicao}</span>
                 </p>
-                ${item.responsavel ? `<p class="text-[11px] text-slate-500 font-medium"><b>Técnico:</b> ${item.responsavel}</p>` : ''}
-                ${item.observacoes ? `<p class="text-[11px] text-slate-500 italic bg-slate-50 p-1.5 rounded-lg border border-slate-100 mt-1">💬 "${item.observacoes}"</p>` : ''}
+                ${norm.responsavel ? `<p class="text-[11px] text-slate-500 font-medium"><b>Técnico:</b> ${norm.responsavel}</p>` : ''}
+                ${norm.observacoes ? `<p class="text-[11px] text-slate-500 italic bg-slate-50 p-1.5 rounded-lg border border-slate-100 mt-1">💬 "${norm.observacoes}"</p>` : ''}
               </div>
 
               <!-- Botões de Ação do Card -->
               <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
                 <!-- WhatsApp direto -->
-                <button onclick="enviarMensagemConfirmacaoAgenda('${item.id}')" class="h-8 px-2.5 text-xs font-bold rounded-lg border border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition shadow-2xs flex items-center gap-1.5 cursor-pointer" title="Enviar confirmação de data e horário no WhatsApp">
+                <button onclick="enviarMensagemConfirmacaoAgenda('${norm.id}')" class="h-8 px-2.5 text-xs font-bold rounded-lg border border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition shadow-2xs flex items-center gap-1.5 cursor-pointer" title="Enviar confirmação de data e horário no WhatsApp">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.539 1.761.815 2.791.815 3.181 0 5.768-2.587 5.768-5.767 0-3.18-2.587-5.767-5.768-5.767zm0-2.172c4.418 0 8 3.582 8 8s-3.582 8-8 8c-1.393 0-2.698-.359-3.837-.988l-4.194 1.098 1.116-4.08c-.689-1.186-1.085-2.553-1.085-4.03 0-4.418 3.582-8 8-8z"/></svg>
                   <span>Confirmar Zap</span>
                 </button>
 
+                <!-- Editar -->
+                <button onclick="abrirModalAgendarEvento(null, '${norm.id}')" class="h-8 px-2 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition shadow-2xs flex items-center gap-1 cursor-pointer" title="Editar agendamento">
+                  ✏️
+                </button>
+
                 <!-- Concluir -->
                 ${!isConcluido ? `
-                  <button onclick="concluirEventoAgenda('${item.id}')" class="h-8 px-2 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition shadow-2xs flex items-center gap-1 cursor-pointer" title="Marcar visita como realizada">
+                  <button onclick="concluirEventoAgenda('${norm.id}')" class="h-8 px-2 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition shadow-2xs flex items-center gap-1 cursor-pointer" title="Marcar visita como realizada">
                     ✓ Concluir
                   </button>
                 ` : ''}
 
                 <!-- Excluir -->
-                <button onclick="excluirEventoAgenda('${item.id}')" class="h-8 px-2 text-xs font-bold rounded-lg border border-slate-200 bg-white text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition shadow-2xs flex items-center gap-1 cursor-pointer" title="Remover da agenda">
+                <button onclick="excluirEventoAgenda('${norm.id}')" class="h-8 px-2 text-xs font-bold rounded-lg border border-slate-200 bg-white text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition shadow-2xs flex items-center gap-1 cursor-pointer" title="Remover da agenda">
                   🗑️
                 </button>
               </div>
@@ -11736,36 +11770,64 @@
       abrirFichaProducaoPorId(id);
     }
 
-    function abrirModalAgendarEvento(orcamentoId = null) {
+    function abrirModalAgendarEvento(orcamentoId = null, eventoId = null) {
       const modal = document.getElementById("modal_agendar_evento");
       const selOrc = document.getElementById("agenda_orcamento_select");
       const inputNome = document.getElementById("agenda_cliente_nome");
       const inputFone = document.getElementById("agenda_cliente_fone");
       const inputEnd = document.getElementById("agenda_endereco");
       const inputData = document.getElementById("agenda_data");
+      const inputTurno = document.getElementById("agenda_turno");
+      const inputTipo = document.getElementById("agenda_tipo");
+      const inputResp = document.getElementById("agenda_responsavel");
+      const inputObs = document.getElementById("agenda_observacoes");
       const inputId = document.getElementById("agenda_evento_id");
-
-      if (inputId) inputId.value = "";
-      if (inputData) {
-        const amanha = new Date();
-        amanha.setDate(amanha.getDate() + 1);
-        inputData.value = amanha.toISOString().split("T")[0];
-      }
+      const titulo = document.getElementById("modal_agenda_titulo");
 
       if (selOrc) {
         selOrc.innerHTML = '<option value="">-- Selecione ou deixe avulso --</option>' + 
           (orcamentosSalvos || []).map(o => {
             return `<option value="${o.id}">${o.numero} - ${o.clienteNome || 'Cliente'} (${o.status})</option>`;
           }).join("");
+      }
 
-        if (orcamentoId) {
-          selOrc.value = orcamentoId;
-          aoSelecionarOrcamentoAgenda();
-        } else {
-          if (inputNome) inputNome.value = "";
-          if (inputFone) inputFone.value = "";
-          if (inputEnd) inputEnd.value = "";
+      if (eventoId) {
+        const item = (agendaCompromissos || []).find(a => a.id === eventoId);
+        if (item) {
+          const norm = (typeof normalizarEventoAgenda === "function" ? normalizarEventoAgenda(item) : null) || item;
+          if (inputId) inputId.value = norm.id;
+          if (titulo) titulo.innerText = "Editar Compromisso";
+          if (selOrc) selOrc.value = norm.orcamentoId || "";
+          if (inputNome) inputNome.value = norm.clienteNome || "";
+          if (inputFone) inputFone.value = norm.clienteFone || "";
+          if (inputEnd) inputEnd.value = norm.endereco || "";
+          if (inputData) inputData.value = norm.data || "";
+          if (inputTurno) inputTurno.value = norm.turno || "manha";
+          if (inputTipo) inputTipo.value = norm.tipo || "medicao";
+          if (inputResp) inputResp.value = norm.responsavel || "";
+          if (inputObs) inputObs.value = norm.observacoes || "";
+          if (modal) modal.classList.remove("hidden");
+          return;
         }
+      }
+
+      if (inputId) inputId.value = "";
+      if (titulo) titulo.innerText = "Agendar Medição / Instalação";
+      if (inputData) {
+        const amanha = new Date();
+        amanha.setDate(amanha.getDate() + 1);
+        inputData.value = amanha.toISOString().split("T")[0];
+      }
+
+      if (orcamentoId && selOrc) {
+        selOrc.value = orcamentoId;
+        aoSelecionarOrcamentoAgenda();
+      } else {
+        if (inputNome) inputNome.value = "";
+        if (inputFone) inputFone.value = "";
+        if (inputEnd) inputEnd.value = "";
+        if (inputResp) inputResp.value = "";
+        if (inputObs) inputObs.value = "";
       }
 
       if (modal) modal.classList.remove("hidden");
@@ -11814,8 +11876,11 @@
       const eventoObj = {
         id: idExistente || `age_${Date.now()}_${Math.random().toString(36).substring(2,6)}`,
         orcamentoId: orcId || "",
+        orcamento_id: orcId || "",
         clienteNome,
+        cliente_nome: clienteNome,
         clienteFone,
+        cliente_fone: clienteFone,
         endereco,
         tipo,
         data,
@@ -11828,10 +11893,15 @@
 
       if (!idExistente) {
         eventoObj.createdAt = new Date().toISOString();
+        eventoObj.created_at = eventoObj.createdAt;
         agendaCompromissos.unshift(eventoObj);
       } else {
         const idx = agendaCompromissos.findIndex(a => a.id === idExistente);
-        if (idx >= 0) agendaCompromissos[idx] = eventoObj;
+        if (idx >= 0) {
+          eventoObj.createdAt = agendaCompromissos[idx].createdAt || agendaCompromissos[idx].created_at || new Date().toISOString();
+          eventoObj.created_at = eventoObj.createdAt;
+          agendaCompromissos[idx] = eventoObj;
+        }
       }
 
       localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
@@ -11858,6 +11928,7 @@
 
       item.status = "concluido";
       item.updatedAt = new Date().toISOString();
+      item.updated_at = item.updatedAt;
       localStorage.setItem(getTenantStorageKey("agenda"), JSON.stringify(agendaCompromissos));
       atualizarBadgesHeader();
       renderizarAgendaView();
@@ -11889,7 +11960,12 @@
       const item = (agendaCompromissos || []).find(a => a.id === id);
       if (!item) return;
 
-      let foneLimpo = (item.clienteFone || "").replace(/\D/g, "");
+      const norm = (typeof normalizarEventoAgenda === "function" ? normalizarEventoAgenda(item) : null) || item;
+      const orcAssociado = norm.orcamentoId && typeof orcamentosSalvos !== "undefined" ? (orcamentosSalvos || []).find(o => o && o.id === norm.orcamentoId) : null;
+      const cNome = (norm.clienteNome || norm.cliente_nome || (orcAssociado ? orcAssociado.clienteNome : "") || "Cliente").trim();
+      const cFone = (norm.clienteFone || norm.cliente_fone || (orcAssociado ? orcAssociado.clienteFone : "") || "").trim();
+
+      let foneLimpo = cFone.replace(/\D/g, "");
       if (!foneLimpo) {
         alert("Número de telefone não informado para este cliente.");
         return;
@@ -11898,21 +11974,22 @@
         foneLimpo = "55" + foneLimpo;
       }
 
-      let dataFormatada = item.data;
-      if (item.data) {
-        const p = item.data.split("-");
+      let dataFormatada = norm.data;
+      if (norm.data) {
+        const p = norm.data.split("-");
         if (p.length === 3) dataFormatada = `${p[2]}/${p[1]}/${p[0]}`;
       }
 
-      let turnoTexto = item.turno === "manha" ? "pela manhã (08h às 12h)" : (item.turno === "tarde" ? "no período da tarde (13h às 18h)" : "em horário comercial");
-      let tipoTexto = item.tipo === "medicao" ? "medição de fôrma/gabarito" : (item.tipo === "instalacao" ? "entrega e montagem das peças de mármore/granito" : "visita técnica");
+      let turnoTexto = norm.turno === "manha" ? "pela manhã (08h às 12h)" : (norm.turno === "tarde" ? "no período da tarde (13h às 18h)" : "em horário comercial");
+      let tipoTexto = norm.tipo === "medicao" ? "medição de fôrma/gabarito" : (norm.tipo === "instalacao" ? "entrega e montagem das peças de mármore/granito" : "visita técnica");
+      const nomeEmpresa = typeof getNomeEmpresaAtiva === "function" ? getNomeEmpresaAtiva() : "Marmoraria";
 
-      let texto = `Olá *${item.clienteNome || 'Cliente'}*, tudo bem? Aqui é da *MARMOBRAZ Gestão & Marmoraria*! 🏛️\n\n`;
+      let texto = `Olá *${cNome}*, tudo bem? Aqui é da *${nomeEmpresa}*! 🏛️\n\n`;
       texto += `Confirmamos a sua visita de *${tipoTexto}* agendada para:\n`;
       texto += `📅 *Data:* ${dataFormatada}\n`;
       texto += `⏰ *Período:* ${turnoTexto}\n`;
-      texto += `📍 *Local:* ${item.endereco || 'Endereço da obra'}\n`;
-      if (item.responsavel) texto += `👤 *Responsável:* ${item.responsavel}\n`;
+      texto += `📍 *Local:* ${norm.endereco || "Endereço da obra"}\n`;
+      if (norm.responsavel) texto += `👤 *Responsável:* ${norm.responsavel}\n`;
       texto += `\nQualquer dúvida ou ajuste de horário estamos à inteira disposição!`;
 
       const url = `https://wa.me/${foneLimpo}?text=${encodeURIComponent(texto)}`;
