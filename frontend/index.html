@@ -6079,20 +6079,20 @@
       }
 
       let tabelaHtml = `
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
+        <div class="w-full overflow-x-auto">
+          <table class="w-full table-fixed text-left border-collapse text-xs">
             <thead class="bg-slate-300/80 text-[10px] uppercase font-black text-slate-800 border-b border-slate-300">
               <tr>
-                <th class="py-3 px-3">Data</th>
-                <th class="py-3 px-3">Tipo</th>
-                <th class="py-3 px-3">Conta / Banco</th>
-                <th class="py-3 px-3">Origem / Doc</th>
-                <th class="py-3 px-3">Cliente / Fornecedor</th>
-                <th class="py-3 px-3">Descrição do Lançamento</th>
-                <th class="py-3 px-3">Categoria</th>
-                <th class="py-3 px-3">Forma</th>
-                <th class="py-3 px-3 text-right">Valor (R$)</th>
-                <th class="py-3 px-3 text-center">Ações</th>
+                <th class="py-2.5 px-2 w-[8.5%]">Data</th>
+                <th class="py-2.5 px-1.5 w-[8.5%]">Tipo</th>
+                <th class="py-2.5 px-1.5 w-[10%]">Conta / Banco</th>
+                <th class="py-2.5 px-1.5 w-[9%]">Origem / Doc</th>
+                <th class="py-2.5 px-2 w-[15%]">Cliente / Fornecedor</th>
+                <th class="py-2.5 px-2 w-[18%]">Descrição</th>
+                <th class="py-2.5 px-1.5 w-[9%]">Categoria</th>
+                <th class="py-2.5 px-1 w-[7%]">Forma</th>
+                <th class="py-2.5 px-2 text-right w-[10%]">Valor (R$)</th>
+                <th class="py-2.5 px-1 text-center w-[5%]">Ações</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-slate-200">
@@ -6105,58 +6105,65 @@
 
         tabelaHtml += `
           <tr class="hover:bg-slate-50 transition">
-            <td class="py-2.5 px-3 font-mono text-slate-600 font-semibold whitespace-nowrap">
-              ${dataFmt}
+            <td class="py-2 px-2 font-mono text-slate-600 font-semibold text-[11px] whitespace-nowrap">
+              <div>${dataFmt}</div>
               ${m.isFuturo || m.isPrevisao ? `
-                <span class="block mt-0.5 text-[9px] font-black text-purple-700 bg-purple-100 px-1.5 py-0.2 rounded border border-purple-200 w-fit">
+                <span class="inline-block mt-0.5 text-[9px] font-black text-purple-700 bg-purple-100 px-1 py-0.2 rounded border border-purple-200">
                   🔮 Futuro
                 </span>
               ` : ''}
             </td>
-            <td class="py-2.5 px-3 whitespace-nowrap">
+            <td class="py-2 px-1.5 whitespace-nowrap">
               ${isEntrada ? `
-                <span class="px-2 py-0.5 rounded-full font-bold text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 w-fit">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Entrada (+)
+                <span class="px-1.5 py-0.5 rounded-full font-bold text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Entrada
                 </span>
               ` : `
-                <span class="px-2 py-0.5 rounded-full font-bold text-[10px] bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1 w-fit">
-                  <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Saída (-)
+                <span class="px-1.5 py-0.5 rounded-full font-bold text-[10px] bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Saída
                 </span>
               `}
             </td>
-            <td class="py-2.5 px-3 whitespace-nowrap">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold border inline-flex items-center gap-1" style="background-color: ${m.bancoCor}15; color: ${m.bancoCor}; border-color: ${m.bancoCor}40;">
-                <span>🏦</span> <span>${m.bancoNome}</span>
+            <td class="py-2 px-1.5 overflow-hidden">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold border inline-flex items-center gap-1 truncate max-w-full" style="background-color: ${m.bancoCor}15; color: ${m.bancoCor}; border-color: ${m.bancoCor}40;" title="${m.bancoNome}">
+                <span>🏦</span> <span class="truncate">${m.bancoNome}</span>
               </span>
             </td>
-            <td class="py-2.5 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">${m.documento}</td>
-            <td class="py-2.5 px-3 font-semibold text-slate-900 max-w-[180px] truncate" title="${m.entidade}">${m.entidade}</td>
-            <td class="py-2.5 px-3 text-slate-700">
-              <span class="font-medium">${m.descricao}</span>
-              ${m.obs ? `<span class="text-[10px] text-slate-400 block italic truncate max-w-[200px]" title="${m.obs}">${m.obs}</span>` : ''}
+            <td class="py-2 px-1.5 font-mono font-bold text-slate-800 text-[11px] truncate" title="${m.documento}">${m.documento}</td>
+            <td class="py-2 px-2 font-semibold text-slate-900 truncate" title="${m.entidade}">${m.entidade}</td>
+            <td class="py-2 px-2 text-slate-700 overflow-hidden leading-tight">
+              <div class="font-medium truncate" title="${m.descricao}">${m.descricao}</div>
+              ${m.obs ? `<div class="text-[10px] text-slate-400 italic truncate" title="${m.obs}">${m.obs}</div>` : ''}
             </td>
-            <td class="py-2.5 px-3 whitespace-nowrap">
-              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">${m.categoria}</span>
+            <td class="py-2 px-1.5 overflow-hidden">
+              <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 block truncate" title="${m.categoria}">${m.categoria}</span>
             </td>
-            <td class="py-2.5 px-3 uppercase text-[10px] font-bold text-slate-600 whitespace-nowrap">${m.forma}</td>
-            <td class="py-2.5 px-3 text-right font-mono font-black text-sm whitespace-nowrap ${isEntrada ? 'text-emerald-700' : 'text-rose-700'}">
+            <td class="py-2 px-1 uppercase text-[10px] font-bold text-slate-600 truncate" title="${m.forma}">${m.forma}</td>
+            <td class="py-2 px-2 text-right font-mono font-black text-xs sm:text-[13px] whitespace-nowrap ${isEntrada ? 'text-emerald-700' : 'text-rose-700'}">
               ${isEntrada ? `+ R$ ${valorFmt}` : `- R$ ${valorFmt}`}
             </td>
-            <td class="py-2.5 px-3 text-center whitespace-nowrap">
+            <td class="py-2 px-1 text-center whitespace-nowrap">
               ${(m.origem === 'orcamento') ? `
                 <button onclick="abrirModalReciboPagamento('${m.orcId}', '${m.id}')" class="px-2 py-1 rounded bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition cursor-pointer" title="Emitir Recibo A4 Individual">
                   🧾 Recibo
                 </button>
               ` : (m.origem === 'avulsa' ? `
-                <button onclick="excluirReceitaAvulsa('${m.id}')" class="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5 text-xs transition cursor-pointer" title="Excluir Receita Avulsa">
-                  ✕
+                <button onclick="excluirReceitaAvulsa('${m.id}')" class="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-bold transition cursor-pointer flex items-center justify-center gap-1 mx-auto" title="Excluir Receita Avulsa">
+                  <span>🗑️</span><span>Excluir</span>
                 </button>
               ` : (m.origem === 'conta_pagar_pendente' ? `
-                <button onclick="abrirModalBaixaContaPagar('${m.id}')" class="px-2 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-[11px] font-bold transition cursor-pointer" title="Dar Baixa Nesta Despesa">
-                  💵 Pagar
-                </button>
+                <div class="flex items-center justify-center gap-1">
+                  <button onclick="abrirModalBaixaContaPagar('${m.id}')" class="px-2 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-[11px] font-bold transition cursor-pointer" title="Dar Baixa Nesta Despesa">
+                    💵 Pagar
+                  </button>
+                  <button onclick="excluirContaPagar('${m.id}')" class="p-1 px-1.5 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition cursor-pointer" title="Excluir Despesa">
+                    🗑️
+                  </button>
+                </div>
               ` : `
-                <span class="text-[10px] text-slate-400 font-medium">Quitado</span>
+                <button onclick="excluirContaPagar('${m.id}')" class="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-bold transition cursor-pointer flex items-center justify-center gap-1 mx-auto" title="Excluir Despesa">
+                  <span>🗑️</span><span>Excluir</span>
+                </button>
               `))}
             </td>
           </tr>
@@ -6167,8 +6174,8 @@
             </tbody>
             <tfoot class="bg-slate-200/90 font-black border-t-2 border-slate-300">
               <tr>
-                <td colspan="8" class="py-3 px-3 text-right text-slate-700 uppercase text-xs">Resultado Consolidado do Extrato:</td>
-                <td class="py-3 px-3 text-right font-mono text-base ${saldoExtrato >= 0 ? 'text-emerald-700' : 'text-rose-700'}">
+                <td colspan="8" class="py-2.5 px-3 text-right text-slate-700 uppercase text-xs">Resultado Consolidado do Extrato:</td>
+                <td class="py-2.5 px-2 text-right font-mono text-sm sm:text-base ${saldoExtrato >= 0 ? 'text-emerald-700' : 'text-rose-700'} whitespace-nowrap">
                   ${saldoExtrato >= 0 ? '+ ' : ''}R$ ${saldoExtrato.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
                 <td></td>
