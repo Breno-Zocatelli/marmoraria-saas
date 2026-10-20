@@ -1657,26 +1657,30 @@
           <p class="text-xs text-slate-500">Políticas comerciais pré-configuradas da marmoraria</p>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <!-- À Vista Card -->
-          <div class="p-4 rounded-2xl border-2 border-emerald-500/20 bg-emerald-50/40 relative overflow-hidden">
-            <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">À Vista (PIX / Dinheiro)</span>
-            <div class="text-2xl font-extrabold text-emerald-600 mt-2 font-mono" id="resumo_vista">R$ 0,00</div>
-            <div class="text-[11px] text-emerald-700/80 font-medium mt-1">Desconto comercial de 10%</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Total (Preço Tabela) Card -->
+          <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col justify-between">
+            <div>
+              <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Total</span>
+              <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2 font-mono" id="resumo_prazo">R$ 0,00</div>
+            </div>
+            <div class="text-[11px] text-slate-500 font-medium mt-2">Preço cheio da tabela (sem desconto)</div>
           </div>
 
-          <!-- Débito Card -->
-          <div class="p-4 rounded-2xl border border-blue-200 bg-blue-50/30">
-            <span class="text-xs font-bold text-blue-800 uppercase tracking-wider">Cartão de Débito</span>
-            <div class="text-2xl font-extrabold text-blue-600 mt-2 font-mono" id="resumo_debito">R$ 0,00</div>
-            <div class="text-[11px] text-blue-700/80 font-medium mt-1">Desconto comercial de 5%</div>
-          </div>
-
-          <!-- Prazo Card -->
-          <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">
-            <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Total a Prazo</span>
-            <div class="text-2xl font-extrabold text-slate-900 mt-2 font-mono" id="resumo_prazo">R$ 0,00</div>
-            <div class="text-[11px] text-slate-500 font-medium mt-1">Preço cheio da tabela</div>
+          <!-- Valor com Desconto Card -->
+          <div class="p-4 rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/50 flex flex-col justify-between relative space-y-2">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Valor com Desconto</span>
+              <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-emerald-300 shadow-xs">
+                <label for="orcamento_desconto_perc" class="text-[11px] font-bold text-emerald-900 whitespace-nowrap">% Desconto:</label>
+                <input type="number" id="orcamento_desconto_perc" value="10" min="0" max="100" step="0.5" oninput="calcularTotais()" class="w-16 text-center font-mono font-bold text-xs text-emerald-950 bg-emerald-50/60 rounded-lg border border-emerald-300 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <span class="text-xs font-bold text-emerald-700">%</span>
+              </div>
+            </div>
+            <div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 font-mono" id="resumo_vista">R$ 0,00</div>
+              <div class="text-[11px] text-emerald-700 font-medium mt-1" id="label_desconto_info">Desconto comercial aplicado</div>
+            </div>
           </div>
         </div>
 
@@ -1740,7 +1744,7 @@
             <div class="pt-4 border-t-2 border-dashed border-slate-100 flex justify-between items-baseline">
               <div>
                 <span class="text-sm font-extrabold text-slate-900 block">Total Final:</span>
-                <span class="text-[10px] text-emerald-600 font-semibold">Valor com 10% à vista</span>
+                <span class="text-[10px] text-emerald-600 font-semibold" id="label_total_final_condicao">Valor com Desconto</span>
               </div>
               <div class="text-right">
                 <span class="text-3xl font-black text-emerald-600 font-mono tracking-tight" id="resumo_total_final">R$ 0,00</span>
@@ -2600,8 +2604,12 @@
       });
 
       const totalPrazo = subtotalPedra + subtotalAcab + subtotalCubas;
-      const totalVista = totalPrazo * 0.90; // 10% de desconto padrão
-      const totalDebito = totalPrazo * 0.95; // 5% de desconto padrão
+      const descInput = document.getElementById("orcamento_desconto_perc");
+      const descPerc = descInput ? (parseFloat(descInput.value) || 0) : 10;
+      const fatorDesc = Math.max(0, (100 - descPerc) / 100);
+      const totalVista = totalPrazo * fatorDesc;
+      const totalDebito = totalVista;
+      const valorEconomia = totalPrazo - totalVista;
 
       // Installments
       const entrada = parseFloat(document.getElementById("valor_entrada").value) || 0;
@@ -2617,7 +2625,23 @@
 
       document.getElementById("resumo_prazo").innerText = `R$ ${totalPrazo.toFixed(2)}`;
       document.getElementById("resumo_vista").innerText = `R$ ${totalVista.toFixed(2)}`;
-      document.getElementById("resumo_debito").innerText = `R$ ${totalDebito.toFixed(2)}`;
+      const elDebito = document.getElementById("resumo_debito");
+      if (elDebito) elDebito.innerText = `R$ ${totalDebito.toFixed(2)}`;
+
+      const elDescInfo = document.getElementById("label_desconto_info");
+      if (elDescInfo) {
+        if (descPerc > 0) {
+          elDescInfo.innerText = `Economia de R$ ${valorEconomia.toFixed(2)} (${descPerc}%)`;
+        } else {
+          elDescInfo.innerText = `Sem desconto aplicado (0%)`;
+        }
+      }
+
+      const elTotalFinalCond = document.getElementById("label_total_final_condicao");
+      if (elTotalFinalCond) {
+        elTotalFinalCond.innerText = (descPerc > 0) ? `Valor com ${descPerc}% de desconto` : `Preço sem desconto`;
+      }
+
       document.getElementById("resumo_total_final").innerText = `R$ ${totalVista.toFixed(2)}`;
 
       document.getElementById("valor_por_parcela").innerText = `${numParcelas}x de R$ ${valorParcela.toFixed(2)}`;
@@ -2638,7 +2662,7 @@
 
     // Cálculo universal de totais de qualquer orçamento
     function calcularTotaisOrcamento(orc) {
-      if (!orc) return { m2Total: 0, subtotalPedra: 0, subtotalAcab: 0, subtotalCubas: 0, totalPrazo: 0, totalVista: 0, totalDebito: 0 };
+      if (!orc) return { m2Total: 0, subtotalPedra: 0, subtotalAcab: 0, subtotalCubas: 0, totalPrazo: 0, totalVista: 0, totalDebito: 0, descontoPerc: 0 };
       let m2Total = 0;
       let subtotalPedra = 0;
       let subtotalAcab = 0;
@@ -2659,9 +2683,10 @@
         subtotalCubas += cuba;
       });
       const totalPrazo = subtotalPedra + subtotalAcab + subtotalCubas;
-      const totalVista = totalPrazo * 0.90;
-      const totalDebito = totalPrazo * 0.95;
-      return { m2Total, subtotalPedra, subtotalAcab, subtotalCubas, totalPrazo, totalVista, totalDebito };
+      const descPerc = (orc.descontoPerc !== undefined) ? (parseFloat(orc.descontoPerc) || 0) : 10;
+      const totalVista = totalPrazo * Math.max(0, (100 - descPerc) / 100);
+      const totalDebito = totalVista;
+      return { m2Total, subtotalPedra, subtotalAcab, subtotalCubas, totalPrazo, totalVista, totalDebito, descontoPerc: descPerc };
     }
 
     // Inicialização e correção automática de orçamentos (evita valores zerados R$ 0,00)
@@ -8300,7 +8325,9 @@
         const subtotalCubas = (item.cuba || 0);
         totalPrazo += (subtotalPedra + subtotalAcab + subtotalCubas);
       });
-      const totalVista = totalPrazo * 0.90;
+      const descInput = document.getElementById("orcamento_desconto_perc");
+      const descontoPerc = descInput ? (parseFloat(descInput.value) || 0) : 10;
+      const totalVista = totalPrazo * Math.max(0, (100 - descontoPerc) / 100);
 
       const orcamentoObj = {
         id: orcamentoAtualId || ("orc_" + Date.now()),
@@ -8323,6 +8350,7 @@
         observacoes,
         entrada,
         parcelas,
+        descontoPerc,
         totalPrazo,
         totalVista,
         m2Total,
@@ -8387,6 +8415,8 @@
 
         popularSelectModalidadesLogistica("entregar");
         document.getElementById("orcamento_obs").value = "";
+        const inpDesc = document.getElementById("orcamento_desconto_perc");
+        if (inpDesc) inpDesc.value = 10;
 
         // Reinicia com 0 peças (orçamento limpo em branco)
         itens = [];
@@ -8598,6 +8628,8 @@
       document.getElementById("orcamento_obs").value = orc.observacoes || "";
       document.getElementById("valor_entrada").value = orc.entrada || 0;
       document.getElementById("num_parcelas").value = orc.parcelas || 3;
+      const inpDesc = document.getElementById("orcamento_desconto_perc");
+      if (inpDesc) inpDesc.value = (orc.descontoPerc !== undefined) ? orc.descontoPerc : 10;
 
       const labelEditando = document.getElementById("label_orcamento_editando");
       if (labelEditando) labelEditando.innerText = `Editando Orçamento #${orc.numero || 'ORC'}`;
@@ -9200,9 +9232,11 @@
         `;
       }).join("");
 
+      const descInput = document.getElementById("orcamento_desconto_perc");
+      const descontoPerc = descInput ? (parseFloat(descInput.value) || 0) : 10;
       const totalPrazo = subtotalPedra + subtotalAcab + subtotalCubas;
-      const totalVista = totalPrazo * 0.90;
-      const totalDebito = totalPrazo * 0.95;
+      const totalVista = totalPrazo * Math.max(0, (100 - descontoPerc) / 100);
+      const totalDebito = totalVista;
 
       const entrada = parseFloat(document.getElementById("valor_entrada").value) || 0;
       const numParcelas = parseInt(document.getElementById("num_parcelas").value) || 1;
@@ -9288,8 +9322,8 @@
             <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3">
               <div class="flex justify-between items-baseline">
                 <div>
-                  <span class="text-xs font-bold text-emerald-400 block uppercase tracking-wider">💰 Preço Especial À Vista</span>
-                  <span class="text-[10px] text-slate-400">PIX ou Dinheiro (10% de desconto)</span>
+                  <span class="text-xs font-bold text-emerald-400 block uppercase tracking-wider">💰 Valor com Desconto ${descontoPerc > 0 ? `(${descontoPerc}%)` : ''}</span>
+                  <span class="text-[10px] text-slate-400">${descontoPerc > 0 ? `Economia de R$ ${(totalPrazo - totalVista).toFixed(2)}` : 'Preço integral'}</span>
                 </div>
                 <div class="text-right">
                   <span class="text-2xl font-black text-emerald-400 font-mono">R$ ${totalVista.toFixed(2)}</span>
@@ -9297,16 +9331,14 @@
               </div>
             </div>
 
-            <div class="space-y-1 text-xs text-slate-300 pt-1">
-              <div class="flex justify-between">
-                <span>💳 Cartão de Débito (5% desc.):</span>
-                <span class="font-mono font-bold text-white">R$ ${totalDebito.toFixed(2)}</span>
+            ${(numParcelas > 1 || entrada > 0) ? `
+              <div class="space-y-1 text-xs text-slate-300 pt-1">
+                <div class="flex justify-between">
+                  <span>💳 Condição Parcelada (Tabela):</span>
+                  <span class="font-mono font-bold text-white">${entrada > 0 ? `Entrada R$ ${entrada.toFixed(2)} + ` : ''}${numParcelas}x de R$ ${valorParcela.toFixed(2)}</span>
+                </div>
               </div>
-              <div class="flex justify-between">
-                <span>💳 A Prazo no Cartão:</span>
-                <span class="font-mono font-bold text-white">Entrada R$ ${entrada.toFixed(2)} + ${numParcelas}x de R$ ${valorParcela.toFixed(2)}</span>
-              </div>
-            </div>
+            ` : ''}
 
             ${(() => {
               const orcAtual = (orcamentosSalvos || []).find(o => o.numero === numero || o.id === orcamentoAtualId);
@@ -9351,17 +9383,22 @@
     function copiarWhatsApp() {
       const numero = document.getElementById("orcamento_numero").value || "ORC-2024-001";
       const cliente = document.getElementById("cliente_nome").value || "Cliente";
-      const vendedor = document.getElementById("vendedor_nome").value || "Marmoraria Marmobraz";
+      const vendedor = document.getElementById("vendedor_nome").value || "Marmoraria";
       const validadeDias = document.getElementById("validade_dias").value || "15";
       const totalVista = document.getElementById("resumo_vista").innerText;
       const totalPrazo = document.getElementById("resumo_prazo").innerText;
       const parcelas = document.getElementById("valor_por_parcela").innerText;
       const obs = document.getElementById("orcamento_obs").value;
 
+      const descInput = document.getElementById("orcamento_desconto_perc");
+      const descontoPerc = descInput ? (parseFloat(descInput.value) || 0) : 10;
+
       const tipoEntregaVal = document.getElementById("tipo_entrega").value;
       const modLog = obterModalidadeLogistica(tipoEntregaVal);
 
-      const texto = `*📋 ORÇAMENTO - MARMORARIA MARMOBRAZ (${numero})*\n` +
+      const nomeEmpresaWhats = (window.TENANT_INFO && window.TENANT_INFO.name) ? window.TENANT_INFO.name.toUpperCase() : "MARMORARIA MARMOBRAZ";
+
+      const texto = `*📋 ORÇAMENTO - ${nomeEmpresaWhats} (${numero})*\n` +
         `*Olá ${cliente}!* Segue a proposta detalhada para sua obra:\n\n` +
         itens.map((it, i) => {
           const mat = MATERIAIS.find(m => m.id === it.materialId) || { nome: it.materialId };
@@ -9369,7 +9406,8 @@
           return `🔹 *Item ${i+1}: ${it.descricao}*\n   • Medidas: ${it.comp}m × ${it.larg}m (Qtd: ${it.qtd}) • Área: ${area} m²\n   • Material: ${mat.nome}${it.configRbDesc ? `\n   • Acréscimo: ${it.configRbDesc}` : ''}`;
         }).join("\n\n") +
         `\n\n───────────────────\n` +
-        `💰 *Total À Vista (PIX/Dinheiro c/ 10% desc.):* ${totalVista}\n` +
+        `💰 *Valor Total:* ${totalPrazo}\n` +
+        `🏷️ *Valor com Desconto ${descontoPerc > 0 ? `(${descontoPerc}%)` : ''}:* ${totalVista}\n` +
         `💳 *Condição A Prazo:* ${totalPrazo} (Entrada + ${parcelas})\n` +
         `🚚 *Logística:* ${modLog.icone || '🚚'} ${modLog.nome}\n` +
         `───────────────────\n` +
