@@ -9186,26 +9186,16 @@
         subtotalAcab += valorAcab;
         subtotalCubas += valorCuba;
 
-        const acabObj = TIPOS_ACABAMENTO.find(a => a.id === it.tipoAcabamentoId) || { nome: it.tipoAcabamentoId };
-        const ladoObj = REGRAS_LADOS.find(r => r.id === it.regraAcab) || { nome: it.regraAcab };
-
         return `
           <tr class="border-b border-slate-200 text-slate-800">
             <td class="py-2.5 px-3 font-mono font-bold text-center text-slate-500">${idx + 1}</td>
             <td class="py-2.5 px-3">
-              <span class="font-bold text-slate-900 block">${it.descricao}</span>
-              ${it.configRbDesc ? `<span class="text-[10px] text-indigo-700 font-semibold block">▸ ${it.configRbDesc} (${it.rb.toFixed(3)} m²)</span>` : (it.rb > 0 ? `<span class="text-[10px] text-indigo-700 font-semibold block">▸ R.B./Saia extra: ${it.rb.toFixed(3)} m²</span>` : '')}
+              <span class="font-bold text-slate-900 block text-xs sm:text-sm">${it.descricao}</span>
+              <span class="text-xs text-slate-600 font-medium block">${mat.nome}${it.cubaNome && it.cubaNome !== 'Sem Cuba' ? ` • ${it.cubaNome}` : ''}</span>
             </td>
-            <td class="py-2.5 px-3 font-medium">${mat.nome}</td>
-            <td class="py-2.5 px-3 text-center font-mono font-bold">${it.qtd}</td>
-            <td class="py-2.5 px-3 text-right font-mono">${it.comp.toFixed(3)} × ${it.larg.toFixed(3)}</td>
-            <td class="py-2.5 px-3 text-right font-mono font-semibold">${areaPeca.toFixed(3)} m²</td>
-            <td class="py-2.5 px-3 text-xs">
-              <span class="font-semibold block">${acabObj.nome}</span>
-              <span class="text-[10px] text-slate-500 block">${ladoObj.nome} (${metrosAcab.toFixed(2)}m)</span>
-            </td>
-            <td class="py-2.5 px-3 text-right font-mono">${valorCuba > 0 ? `<span class="font-bold block">R$ ${valorCuba.toFixed(2)}</span>${it.cubaNome && it.cubaNome !== 'Sem Cuba' ? `<span class="text-[9px] text-slate-500 block truncate max-w-[130px] ml-auto">${it.cubaNome}</span>` : ''}` : '-'}</td>
-            <td class="py-2.5 px-3 text-right font-mono font-bold text-slate-900">R$ ${totalPeca.toFixed(2)}</td>
+            <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-800">${it.qtd}</td>
+            <td class="py-2.5 px-3 text-center font-mono text-slate-700">${it.comp.toFixed(3)} × ${it.larg.toFixed(3)}</td>
+            <td class="py-2.5 px-3 text-right font-mono font-bold text-slate-900">R$ ${totalPeca.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
           </tr>
         `;
       }).join("");
@@ -9219,15 +9209,18 @@
       const saldoRestante = Math.max(0, totalPrazo - entrada);
       const valorParcela = saldoRestante / numParcelas;
 
+      const nomeEmpresa = (window.TENANT_INFO && window.TENANT_INFO.name) ? window.TENANT_INFO.name : "Marmoraria Marmobraz";
+      const inicialEmpresa = nomeEmpresa.trim().charAt(0).toUpperCase() || 'M';
+
       folha.innerHTML = `
         <!-- Cabeçalho Timbrado da Marmoraria -->
         <div class="flex items-start justify-between border-b-2 border-slate-900 pb-5">
           <div class="flex items-start gap-4">
             <div class="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-2xl shadow-md">
-              M
+              ${inicialEmpresa}
             </div>
             <div>
-              <h1 class="text-xl font-black uppercase tracking-tight text-slate-900">Marmoraria Marmobraz</h1>
+              <h1 class="text-xl font-black uppercase tracking-tight text-slate-900">${nomeEmpresa}</h1>
               <p class="text-xs text-slate-600 font-semibold">Mármores Nacionais e Importados • Granitos • Quartzos • Superfícies Especiais</p>
               <div class="text-[11px] text-slate-500 mt-1 space-y-0.5">
                 <p>CNPJ: 12.345.678/0001-90 • Inscr. Estadual: 082.123.456</p>
@@ -9265,21 +9258,16 @@
         <div>
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Discriminação das Peças e Serviços</h3>
-            <span class="text-xs text-slate-500 font-mono">Total de Chapas: <b>${m2Total.toFixed(3)} m²</b></span>
           </div>
 
           <table class="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
-            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 uppercase text-[11px] tracking-wider">
               <tr>
-                <th class="py-2.5 px-3 w-8 text-center">#</th>
-                <th class="py-2.5 px-3">Ambiente / Descrição</th>
-                <th class="py-2.5 px-3">Material</th>
-                <th class="py-2.5 px-3 w-12 text-center">Qtd</th>
-                <th class="py-2.5 px-3 text-right">Medidas (C × L)</th>
-                <th class="py-2.5 px-3 text-right">Área Total</th>
-                <th class="py-2.5 px-3">Acabamento Linear</th>
-                <th class="py-2.5 px-3 text-right">Cuba</th>
-                <th class="py-2.5 px-3 text-right">Subtotal</th>
+                <th class="py-2.5 px-3 w-10 text-center">#</th>
+                <th class="py-2.5 px-3">Descrição da Peça</th>
+                <th class="py-2.5 px-3 w-16 text-center">Qtd</th>
+                <th class="py-2.5 px-3 text-center w-36">Tamanho</th>
+                <th class="py-2.5 px-3 text-right w-36">Total do Material</th>
               </tr>
             </thead>
             <tbody>
@@ -9289,18 +9277,7 @@
         </div>
 
         <!-- Resumo Financeiro da Proposta -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          <!-- Observações & Condições -->
-          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2 text-xs">
-            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">Observações Comerciais & Fornecimento:</span>
-            <p class="text-slate-600 leading-relaxed font-medium">${observacoes}</p>
-            <div class="pt-2 border-t border-slate-200 text-[10px] text-slate-500 space-y-1">
-              <p>• <b>Medição Técnica:</b> Todas as medidas estão sujeitas a conferência técnica in loco antes do corte.</p>
-              <p>• <b>Instalações:</b> Não inclui furações para fogão/cooktop ou torneiras fora do padrão, exceto quando discriminadas.</p>
-              <p>• <b>Rochas Naturais:</b> Pequenas variações de veios e tonalidades são características exclusivas da rocha natural.</p>
-            </div>
-          </div>
-
+        <div class="w-full">
           <!-- Totais Comerciais -->
           <div class="p-4 rounded-xl border-2 border-slate-900 bg-slate-900 text-white space-y-3">
             <div class="flex justify-between items-center text-slate-300 text-xs pb-2 border-b border-slate-800">
@@ -9363,7 +9340,7 @@
           </div>
           <div>
             <div class="border-b border-slate-400 w-3/4 mx-auto mb-2"></div>
-            <span class="font-bold text-slate-900 block">Marmoraria Marmobraz</span>
+            <span class="font-bold text-slate-900 block">${nomeEmpresa}</span>
             <span class="text-slate-500 text-[11px]">${vendedor}</span>
           </div>
         </div>
