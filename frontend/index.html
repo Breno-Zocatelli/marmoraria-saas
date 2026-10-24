@@ -478,7 +478,7 @@
     </header>
 
     <!-- Área de Conteúdo / Views -->
-    <main class="flex-1 p-3 sm:p-5 md:p-6 max-w-7xl w-full mx-auto space-y-6">
+    <main class="flex-1 p-3 sm:p-5 md:p-6 w-full max-w-[1720px] mx-auto space-y-6">
       <div id="painel_principal_app" class="w-full space-y-6">
 
     <!-- ============================================================ -->
@@ -6111,16 +6111,16 @@
           <table class="w-full table-fixed text-left border-collapse text-xs">
             <thead class="bg-slate-300/80 text-[10px] uppercase font-black text-slate-800 border-b border-slate-300">
               <tr>
-                <th class="py-2.5 px-2 w-[8.5%]">Data</th>
-                <th class="py-2.5 px-1.5 w-[8.5%]">Tipo</th>
-                <th class="py-2.5 px-1.5 w-[10%]">Conta / Banco</th>
-                <th class="py-2.5 px-1.5 w-[9%]">Origem / Doc</th>
-                <th class="py-2.5 px-2 w-[15%]">Cliente / Fornecedor</th>
-                <th class="py-2.5 px-2 w-[18%]">Descrição</th>
-                <th class="py-2.5 px-1.5 w-[9%]">Categoria</th>
-                <th class="py-2.5 px-1 w-[7%]">Forma</th>
-                <th class="py-2.5 px-2 text-right w-[10%]">Valor (R$)</th>
-                <th class="py-2.5 px-1 text-center w-[5%]">Ações</th>
+                <th class="py-2.5 px-2 w-[7.5%]">Data</th>
+                <th class="py-2.5 px-1.5 w-[7%]">Tipo</th>
+                <th class="py-2.5 px-1.5 w-[8%]">Conta / Banco</th>
+                <th class="py-2.5 px-1.5 w-[7.5%]">Origem / Doc</th>
+                <th class="py-2.5 px-2 w-[14%]">Cliente / Fornecedor</th>
+                <th class="py-2.5 px-2 w-[16%]">Descrição</th>
+                <th class="py-2.5 px-1.5 w-[8%]">Categoria</th>
+                <th class="py-2.5 px-1 w-[6%]">Forma</th>
+                <th class="py-2.5 px-2 text-right w-[12%]">Valor (R$)</th>
+                <th class="py-2.5 px-1 text-center w-[14%]">Ações</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-slate-200">
@@ -6144,17 +6144,17 @@
             <td class="py-2 px-1.5 whitespace-nowrap">
               ${isEntrada ? `
                 <span class="px-1.5 py-0.5 rounded-full font-bold text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Entrada
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span> Entrada
                 </span>
               ` : `
                 <span class="px-1.5 py-0.5 rounded-full font-bold text-[10px] bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Saída
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-600 shrink-0"></span> Saída
                 </span>
               `}
             </td>
             <td class="py-2 px-1.5 overflow-hidden">
-              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold border inline-flex items-center gap-1 truncate max-w-full" style="background-color: ${m.bancoCor}15; color: ${m.bancoCor}; border-color: ${m.bancoCor}40;" title="${m.bancoNome}">
-                <span>🏦</span> <span class="truncate">${m.bancoNome}</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold border inline-flex items-center gap-1 max-w-full truncate min-w-0" style="background-color: ${m.bancoCor}15; color: ${m.bancoCor}; border-color: ${m.bancoCor}40;" title="${m.bancoNome}">
+                <span class="shrink-0">🏦</span> <span class="truncate">${m.bancoNome}</span>
               </span>
             </td>
             <td class="py-2 px-1.5 font-mono font-bold text-slate-800 text-[11px] truncate" title="${m.documento}">${m.documento}</td>
@@ -6171,28 +6171,28 @@
               ${isEntrada ? `+ R$ ${valorFmt}` : `- R$ ${valorFmt}`}
             </td>
             <td class="py-2 px-1 text-center whitespace-nowrap">
-              ${(m.origem === 'orcamento') ? `
-                <button onclick="abrirModalReciboPagamento('${m.orcId}', '${m.id}')" class="px-2 py-1 rounded bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition cursor-pointer" title="Emitir Recibo A4 Individual">
-                  🧾 Recibo
-                </button>
-              ` : (m.origem === 'avulsa' ? `
-                <button onclick="excluirReceitaAvulsa('${m.id}')" class="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-bold transition cursor-pointer flex items-center justify-center gap-1 mx-auto" title="Excluir Receita Avulsa">
-                  <span>🗑️</span><span>Excluir</span>
-                </button>
-              ` : (m.origem === 'conta_pagar_pendente' ? `
-                <div class="flex items-center justify-center gap-1">
-                  <button onclick="abrirModalBaixaContaPagar('${m.id}')" class="px-2 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-[11px] font-bold transition cursor-pointer" title="Dar Baixa Nesta Despesa">
-                    💵 Pagar
+              <div class="flex items-center justify-center gap-1">
+                ${(m.origem === 'orcamento') ? `
+                  <button onclick="abrirModalReciboPagamento('${m.orcId}', '${m.id}')" class="px-2 py-1 rounded bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition cursor-pointer inline-flex items-center gap-1 shrink-0" title="Emitir Recibo A4 Individual">
+                    <span>🧾</span><span>Recibo</span>
                   </button>
-                  <button onclick="excluirContaPagar('${m.id}')" class="p-1 px-1.5 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition cursor-pointer" title="Excluir Despesa">
-                    🗑️
+                ` : (m.origem === 'avulsa' ? `
+                  <button onclick="excluirReceitaAvulsa('${m.id}')" class="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-bold transition cursor-pointer inline-flex items-center gap-1 shrink-0" title="Excluir Receita Avulsa">
+                    <span>🗑️</span><span>Excluir</span>
                   </button>
-                </div>
-              ` : `
-                <button onclick="excluirContaPagar('${m.id}')" class="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-bold transition cursor-pointer flex items-center justify-center gap-1 mx-auto" title="Excluir Despesa">
-                  <span>🗑️</span><span>Excluir</span>
-                </button>
-              `))}
+                ` : (m.origem === 'conta_pagar_pendente' ? `
+                  <button onclick="abrirModalBaixaContaPagar('${m.id}')" class="px-2 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-[11px] font-bold transition cursor-pointer inline-flex items-center gap-1 shrink-0" title="Dar Baixa Nesta Despesa">
+                    <span>💵</span><span>Pagar</span>
+                  </button>
+                  <button onclick="excluirContaPagar('${m.id}')" class="p-1 px-1.5 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition cursor-pointer shrink-0" title="Excluir Despesa">
+                    <span>🗑️</span>
+                  </button>
+                ` : `
+                  <button onclick="excluirContaPagar('${m.id}')" class="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[11px] font-bold transition cursor-pointer inline-flex items-center gap-1 shrink-0" title="Excluir Despesa">
+                    <span>🗑️</span><span>Excluir</span>
+                  </button>
+                `))}
+              </div>
             </td>
           </tr>
         `;
