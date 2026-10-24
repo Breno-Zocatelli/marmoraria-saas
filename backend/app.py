@@ -223,6 +223,7 @@ def init_tenant_db_schema(conn, tenant_id: str = "marmobraz", tenant_name: str =
         cliente_nome TEXT NOT NULL,
         cliente_fone TEXT,
         endereco TEXT,
+        ponto_referencia TEXT,
         tipo TEXT NOT NULL,
         data TEXT NOT NULL,
         turno TEXT DEFAULT 'comercial',
@@ -233,6 +234,11 @@ def init_tenant_db_schema(conn, tenant_id: str = "marmobraz", tenant_name: str =
         updated_at TEXT NOT NULL
     );
     """)
+
+    try:
+        cursor.execute("ALTER TABLE agenda ADD COLUMN ponto_referencia TEXT;")
+    except Exception:
+        pass
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS bancos (
@@ -618,6 +624,8 @@ def listar_agenda(status: Optional[str] = None):
         d["clienteNome"] = d.get("cliente_nome") or ""
         d["clienteFone"] = d.get("cliente_fone") or ""
         d["orcamentoId"] = d.get("orcamento_id") or ""
+        d["pontoReferencia"] = d.get("ponto_referencia") or ""
+        d["ponto_referencia"] = d.get("ponto_referencia") or ""
         d["createdAt"] = d.get("created_at") or ""
         d["updatedAt"] = d.get("updated_at") or ""
         res.append(d)
@@ -633,6 +641,7 @@ def salvar_evento_agenda(evento: Dict[str, Any] = Body(...)):
     
     cliente_fone = str(evento.get("clienteFone") or evento.get("cliente_fone") or "").strip()
     endereco = str(evento.get("endereco") or "").strip()
+    ponto_referencia = str(evento.get("pontoReferencia") or evento.get("ponto_referencia") or "").strip()
     tipo = str(evento.get("tipo") or "medicao").strip()
     data = str(evento.get("data") or datetime.now().strftime("%Y-%m-%d")).strip()
     turno = str(evento.get("turno") or "comercial").strip()
@@ -648,13 +657,14 @@ def salvar_evento_agenda(evento: Dict[str, Any] = Body(...)):
     created_at = existente["created_at"] if existente else agora_iso
     
     cursor.execute("""
-    INSERT INTO agenda (id, orcamento_id, cliente_nome, cliente_fone, endereco, tipo, data, turno, responsavel, status, observacoes, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO agenda (id, orcamento_id, cliente_nome, cliente_fone, endereco, ponto_referencia, tipo, data, turno, responsavel, status, observacoes, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
         orcamento_id = excluded.orcamento_id,
         cliente_nome = excluded.cliente_nome,
         cliente_fone = excluded.cliente_fone,
         endereco = excluded.endereco,
+        ponto_referencia = excluded.ponto_referencia,
         tipo = excluded.tipo,
         data = excluded.data,
         turno = excluded.turno,
@@ -662,7 +672,7 @@ def salvar_evento_agenda(evento: Dict[str, Any] = Body(...)):
         status = excluded.status,
         observacoes = excluded.observacoes,
         updated_at = excluded.updated_at;
-    """, (e_id, orc_id, cliente_nome, cliente_fone, endereco, tipo, data, turno, responsavel, status, observacoes, created_at, agora_iso))
+    """, (e_id, orc_id, cliente_nome, cliente_fone, endereco, ponto_referencia, tipo, data, turno, responsavel, status, observacoes, created_at, agora_iso))
     
     conn.commit()
     conn.close()
@@ -674,6 +684,8 @@ def salvar_evento_agenda(evento: Dict[str, Any] = Body(...)):
     evento["cliente_fone"] = cliente_fone
     evento["orcamentoId"] = orc_id
     evento["orcamento_id"] = orc_id
+    evento["pontoReferencia"] = ponto_referencia
+    evento["ponto_referencia"] = ponto_referencia
     evento["createdAt"] = created_at
     evento["created_at"] = created_at
     evento["updatedAt"] = agora_iso
@@ -873,13 +885,14 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
         agora = datetime.now().isoformat()
         created_at = existente["created_at"] if existente else agora
         cursor.execute("""
-        INSERT INTO agenda (id, orcamento_id, cliente_nome, cliente_fone, endereco, tipo, data, turno, responsavel, status, observacoes, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO agenda (id, orcamento_id, cliente_nome, cliente_fone, endereco, ponto_referencia, tipo, data, turno, responsavel, status, observacoes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             orcamento_id = excluded.orcamento_id,
             cliente_nome = excluded.cliente_nome,
             cliente_fone = excluded.cliente_fone,
             endereco = excluded.endereco,
+            ponto_referencia = excluded.ponto_referencia,
             tipo = excluded.tipo,
             data = excluded.data,
             turno = excluded.turno,
@@ -893,6 +906,7 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
             c_nome,
             item.get("clienteFone") or item.get("cliente_fone") or "",
             item.get("endereco") or "",
+            item.get("pontoReferencia") or item.get("ponto_referencia") or "",
             item.get("tipo") or "medicao",
             item.get("data") or agora[:10],
             item.get("turno") or "comercial",
@@ -983,6 +997,8 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
         d["clienteNome"] = d.get("cliente_nome") or ""
         d["clienteFone"] = d.get("cliente_fone") or ""
         d["orcamentoId"] = d.get("orcamento_id") or ""
+        d["pontoReferencia"] = d.get("ponto_referencia") or ""
+        d["ponto_referencia"] = d.get("ponto_referencia") or ""
         d["createdAt"] = d.get("created_at") or ""
         d["updatedAt"] = d.get("updated_at") or ""
         todos_age.append(d)

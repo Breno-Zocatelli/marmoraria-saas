@@ -1994,6 +1994,7 @@
       const cNome = (a.clienteNome || a.cliente_nome || (orc ? orc.clienteNome : "") || "").trim();
       const cFone = (a.clienteFone || a.cliente_fone || (orc ? orc.clienteFone : "") || "").trim();
       const end = (a.endereco || (orc ? (orc.clienteEndereco || orc.endereco) : "") || "").trim();
+      const pRef = (a.pontoReferencia || a.ponto_referencia || (orc ? (orc.clientePontoRef || orc.pontoRef) : "") || "").trim();
       return {
         ...a,
         orcamentoId: orcId,
@@ -2002,7 +2003,9 @@
         cliente_nome: cNome,
         clienteFone: cFone,
         cliente_fone: cFone,
-        endereco: end
+        endereco: end,
+        pontoReferencia: pRef,
+        ponto_referencia: pRef
       };
     }
 
@@ -11652,6 +11655,11 @@
                 <p class="text-xs text-slate-600 flex items-center gap-1.5">
                   <span>📍</span> <span>${enderecoExibicao}</span>
                 </p>
+                ${(norm.pontoReferencia || norm.ponto_referencia) ? `
+                  <p class="text-[11px] text-amber-900 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/90 flex items-center gap-1.5 font-medium w-fit">
+                    <span>📌</span> <span><b>Ponto de Ref.:</b> ${norm.pontoReferencia || norm.ponto_referencia}</span>
+                  </p>
+                ` : ''}
                 ${norm.responsavel ? `<p class="text-[11px] text-slate-500 font-medium"><b>Técnico:</b> ${norm.responsavel}</p>` : ''}
                 ${norm.observacoes ? `<p class="text-[11px] text-slate-500 italic bg-slate-50 p-1.5 rounded-lg border border-slate-100 mt-1">💬 "${norm.observacoes}"</p>` : ''}
               </div>
@@ -11798,6 +11806,7 @@
       const inputNome = document.getElementById("agenda_cliente_nome");
       const inputFone = document.getElementById("agenda_cliente_fone");
       const inputEnd = document.getElementById("agenda_endereco");
+      const inputPontoRef = document.getElementById("agenda_ponto_referencia");
       const inputData = document.getElementById("agenda_data");
       const inputTurno = document.getElementById("agenda_turno");
       const inputTipo = document.getElementById("agenda_tipo");
@@ -11823,6 +11832,7 @@
           if (inputNome) inputNome.value = norm.clienteNome || "";
           if (inputFone) inputFone.value = norm.clienteFone || "";
           if (inputEnd) inputEnd.value = norm.endereco || "";
+          if (inputPontoRef) inputPontoRef.value = norm.pontoReferencia || norm.ponto_referencia || "";
           if (inputData) inputData.value = norm.data || "";
           if (inputTurno) inputTurno.value = norm.turno || "manha";
           if (inputTipo) inputTipo.value = norm.tipo || "medicao";
@@ -11848,6 +11858,7 @@
         if (inputNome) inputNome.value = "";
         if (inputFone) inputFone.value = "";
         if (inputEnd) inputEnd.value = "";
+        if (inputPontoRef) inputPontoRef.value = "";
         if (inputResp) inputResp.value = "";
         if (inputObs) inputObs.value = "";
       }
@@ -11871,10 +11882,12 @@
         const inputNome = document.getElementById("agenda_cliente_nome");
         const inputFone = document.getElementById("agenda_cliente_fone");
         const inputEnd = document.getElementById("agenda_endereco");
+        const inputPontoRef = document.getElementById("agenda_ponto_referencia");
 
         if (inputNome) inputNome.value = orc.clienteNome || "";
         if (inputFone) inputFone.value = formatarTelefonePadrao(orc.clienteFone || "");
         if (inputEnd) inputEnd.value = orc.clienteEndereco || "";
+        if (inputPontoRef) inputPontoRef.value = orc.clientePontoRef || orc.pontoRef || "";
       }
     }
 
@@ -11884,6 +11897,7 @@
       const clienteNome = document.getElementById("agenda_cliente_nome").value.trim();
       const clienteFone = formatarTelefonePadrao(document.getElementById("agenda_cliente_fone").value.trim());
       const endereco = document.getElementById("agenda_endereco").value.trim();
+      const pontoReferencia = document.getElementById("agenda_ponto_referencia") ? document.getElementById("agenda_ponto_referencia").value.trim() : "";
       const tipo = document.getElementById("agenda_tipo").value;
       const data = document.getElementById("agenda_data").value;
       const turno = document.getElementById("agenda_turno").value;
@@ -11904,6 +11918,8 @@
         clienteFone,
         cliente_fone: clienteFone,
         endereco,
+        pontoReferencia,
+        ponto_referencia: pontoReferencia,
         tipo,
         data,
         turno,
@@ -12011,6 +12027,9 @@
       texto += `📅 *Data:* ${dataFormatada}\n`;
       texto += `⏰ *Período:* ${turnoTexto}\n`;
       texto += `📍 *Local:* ${norm.endereco || "Endereço da obra"}\n`;
+      if (norm.pontoReferencia || norm.ponto_referencia) {
+        texto += `📌 *Ponto de Referência:* ${norm.pontoReferencia || norm.ponto_referencia}\n`;
+      }
       if (norm.responsavel) texto += `👤 *Responsável:* ${norm.responsavel}\n`;
       texto += `\nQualquer dúvida ou ajuste de horário estamos à inteira disposição!`;
 
@@ -13113,6 +13132,12 @@
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Endereço da Obra / Local *</label>
           <input type="text" id="agenda_endereco" required placeholder="Rua, número, bairro, apto" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-purple-500 focus:outline-hidden transition">
+        </div>
+
+        <!-- Ponto de Referência -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Ponto de Referência (Opcional)</label>
+          <input type="text" id="agenda_ponto_referencia" placeholder="Ex: Próximo à padaria, portão branco, fundos, em frente à praça" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-purple-500 focus:outline-hidden transition">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
