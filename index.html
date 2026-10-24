@@ -9313,33 +9313,24 @@
           </table>
         </div>
 
-        <!-- Resumo Financeiro da Proposta -->
-        <div class="w-full">
-          <!-- Totais Comerciais -->
-          <div class="p-4 rounded-xl border-2 border-slate-900 bg-slate-900 text-white space-y-3">
-            <div class="flex justify-between items-center text-slate-300 text-xs pb-2 border-b border-slate-800">
-              <span>Valor Total da Proposta (Tabela):</span>
-              <span class="font-bold font-mono text-white text-sm">R$ ${totalPrazo.toFixed(2)}</span>
+        <!-- Resumo Financeiro da Proposta (Reduzido pela Metade) -->
+        <div class="flex justify-end w-full mt-3">
+          <!-- Totais Comerciais Compactos -->
+          <div class="w-1/2 rounded-xl border border-slate-300 bg-white p-3 space-y-1.5 text-xs text-slate-800 shadow-2xs">
+            <div class="flex justify-between items-center text-slate-600 pb-1 border-b border-slate-200">
+              <span>Valor Total da Proposta:</span>
+              <span class="font-bold font-mono text-slate-900 text-xs">R$ ${totalPrazo.toFixed(2)}</span>
             </div>
 
-            <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3">
-              <div class="flex justify-between items-baseline">
-                <div>
-                  <span class="text-xs font-bold text-emerald-400 block uppercase tracking-wider">💰 Valor com Desconto ${descontoPerc > 0 ? `(${descontoPerc}%)` : ''}</span>
-                  <span class="text-[10px] text-slate-400">${descontoPerc > 0 ? `Economia de R$ ${(totalPrazo - totalVista).toFixed(2)}` : 'Preço integral'}</span>
-                </div>
-                <div class="text-right">
-                  <span class="text-2xl font-black text-emerald-400 font-mono">R$ ${totalVista.toFixed(2)}</span>
-                </div>
-              </div>
+            <div class="flex justify-between items-center py-1 border-b border-slate-200 text-slate-700">
+              <span>Valor com Desconto ${descontoPerc > 0 ? `(${descontoPerc}%)` : ''}:</span>
+              <span class="font-bold font-mono text-slate-900 text-xs">R$ ${totalVista.toFixed(2)}</span>
             </div>
 
             ${(numParcelas > 1 || entrada > 0) ? `
-              <div class="space-y-1 text-xs text-slate-300 pt-1">
-                <div class="flex justify-between">
-                  <span>💳 Condição Parcelada (Tabela):</span>
-                  <span class="font-mono font-bold text-white">${entrada > 0 ? `Entrada R$ ${entrada.toFixed(2)} + ` : ''}${numParcelas}x de R$ ${valorParcela.toFixed(2)}</span>
-                </div>
+              <div class="flex justify-between items-center py-1 border-b border-slate-200 text-slate-600">
+                <span>Condição Parcelada:</span>
+                <span class="font-mono font-bold text-slate-900 text-xs">${entrada > 0 ? `Entrada R$ ${entrada.toFixed(2)} + ` : ''}${numParcelas}x de R$ ${valorParcela.toFixed(2)}</span>
               </div>
             ` : ''}
 
@@ -9349,12 +9340,12 @@
                 const totalPago = orcAtual.pagamentos.reduce((acc, p) => acc + (parseFloat(p.valor) || 0), 0);
                 const saldoDev = Math.max(0, totalPrazo - totalPago);
                 return `
-                  <div class="mt-2.5 pt-2 border-t border-slate-700 text-xs">
-                    <div class="flex justify-between font-bold text-emerald-400">
+                  <div class="pt-1 space-y-1 text-[11px]">
+                    <div class="flex justify-between font-bold text-emerald-700">
                       <span>✓ Total Já Quitado:</span>
                       <span class="font-mono">R$ ${totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
-                    <div class="flex justify-between font-bold ${saldoDev <= 0.01 ? 'text-emerald-400' : 'text-amber-400'} mt-0.5">
+                    <div class="flex justify-between font-bold ${saldoDev <= 0.01 ? 'text-emerald-700' : 'text-amber-700'}">
                       <span>${saldoDev <= 0.01 ? 'Situação do Pedido:' : 'Saldo Devedor Restante:'}</span>
                       <span class="font-mono">${saldoDev <= 0.01 ? '✓ TOTALMENTE QUITADO' : `R$ ${saldoDev.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</span>
                     </div>
