@@ -2994,6 +2994,77 @@
       return `${year}-${month}-${day}`;
     }
 
+    function extrairDataYMD(dado) {
+      if (!dado) return "";
+      let valor = dado;
+      if (typeof dado === "object") {
+        valor = dado.dataCriacaoIso || dado.createdAt || dado.created_at || dado.dataCadastro || dado.data || dado.dataCriacao || "";
+      }
+      if (!valor) return "";
+      if (typeof valor === "number") {
+        valor = new Date(valor);
+      }
+      if (valor instanceof Date) {
+        if (isNaN(valor.getTime())) return "";
+        return formatarDataIsoLocal(valor);
+      }
+      const str = String(valor).trim();
+      if (!str) return "";
+
+      // 1. Já em formato YYYY-MM-DD ou ISO (ex: 2026-10-25 ou 2026-10-25T14:20:00)
+      const mYMD = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (mYMD) {
+        return `${mYMD[1]}-${mYMD[2].padStart(2, '0')}-${mYMD[3].padStart(2, '0')}`;
+      }
+
+      // 2. Formato brasileiro DD/MM/YYYY (ex: 25/10/2026)
+      const mDMY = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+      if (mDMY) {
+        return `${mDMY[3]}-${mDMY[2].padStart(2, '0')}-${mDMY[1].padStart(2, '0')}`;
+      }
+
+      // 3. Tenta Date parse
+      const p = new Date(str);
+      if (!isNaN(p.getTime())) {
+        return formatarDataIsoLocal(p);
+      }
+      return "";
+    }
+
+    function extrairDataClienteYMD(cliente) {
+      if (!cliente) return "";
+      let dt = extrairDataYMD(cliente.createdAt || cliente.created_at || cliente.dataCadastro || cliente.data || "");
+      if (dt) return dt;
+
+      // Se o cliente não tem data explícita, busca a data do primeiro orçamento dele
+      const orcs = (orcamentosSalvos || []).filter(o => 
+        normalizarBusca(o.clienteNome) === normalizarBusca(cliente.nome) ||
+        (cliente.fone && (o.clienteFone || "").replace(/\D/g, "") === cliente.fone.replace(/\D/g, ""))
+      );
+      if (orcs.length > 0) {
+        const datasOrc = orcs.map(o => extrairDataYMD(o)).filter(Boolean).sort();
+        if (datasOrc.length > 0) return datasOrc[0];
+      }
+
+      // Se o ID tiver timestamp (ex: cli_172986... ou cli_timestamp36)
+      if (cliente.id && String(cliente.id).startsWith("cli_")) {
+        const partes = String(cliente.id).split("_");
+        if (partes[1]) {
+          let ts = parseInt(partes[1]);
+          if (isNaN(ts) || ts < 1000000000) {
+            ts = parseInt(partes[1], 36);
+          }
+          if (!isNaN(ts) && ts > 1000000000000 && ts < 2500000000000) {
+            const d = new Date(ts);
+            return formatarDataIsoLocal(d);
+          }
+        }
+      }
+
+      // Se ainda não tiver data, assume a data de hoje para clientes sem histórico antigo
+      return formatarDataIsoLocal(new Date());
+    }
+
     function aplicarPeriodoRapido(tipo, idInicio, idFim, callback) {
       const inInicio = document.getElementById(idInicio);
       const inFim = document.getElementById(idFim);
@@ -3080,7 +3151,7 @@
 
       let orcamentosFiltrados = (orcamentosSalvos || []).filter(o => {
         if (!dtInicio && !dtFim) return true;
-        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        const dtOrc = extrairDataYMD(o);
         if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
         if (dtFim && dtOrc && dtOrc > dtFim) return false;
         return true;
@@ -3171,7 +3242,7 @@
         }
         if (!matchesStatus) return false;
 
-        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        const dtOrc = extrairDataYMD(o);
         if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
         if (dtFim && dtOrc && dtOrc > dtFim) return false;
 
@@ -3478,7 +3549,7 @@
       // Pedidos na Fila da Fábrica são APENAS os orçamentos confirmados / fechados (aprovado, em_producao, concluido)
       const todosConfirmados = (orcamentosSalvos || []).filter(o => {
         if (o.status !== "aprovado" && o.status !== "em_producao" && o.status !== "concluido") return false;
-        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        const dtOrc = extrairDataYMD(o);
         if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
         if (dtFim && dtOrc && dtOrc > dtFim) return false;
         return true;
@@ -3884,7 +3955,7 @@
       // Considera todos os orçamentos confirmados na fábrica/venda
       const todosConfirmados = (orcamentosSalvos || []).filter(o => {
         if (o.status !== "aprovado" && o.status !== "em_producao" && o.status !== "concluido") return false;
-        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        const dtOrc = extrairDataYMD(o);
         if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
         if (dtFim && dtOrc && dtOrc > dtFim) return false;
         return true;
@@ -4545,7 +4616,7 @@
 
       const cancelados = (orcamentosSalvos || []).filter(o => {
         if (o.status !== "cancelado" && o.status !== "recusado") return false;
-        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        const dtOrc = extrairDataYMD(o);
         if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
         if (dtFim && dtOrc && dtOrc > dtFim) return false;
         return true;
@@ -6855,14 +6926,14 @@
       const dtFimRec = document.getElementById("filtro_receber_data_fim") ? document.getElementById("filtro_receber_data_fim").value : "";
       if (dtInicioRec) {
         lista = lista.filter(o => {
-          const dtCriacao = (o.dataCriacao || "").split("T")[0];
+          const dtCriacao = extrairDataYMD(o);
           const temPag = (o.pagamentos || []).some(p => (p.data || "") >= dtInicioRec);
           return (dtCriacao >= dtInicioRec) || temPag;
         });
       }
       if (dtFimRec) {
         lista = lista.filter(o => {
-          const dtCriacao = (o.dataCriacao || "").split("T")[0];
+          const dtCriacao = extrairDataYMD(o);
           const temPag = (o.pagamentos || []).some(p => (p.data || "") <= dtFimRec);
           return (dtCriacao <= dtFimRec) || temPag;
         });
@@ -7869,14 +7940,14 @@
 
         if (dtInicio) {
           lista = lista.filter(o => {
-            const dt = (o.dataCriacao || "").split("T")[0];
+            const dt = extrairDataYMD(o);
             const temPag = (o.pagamentos || []).some(p => (p.data || "") >= dtInicio);
             return dt >= dtInicio || temPag;
           });
         }
         if (dtFim) {
           lista = lista.filter(o => {
-            const dt = (o.dataCriacao || "").split("T")[0];
+            const dt = extrairDataYMD(o);
             const temPag = (o.pagamentos || []).some(p => (p.data || "") <= dtFim);
             return dt <= dtFim || temPag;
           });
@@ -8489,6 +8560,8 @@
         numero,
         status,
         dataCriacao: new Date().toLocaleDateString('pt-BR'),
+        dataCriacaoIso: new Date().toISOString().split("T")[0],
+        createdAt: new Date().toISOString(),
         dataEntregaPrevista,
         validadeDias,
         vendedor,
@@ -9076,6 +9149,8 @@
         clientePontoRef,
         tipoEntrega,
         dataCriacao: new Date().toLocaleDateString('pt-BR'),
+        dataCriacaoIso: new Date().toISOString().split("T")[0],
+        createdAt: new Date().toISOString(),
         dataEntregaPrevista,
         observacoes,
         m2Total,
@@ -11318,7 +11393,7 @@
       const clientesComOrcNoPeriodo = new Set();
 
       (orcamentosSalvos || []).forEach(o => {
-        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        const dtOrc = extrairDataYMD(o);
         if (dtInicio && dtOrc && dtOrc < dtInicio) return;
         if (dtFim && dtOrc && dtOrc > dtFim) return;
 
@@ -11336,8 +11411,8 @@
       let totalCli = (clientesCadastrados || []).length;
       if (dtInicio || dtFim) {
         totalCli = (clientesCadastrados || []).filter(c => {
-          const dtC = (c.createdAt || "").split("T")[0];
-          const criadoNoPeriodo = (!dtInicio || (dtC && dtC >= dtInicio)) && (!dtFim || (dtC && dtC <= dtFim));
+          const dtC = extrairDataClienteYMD(c);
+          const criadoNoPeriodo = (!dtInicio || dtC >= dtInicio) && (!dtFim || dtC <= dtFim);
           const nomeNorm = normalizarBusca(c.nome);
           return criadoNoPeriodo || clientesComOrcNoPeriodo.has(nomeNorm);
         }).length;
@@ -11387,13 +11462,13 @@
       let lista = (clientesCadastrados || []).filter(c => {
         if (filtroTipoCRMAtivo !== "todos" && c.tipo !== filtroTipoCRMAtivo) return false;
         if (dtInicio || dtFim) {
-          const dtC = (c.createdAt || "").split("T")[0];
-          const criadoNoPeriodo = (!dtInicio || (dtC && dtC >= dtInicio)) && (!dtFim || (dtC && dtC <= dtFim));
+          const dtC = extrairDataClienteYMD(c);
+          const criadoNoPeriodo = (!dtInicio || dtC >= dtInicio) && (!dtFim || dtC <= dtFim);
           const hasOrc = (orcamentosSalvos || []).some(o => {
             const matchCli = normalizarBusca(o.clienteNome) === normalizarBusca(c.nome) ||
               (c.fone && (o.clienteFone || "").replace(/\D/g, "") === c.fone.replace(/\D/g, ""));
             if (!matchCli) return false;
-            const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+            const dtOrc = extrairDataYMD(o);
             if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
             if (dtFim && dtOrc && dtOrc > dtFim) return false;
             return true;
@@ -11427,7 +11502,7 @@
             (c.fone && (o.clienteFone || "").replace(/\D/g, "") === c.fone.replace(/\D/g, ""));
           if (!matchCli) return false;
           if (dtInicio || dtFim) {
-            const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+            const dtOrc = extrairDataYMD(o);
             if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
             if (dtFim && dtOrc && dtOrc > dtFim) return false;
           }
