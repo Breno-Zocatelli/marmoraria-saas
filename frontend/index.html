@@ -10660,8 +10660,16 @@
       atualizarEnderecoCompleto();
     }
 
-    async function buscarCepViaCep(cepLimpo) {
-      const statusEl = document.getElementById("status_busca_cep");
+    async function executarConsultaCep(cepLimpo, opts = {}) {
+      const idRua = opts.idRua || "cliente_rua";
+      const idBairro = opts.idBairro || "cliente_bairro";
+      const idCid = opts.idCid || "cliente_cidade";
+      const idNum = opts.idNum || "cliente_numero";
+      const idRef = opts.idRef || "cliente_ponto_ref";
+      const idStatus = opts.idStatus || "status_busca_cep";
+      const callback = opts.callback || atualizarEnderecoCompleto;
+
+      const statusEl = document.getElementById(idStatus);
       if (statusEl) {
         statusEl.innerText = "⏳ Buscando CEP...";
         statusEl.className = "text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200";
@@ -10681,11 +10689,11 @@
           return;
         }
 
-        const inRua = document.getElementById("cliente_rua");
-        const inBairro = document.getElementById("cliente_bairro");
-        const inCid = document.getElementById("cliente_cidade");
-        const inNum = document.getElementById("cliente_numero");
-        const inRef = document.getElementById("cliente_ponto_ref");
+        const inRua = document.getElementById(idRua);
+        const inBairro = document.getElementById(idBairro);
+        const inCid = document.getElementById(idCid);
+        const inNum = document.getElementById(idNum);
+        const inRef = document.getElementById(idRef);
 
         if (inRua && data.logradouro) inRua.value = data.logradouro;
         if (inBairro && data.bairro) inBairro.value = data.bairro;
@@ -10696,7 +10704,7 @@
           inRef.value = data.complemento;
         }
 
-        atualizarEnderecoCompleto();
+        if (typeof callback === "function") callback();
 
         if (statusEl) {
           statusEl.innerText = `✓ ${data.localidade || 'Localizado'}`;
@@ -10717,14 +10725,45 @@
       }
     }
 
-    function atualizarEnderecoCompleto() {
-      const inCep = document.getElementById("cliente_cep");
-      const inRua = document.getElementById("cliente_rua");
-      const inNum = document.getElementById("cliente_numero");
-      const inBairro = document.getElementById("cliente_bairro");
-      const inCid = document.getElementById("cliente_cidade");
-      const inEnd = document.getElementById("cliente_endereco");
+    async function buscarCepViaCep(cepLimpo) {
+      return executarConsultaCep(cepLimpo, {
+        idRua: "cliente_rua",
+        idBairro: "cliente_bairro",
+        idCid: "cliente_cidade",
+        idNum: "cliente_numero",
+        idRef: "cliente_ponto_ref",
+        idStatus: "status_busca_cep",
+        callback: atualizarEnderecoCompleto
+      });
+    }
 
+    function aoDigitarCepFormCliente(valor) {
+      const inCep = document.getElementById("form_cliente_cep");
+      if (!inCep) return;
+      const formatado = formatarCep(valor);
+      inCep.value = formatado;
+      const limpo = formatado.replace(/\D/g, "");
+      if (limpo.length === 8) {
+        executarConsultaCep(limpo, {
+          idRua: "form_cliente_rua",
+          idBairro: "form_cliente_bairro",
+          idCid: "form_cliente_cidade",
+          idNum: "form_cliente_numero",
+          idRef: "form_cliente_ponto_ref",
+          idStatus: "status_busca_cep_cliente",
+          callback: atualizarEnderecoCompletoFormCliente
+        });
+      }
+      atualizarEnderecoCompletoFormCliente();
+    }
+
+    function atualizarEnderecoCompletoFormCliente() {
+      const inCep = document.getElementById("form_cliente_cep");
+      const inRua = document.getElementById("form_cliente_rua");
+      const inNum = document.getElementById("form_cliente_numero");
+      const inBairro = document.getElementById("form_cliente_bairro");
+      const inCid = document.getElementById("form_cliente_cidade");
+      const inEnd = document.getElementById("form_cliente_endereco");
       if (!inEnd) return;
 
       const rua = inRua ? inRua.value.trim() : "";
@@ -10739,7 +10778,54 @@
       } else if (num) {
         partes.push(`Nº ${num}`);
       }
+      if (bairro) partes.push(bairro);
+      if (cid) partes.push(cid);
+      if (cep) partes.push(`(CEP ${cep})`);
 
+      inEnd.value = partes.join(" - ");
+    }
+
+    function aoDigitarCepAgenda(valor) {
+      const inCep = document.getElementById("agenda_cep");
+      if (!inCep) return;
+      const formatado = formatarCep(valor);
+      inCep.value = formatado;
+      const limpo = formatado.replace(/\D/g, "");
+      if (limpo.length === 8) {
+        executarConsultaCep(limpo, {
+          idRua: "agenda_rua",
+          idBairro: "agenda_bairro",
+          idCid: "agenda_cidade",
+          idNum: "agenda_numero",
+          idRef: "agenda_ponto_referencia",
+          idStatus: "status_busca_cep_agenda",
+          callback: atualizarEnderecoCompletoAgenda
+        });
+      }
+      atualizarEnderecoCompletoAgenda();
+    }
+
+    function atualizarEnderecoCompletoAgenda() {
+      const inCep = document.getElementById("agenda_cep");
+      const inRua = document.getElementById("agenda_rua");
+      const inNum = document.getElementById("agenda_numero");
+      const inBairro = document.getElementById("agenda_bairro");
+      const inCid = document.getElementById("agenda_cidade");
+      const inEnd = document.getElementById("agenda_endereco");
+      if (!inEnd) return;
+
+      const rua = inRua ? inRua.value.trim() : "";
+      const num = inNum ? inNum.value.trim() : "";
+      const bairro = inBairro ? inBairro.value.trim() : "";
+      const cid = inCid ? inCid.value.trim() : "";
+      const cep = inCep ? inCep.value.trim() : "";
+
+      let partes = [];
+      if (rua) {
+        partes.push(rua + (num ? `, ${num}` : ""));
+      } else if (num) {
+        partes.push(`Nº ${num}`);
+      }
       if (bairro) partes.push(bairro);
       if (cid) partes.push(cid);
       if (cep) partes.push(`(CEP ${cep})`);
@@ -10761,6 +10847,9 @@
 
       let limpo = texto.trim();
 
+      // Limpa fragmentos ou sufixos residuais como "(C" ou "(CEP" no fim
+      limpo = limpo.replace(/\s*\([Cc](?:EP)?\s*$/i, "").trim();
+
       // 1. Extrair CEP se existir
       const cepMatch = limpo.match(/\(?CEP\s*:?\s*(\d{5}-?\d{3})\)?/i) || limpo.match(/(\d{5}-\d{3})/);
       if (cepMatch) {
@@ -10769,10 +10858,16 @@
         limpo = limpo.replace(/\(\s*\)/g, "").trim();
       }
 
+      // Remove Cidade repetida se houver: ex "Linhares - ES - Linhares - ES"
+      limpo = limpo.replace(/(?:[-–]\s*(?:Linhares\s*[-–/]\s*ES|Linhares-ES)\s*)+$/i, (m) => {
+        if (!cidade) cidade = "Linhares - ES";
+        return "";
+      }).trim();
+
       // 2. Extrair Cidade/UF no final se existir (ex: "- Linhares - ES" ou "- Linhares-ES" ou "- Linhares / ES")
       const cidadeMatch = limpo.match(/[-–]\s*([^,–-]+?\s*[-–/]\s*[A-Za-z]{2})\s*$/);
       if (cidadeMatch) {
-        cidade = cidadeMatch[1].trim();
+        if (!cidade || cidade.toLowerCase().includes("linhares")) cidade = cidadeMatch[1].trim();
         limpo = limpo.substring(0, limpo.lastIndexOf(cidadeMatch[0])).trim();
       } else if (!cidade) {
         const finalHifen = limpo.match(/[-–]\s*([^-–,]+)\s*$/);
@@ -10812,7 +10907,7 @@
         }
       }
 
-      return { rua, numero, bairro, cidade, cep, ref };
+      return { rua, numero, bairro, cidade: cidade || "Linhares - ES", cep, ref };
     }
 
     function preencherCamposEnderecoEstruturado(dados) {
@@ -11504,10 +11599,16 @@
       const nomeInput = document.getElementById("form_cliente_nome");
       const foneInput = document.getElementById("form_cliente_fone");
       const tipoInput = document.getElementById("form_cliente_tipo");
-      const endInput = document.getElementById("form_cliente_endereco");
-      const refInput = document.getElementById("form_cliente_ponto_ref");
+      const cepInput = document.getElementById("form_cliente_cep");
+      const ruaInput = document.getElementById("form_cliente_rua");
+      const numInput = document.getElementById("form_cliente_numero");
+      const bairroInput = document.getElementById("form_cliente_bairro");
       const cidInput = document.getElementById("form_cliente_cidade");
+      const refInput = document.getElementById("form_cliente_ponto_ref");
       const obsInput = document.getElementById("form_cliente_obs");
+      const endInput = document.getElementById("form_cliente_endereco");
+      const statusCep = document.getElementById("status_busca_cep_cliente");
+      if (statusCep) statusCep.classList.add("hidden");
 
       if (clienteId) {
         const cliente = (clientesCadastrados || []).find(c => c.id === clienteId);
@@ -11517,20 +11618,44 @@
         nomeInput.value = cliente.nome || "";
         foneInput.value = formatarTelefonePadrao(cliente.fone || "");
         tipoInput.value = cliente.tipo || "consumidor";
-        endInput.value = cliente.endereco || "";
-        refInput.value = cliente.ponto_ref || "";
-        cidInput.value = cliente.cidade || "Linhares-ES";
         obsInput.value = cliente.observacoes || "";
+
+        let dadosEnd = {
+          cep: cliente.cep || "",
+          rua: cliente.rua || "",
+          numero: cliente.numero || "",
+          bairro: cliente.bairro || "",
+          cidade: cliente.cidade || "Linhares - ES",
+          ref: cliente.ponto_ref || ""
+        };
+
+        if ((!dadosEnd.rua || !dadosEnd.numero) && cliente.endereco) {
+          dadosEnd = decomporEndereco(cliente.endereco, cliente.ponto_ref, cliente.cidade);
+        }
+
+        if (cepInput) cepInput.value = dadosEnd.cep || "";
+        if (ruaInput) ruaInput.value = dadosEnd.rua || "";
+        if (numInput) numInput.value = dadosEnd.numero || "";
+        if (bairroInput) bairroInput.value = dadosEnd.bairro || "";
+        if (cidInput) cidInput.value = dadosEnd.cidade || "Linhares - ES";
+        if (refInput) refInput.value = dadosEnd.ref || "";
+
+        atualizarEnderecoCompletoFormCliente();
       } else {
         titulo.innerText = "Cadastrar Novo Cliente";
         idInput.value = "";
         nomeInput.value = "";
         foneInput.value = "";
         tipoInput.value = "consumidor";
-        endInput.value = "";
-        refInput.value = "";
-        cidInput.value = "Linhares-ES";
+        if (cepInput) cepInput.value = "";
+        if (ruaInput) ruaInput.value = "";
+        if (numInput) numInput.value = "";
+        if (bairroInput) bairroInput.value = "";
+        if (cidInput) cidInput.value = "Linhares - ES";
+        if (refInput) refInput.value = "";
+        if (endInput) endInput.value = "";
         obsInput.value = "";
+        atualizarEnderecoCompletoFormCliente();
       }
 
       modal.classList.remove("hidden");
@@ -11546,10 +11671,16 @@
       const nome = document.getElementById("form_cliente_nome").value.trim();
       const fone = formatarTelefonePadrao(document.getElementById("form_cliente_fone").value.trim());
       const tipo = document.getElementById("form_cliente_tipo").value;
-      const endereco = document.getElementById("form_cliente_endereco").value.trim();
-      const ponto_ref = document.getElementById("form_cliente_ponto_ref").value.trim();
-      const cidade = document.getElementById("form_cliente_cidade").value.trim() || "Linhares-ES";
-      const observacoes = document.getElementById("form_cliente_obs").value.trim();
+      const cep = document.getElementById("form_cliente_cep") ? document.getElementById("form_cliente_cep").value.trim() : "";
+      const rua = document.getElementById("form_cliente_rua") ? document.getElementById("form_cliente_rua").value.trim() : "";
+      const numero = document.getElementById("form_cliente_numero") ? document.getElementById("form_cliente_numero").value.trim() : "";
+      const bairro = document.getElementById("form_cliente_bairro") ? document.getElementById("form_cliente_bairro").value.trim() : "";
+      const cidade = (document.getElementById("form_cliente_cidade") ? document.getElementById("form_cliente_cidade").value.trim() : "") || "Linhares - ES";
+      const ponto_ref = document.getElementById("form_cliente_ponto_ref") ? document.getElementById("form_cliente_ponto_ref").value.trim() : "";
+      const observacoes = document.getElementById("form_cliente_obs") ? document.getElementById("form_cliente_obs").value.trim() : "";
+
+      atualizarEnderecoCompletoFormCliente();
+      const endereco = (document.getElementById("form_cliente_endereco") ? document.getElementById("form_cliente_endereco").value.trim() : "") || rua;
 
       if (!nome) {
         alert("Por favor, preencha o Nome Completo do cliente.");
@@ -11559,22 +11690,20 @@
 
       const agora = new Date().toISOString();
 
-      const dec = decomporEndereco(endereco, ponto_ref, cidade);
-
       if (id) {
         const cliente = (clientesCadastrados || []).find(c => c.id === id);
         if (cliente) {
           cliente.nome = nome;
           cliente.fone = fone;
           cliente.tipo = tipo;
-          cliente.endereco = endereco;
-          cliente.ponto_ref = ponto_ref;
+          cliente.cep = cep;
+          cliente.rua = rua;
+          cliente.numero = numero;
+          cliente.bairro = bairro;
           cliente.cidade = cidade;
+          cliente.ponto_ref = ponto_ref;
+          cliente.endereco = endereco;
           cliente.observacoes = observacoes;
-          if (dec.rua) cliente.rua = dec.rua;
-          if (dec.numero) cliente.numero = dec.numero;
-          if (dec.bairro) cliente.bairro = dec.bairro;
-          if (dec.cep) cliente.cep = dec.cep;
           cliente.updatedAt = agora;
           enviarClienteParaNuvem(cliente);
           mostrarToast(`Cliente ${nome} atualizado com sucesso!`, "💾");
@@ -11585,13 +11714,13 @@
           nome,
           fone,
           tipo,
-          rua: dec.rua || "",
-          numero: dec.numero || "",
-          bairro: dec.bairro || "",
-          cep: dec.cep || "",
-          cidade: cidade || dec.cidade,
-          endereco,
+          cep,
+          rua,
+          numero,
+          bairro,
+          cidade,
           ponto_ref,
+          endereco,
           observacoes,
           createdAt: agora,
           updatedAt: agora
@@ -11988,13 +12117,50 @@
       abrirFichaProducaoPorId(id);
     }
 
+    function popularDatalistClientesAgenda() {
+      const dl = document.getElementById("agenda_clientes_datalist");
+      if (!dl) return;
+      dl.innerHTML = (clientesCadastrados || []).map(c => 
+        `<option value="${c.nome}">${c.fone ? formatarTelefonePadrao(c.fone) + ' — ' : ''}${c.cidade || 'Linhares'}</option>`
+      ).join("");
+    }
+
+    function aoSelecionarClienteDatalistAgenda(nomeDigitado) {
+      if (!nomeDigitado) return;
+      const cliente = (clientesCadastrados || []).find(c => normalizarBusca(c.nome) === normalizarBusca(nomeDigitado));
+      if (!cliente) return;
+
+      const inFone = document.getElementById("agenda_cliente_fone");
+      if (inFone && cliente.fone) inFone.value = formatarTelefonePadrao(cliente.fone);
+
+      let dadosEnd = {
+        cep: cliente.cep || "",
+        rua: cliente.rua || "",
+        numero: cliente.numero || "",
+        bairro: cliente.bairro || "",
+        cidade: cliente.cidade || "Linhares - ES",
+        ref: cliente.ponto_ref || ""
+      };
+
+      if ((!dadosEnd.rua || !dadosEnd.numero) && cliente.endereco) {
+        dadosEnd = decomporEndereco(cliente.endereco, cliente.ponto_ref, cliente.cidade);
+      }
+
+      if (document.getElementById("agenda_cep")) document.getElementById("agenda_cep").value = dadosEnd.cep || "";
+      if (document.getElementById("agenda_rua")) document.getElementById("agenda_rua").value = dadosEnd.rua || "";
+      if (document.getElementById("agenda_numero")) document.getElementById("agenda_numero").value = dadosEnd.numero || "";
+      if (document.getElementById("agenda_bairro")) document.getElementById("agenda_bairro").value = dadosEnd.bairro || "";
+      if (document.getElementById("agenda_cidade")) document.getElementById("agenda_cidade").value = dadosEnd.cidade || "Linhares - ES";
+      if (document.getElementById("agenda_ponto_referencia")) document.getElementById("agenda_ponto_referencia").value = dadosEnd.ref || "";
+
+      atualizarEnderecoCompletoAgenda();
+    }
+
     function abrirModalAgendarEvento(orcamentoId = null, eventoId = null) {
       const modal = document.getElementById("modal_agendar_evento");
       const selOrc = document.getElementById("agenda_orcamento_select");
       const inputNome = document.getElementById("agenda_cliente_nome");
       const inputFone = document.getElementById("agenda_cliente_fone");
-      const inputEnd = document.getElementById("agenda_endereco");
-      const inputPontoRef = document.getElementById("agenda_ponto_referencia");
       const inputData = document.getElementById("agenda_data");
       const inputTurno = document.getElementById("agenda_turno");
       const inputTipo = document.getElementById("agenda_tipo");
@@ -12002,6 +12168,10 @@
       const inputObs = document.getElementById("agenda_observacoes");
       const inputId = document.getElementById("agenda_evento_id");
       const titulo = document.getElementById("modal_agenda_titulo");
+      const statusCep = document.getElementById("status_busca_cep_agenda");
+      if (statusCep) statusCep.classList.add("hidden");
+
+      popularDatalistClientesAgenda();
 
       if (selOrc) {
         selOrc.innerHTML = '<option value="">-- Selecione ou deixe avulso --</option>' + 
@@ -12018,9 +12188,29 @@
           if (titulo) titulo.innerText = "Editar Compromisso";
           if (selOrc) selOrc.value = norm.orcamentoId || "";
           if (inputNome) inputNome.value = norm.clienteNome || "";
-          if (inputFone) inputFone.value = norm.clienteFone || "";
-          if (inputEnd) inputEnd.value = norm.endereco || "";
-          if (inputPontoRef) inputPontoRef.value = norm.pontoReferencia || norm.ponto_referencia || "";
+          if (inputFone) inputFone.value = formatarTelefonePadrao(norm.clienteFone || "");
+
+          let dadosEnd = {
+            cep: norm.cep || "",
+            rua: norm.rua || "",
+            numero: norm.numero || "",
+            bairro: norm.bairro || "",
+            cidade: norm.cidade || "Linhares - ES",
+            ref: norm.pontoReferencia || norm.ponto_referencia || ""
+          };
+
+          if ((!dadosEnd.rua || !dadosEnd.numero) && norm.endereco) {
+            dadosEnd = decomporEndereco(norm.endereco, dadosEnd.ref, dadosEnd.cidade);
+          }
+
+          if (document.getElementById("agenda_cep")) document.getElementById("agenda_cep").value = dadosEnd.cep || "";
+          if (document.getElementById("agenda_rua")) document.getElementById("agenda_rua").value = dadosEnd.rua || "";
+          if (document.getElementById("agenda_numero")) document.getElementById("agenda_numero").value = dadosEnd.numero || "";
+          if (document.getElementById("agenda_bairro")) document.getElementById("agenda_bairro").value = dadosEnd.bairro || "";
+          if (document.getElementById("agenda_cidade")) document.getElementById("agenda_cidade").value = dadosEnd.cidade || "Linhares - ES";
+          if (document.getElementById("agenda_ponto_referencia")) document.getElementById("agenda_ponto_referencia").value = dadosEnd.ref || "";
+          atualizarEnderecoCompletoAgenda();
+
           if (inputData) inputData.value = norm.data || "";
           if (inputTurno) inputTurno.value = norm.turno || "manha";
           if (inputTipo) inputTipo.value = norm.tipo || "medicao";
@@ -12045,8 +12235,13 @@
       } else {
         if (inputNome) inputNome.value = "";
         if (inputFone) inputFone.value = "";
-        if (inputEnd) inputEnd.value = "";
-        if (inputPontoRef) inputPontoRef.value = "";
+        if (document.getElementById("agenda_cep")) document.getElementById("agenda_cep").value = "";
+        if (document.getElementById("agenda_rua")) document.getElementById("agenda_rua").value = "";
+        if (document.getElementById("agenda_numero")) document.getElementById("agenda_numero").value = "";
+        if (document.getElementById("agenda_bairro")) document.getElementById("agenda_bairro").value = "";
+        if (document.getElementById("agenda_cidade")) document.getElementById("agenda_cidade").value = "Linhares - ES";
+        if (document.getElementById("agenda_ponto_referencia")) document.getElementById("agenda_ponto_referencia").value = "";
+        if (document.getElementById("agenda_endereco")) document.getElementById("agenda_endereco").value = "";
         if (inputResp) inputResp.value = "";
         if (inputObs) inputObs.value = "";
       }
@@ -12069,13 +12264,31 @@
       if (orc) {
         const inputNome = document.getElementById("agenda_cliente_nome");
         const inputFone = document.getElementById("agenda_cliente_fone");
-        const inputEnd = document.getElementById("agenda_endereco");
-        const inputPontoRef = document.getElementById("agenda_ponto_referencia");
 
         if (inputNome) inputNome.value = orc.clienteNome || "";
         if (inputFone) inputFone.value = formatarTelefonePadrao(orc.clienteFone || "");
-        if (inputEnd) inputEnd.value = orc.clienteEndereco || "";
-        if (inputPontoRef) inputPontoRef.value = orc.clientePontoRef || orc.pontoRef || "";
+
+        let dadosEnd = {
+          cep: orc.clienteCep || orc.cep || "",
+          rua: orc.clienteRua || orc.rua || "",
+          numero: orc.clienteNumero || orc.numero || "",
+          bairro: orc.clienteBairro || orc.bairro || "",
+          cidade: orc.clienteCidade || orc.cidade || "Linhares - ES",
+          ref: orc.clientePontoRef || orc.pontoRef || ""
+        };
+
+        if ((!dadosEnd.rua || !dadosEnd.numero) && (orc.clienteEndereco || orc.endereco)) {
+          dadosEnd = decomporEndereco(orc.clienteEndereco || orc.endereco, dadosEnd.ref, dadosEnd.cidade);
+        }
+
+        if (document.getElementById("agenda_cep")) document.getElementById("agenda_cep").value = dadosEnd.cep || "";
+        if (document.getElementById("agenda_rua")) document.getElementById("agenda_rua").value = dadosEnd.rua || "";
+        if (document.getElementById("agenda_numero")) document.getElementById("agenda_numero").value = dadosEnd.numero || "";
+        if (document.getElementById("agenda_bairro")) document.getElementById("agenda_bairro").value = dadosEnd.bairro || "";
+        if (document.getElementById("agenda_cidade")) document.getElementById("agenda_cidade").value = dadosEnd.cidade || "Linhares - ES";
+        if (document.getElementById("agenda_ponto_referencia")) document.getElementById("agenda_ponto_referencia").value = dadosEnd.ref || "";
+
+        atualizarEnderecoCompletoAgenda();
       }
     }
 
@@ -12084,8 +12297,17 @@
       const orcId = document.getElementById("agenda_orcamento_select").value;
       const clienteNome = document.getElementById("agenda_cliente_nome").value.trim();
       const clienteFone = formatarTelefonePadrao(document.getElementById("agenda_cliente_fone").value.trim());
-      const endereco = document.getElementById("agenda_endereco").value.trim();
+
+      const cep = document.getElementById("agenda_cep") ? document.getElementById("agenda_cep").value.trim() : "";
+      const rua = document.getElementById("agenda_rua") ? document.getElementById("agenda_rua").value.trim() : "";
+      const numero = document.getElementById("agenda_numero") ? document.getElementById("agenda_numero").value.trim() : "";
+      const bairro = document.getElementById("agenda_bairro") ? document.getElementById("agenda_bairro").value.trim() : "";
+      const cidade = (document.getElementById("agenda_cidade") ? document.getElementById("agenda_cidade").value.trim() : "") || "Linhares - ES";
       const pontoReferencia = document.getElementById("agenda_ponto_referencia") ? document.getElementById("agenda_ponto_referencia").value.trim() : "";
+
+      atualizarEnderecoCompletoAgenda();
+      const endereco = (document.getElementById("agenda_endereco") ? document.getElementById("agenda_endereco").value.trim() : "") || rua;
+
       const tipo = document.getElementById("agenda_tipo").value;
       const data = document.getElementById("agenda_data").value;
       const turno = document.getElementById("agenda_turno").value;
@@ -12105,6 +12327,11 @@
         cliente_nome: clienteNome,
         clienteFone,
         cliente_fone: clienteFone,
+        cep,
+        rua,
+        numero,
+        bairro,
+        cidade,
         endereco,
         pontoReferencia,
         ponto_referencia: pontoReferencia,
@@ -12127,6 +12354,56 @@
           eventoObj.createdAt = agendaCompromissos[idx].createdAt || agendaCompromissos[idx].created_at || new Date().toISOString();
           eventoObj.created_at = eventoObj.createdAt;
           agendaCompromissos[idx] = eventoObj;
+        }
+      }
+
+      // Sincroniza / Cadastra o cliente automaticamente no CRM para que fique disponível em todas as telas
+      if (clienteNome && clienteNome !== "Cliente Sem Nome") {
+        let cliExistente = (clientesCadastrados || []).find(c => 
+          normalizarBusca(c.nome) === normalizarBusca(clienteNome) ||
+          (clienteFone && (c.fone || "").replace(/\D/g, "") === clienteFone.replace(/\D/g, ""))
+        );
+
+        const agora = new Date().toISOString();
+        if (!cliExistente) {
+          const novoCli = {
+            id: "cli_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 6),
+            nome: clienteNome,
+            fone: clienteFone,
+            tipo: "consumidor",
+            cep,
+            rua,
+            numero,
+            bairro,
+            cidade,
+            ponto_ref: pontoReferencia,
+            endereco,
+            observacoes: "Cadastrado via Agendamento de Medição",
+            createdAt: agora,
+            updatedAt: agora
+          };
+          clientesCadastrados.unshift(novoCli);
+          enviarClienteParaNuvem(novoCli);
+          localStorage.setItem(getTenantStorageKey("clientes"), JSON.stringify(clientesCadastrados));
+          atualizarContadorClientesHeader();
+          atualizarKpisCRM();
+          renderizarListaClientesCRM();
+        } else {
+          let mudou = false;
+          if (!cliExistente.rua && rua) { cliExistente.rua = rua; mudou = true; }
+          if (!cliExistente.numero && numero) { cliExistente.numero = numero; mudou = true; }
+          if (!cliExistente.bairro && bairro) { cliExistente.bairro = bairro; mudou = true; }
+          if (!cliExistente.cep && cep) { cliExistente.cep = cep; mudou = true; }
+          if (!cliExistente.cidade && cidade) { cliExistente.cidade = cidade; mudou = true; }
+          if (!cliExistente.ponto_ref && pontoReferencia) { cliExistente.ponto_ref = pontoReferencia; mudou = true; }
+          if (endereco) { cliExistente.endereco = endereco; mudou = true; }
+          if (!cliExistente.fone && clienteFone) { cliExistente.fone = clienteFone; mudou = true; }
+          if (mudou) {
+            cliExistente.updatedAt = agora;
+            enviarClienteParaNuvem(cliExistente);
+            localStorage.setItem(getTenantStorageKey("clientes"), JSON.stringify(clientesCadastrados));
+            renderizarListaClientesCRM();
+          }
         }
       }
 
@@ -13374,7 +13651,7 @@
 
   <!-- MODAL DE CADASTRO / EDIÇÃO DE CLIENTE (CRM) -->
   <div id="modal_form_cliente" class="fixed inset-0 bg-slate-900/75 z-50 hidden overflow-y-auto p-4 flex items-center justify-center no-print">
-    <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
+    <div class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
       
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2.5">
@@ -13389,7 +13666,7 @@
 
       <input type="hidden" id="form_cliente_id">
 
-      <div class="space-y-3 text-xs">
+      <div class="space-y-3.5 text-xs">
         <div>
           <label class="block font-bold text-slate-700 mb-1">Nome Completo / Razão Social *</label>
           <input type="text" id="form_cliente_nome" placeholder="Ex: Jéssica Hupp de Souza" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -13412,20 +13689,49 @@
           </div>
         </div>
 
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Endereço Completo da Obra / Residência</label>
-          <input type="text" id="form_cliente_endereco" placeholder="Ex: Av. Presidente Médice, 837" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
+        <!-- Seção de Endereço Separado (Padrão Orçamento) -->
+        <div class="border-t border-slate-100 pt-3 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <span>📍</span> Endereço da Obra / Residência
+            </span>
+            <span id="status_busca_cep_cliente" class="hidden text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200"></span>
+          </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Bairro & Ponto de Referência</label>
-            <input type="text" id="form_cliente_ponto_ref" placeholder="Ex: BNH, em frente ao cemitério" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <!-- Linha 1: CEP, Rua, Número -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+            <div class="sm:col-span-3">
+              <label class="block font-bold text-slate-700 mb-1">CEP</label>
+              <input type="text" id="form_cliente_cep" maxlength="9" placeholder="00000-000" oninput="aoDigitarCepFormCliente(this.value)" class="w-full px-3 py-2 text-xs font-mono font-medium rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800">
+            </div>
+            <div class="sm:col-span-6">
+              <label class="block font-bold text-slate-700 mb-1">Rua / Logradouro / Avenida *</label>
+              <input type="text" id="form_cliente_rua" placeholder="Ex: Av. Conceição da Barra..." oninput="atualizarEnderecoCompletoFormCliente()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block font-bold text-slate-700 mb-1">Número *</label>
+              <input type="text" id="form_cliente_numero" placeholder="Ex: 837 ou S/N" oninput="atualizarEnderecoCompletoFormCliente()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-800">
+            </div>
           </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Cidade / UF</label>
-            <input type="text" id="form_cliente_cidade" placeholder="Ex: Linhares-ES" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+          <!-- Linha 2: Bairro, Cidade/UF, Ponto de Referência -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Bairro *</label>
+              <input type="text" id="form_cliente_bairro" placeholder="Ex: Shell, Centro, BNH..." oninput="atualizarEnderecoCompletoFormCliente()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+            </div>
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Cidade / UF *</label>
+              <input type="text" id="form_cliente_cidade" placeholder="Ex: Linhares - ES" oninput="atualizarEnderecoCompletoFormCliente()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800">
+            </div>
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Ponto de Referência</label>
+              <input type="text" id="form_cliente_ponto_ref" placeholder="Ex: Em frente ao cemitério..." oninput="atualizarEnderecoCompletoFormCliente()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700">
+            </div>
           </div>
+
+          <!-- Campo oculto canônico para compatibilidade -->
+          <input type="hidden" id="form_cliente_endereco" value="">
         </div>
 
         <div>
@@ -13479,7 +13785,7 @@
 
   <!-- MODAL DE AGENDAR MEDIÇÃO / INSTALAÇÃO (PASSO 4) -->
   <div id="modal_agendar_evento" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in duration-150 my-auto">
+    <div class="bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in duration-150 my-auto">
       
       <!-- Cabeçalho -->
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -13513,7 +13819,8 @@
           <!-- Nome do Cliente -->
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Nome do Cliente *</label>
-            <input type="text" id="agenda_cliente_nome" required placeholder="Ex: Carlos Mendes" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-purple-500 focus:outline-hidden transition">
+            <input type="text" id="agenda_cliente_nome" list="agenda_clientes_datalist" onchange="aoSelecionarClienteDatalistAgenda(this.value)" autocomplete="off" required placeholder="Digite ou selecione o cliente..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-purple-500 focus:outline-hidden transition">
+            <datalist id="agenda_clientes_datalist"></datalist>
           </div>
 
           <!-- WhatsApp do Cliente -->
@@ -13523,16 +13830,49 @@
           </div>
         </div>
 
-        <!-- Endereço da Obra -->
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Endereço da Obra / Local *</label>
-          <input type="text" id="agenda_endereco" required placeholder="Rua, número, bairro, apto" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-purple-500 focus:outline-hidden transition">
-        </div>
+        <!-- Seção de Endereço Separado (Padrão Orçamento) -->
+        <div class="border-t border-slate-100 pt-3 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <span>📍</span> Endereço da Medição / Obra
+            </span>
+            <span id="status_busca_cep_agenda" class="hidden text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200"></span>
+          </div>
 
-        <!-- Ponto de Referência -->
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Ponto de Referência (Opcional)</label>
-          <input type="text" id="agenda_ponto_referencia" placeholder="Ex: Próximo à padaria, portão branco, fundos, em frente à praça" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-purple-500 focus:outline-hidden transition">
+          <!-- Linha 1: CEP, Rua, Número -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+            <div class="sm:col-span-3">
+              <label class="block text-xs font-bold text-slate-700 mb-1">CEP</label>
+              <input type="text" id="agenda_cep" maxlength="9" placeholder="00000-000" oninput="aoDigitarCepAgenda(this.value)" class="w-full px-3 py-2 text-xs font-mono font-medium rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800">
+            </div>
+            <div class="sm:col-span-6">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Rua / Logradouro / Avenida *</label>
+              <input type="text" id="agenda_rua" placeholder="Ex: Av. Conceição da Barra..." oninput="atualizarEnderecoCompletoAgenda()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-slate-800">
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Número *</label>
+              <input type="text" id="agenda_numero" placeholder="Ex: 837 ou S/N" oninput="atualizarEnderecoCompletoAgenda()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-bold text-slate-800">
+            </div>
+          </div>
+
+          <!-- Linha 2: Bairro, Cidade/UF, Ponto de Referência -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+            <div class="sm:col-span-4">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Bairro *</label>
+              <input type="text" id="agenda_bairro" placeholder="Ex: Shell, Centro, BNH..." oninput="atualizarEnderecoCompletoAgenda()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-slate-800">
+            </div>
+            <div class="sm:col-span-4">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Cidade / UF *</label>
+              <input type="text" id="agenda_cidade" placeholder="Ex: Linhares - ES" oninput="atualizarEnderecoCompletoAgenda()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-slate-800">
+            </div>
+            <div class="sm:col-span-4">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Ponto de Referência</label>
+              <input type="text" id="agenda_ponto_referencia" placeholder="Ex: Portão branco, fundos..." oninput="atualizarEnderecoCompletoAgenda()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-slate-700">
+            </div>
+          </div>
+
+          <!-- Campo oculto canônico para compatibilidade -->
+          <input type="hidden" id="agenda_endereco" value="">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
