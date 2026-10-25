@@ -556,6 +556,27 @@
           </div>
         </div>
 
+        <!-- Filtro por Período de Datas & Atalhos Rápidos do Painel de Orçamentos -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-300">
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] font-bold text-slate-600 uppercase">📅 Período:</span>
+              <input type="date" id="filtro_painel_data_inicio" onchange="filtrarPainelOrcamentos()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Data Inicial">
+              <span class="text-xs text-slate-400 font-medium">até</span>
+              <input type="date" id="filtro_painel_data_fim" onchange="filtrarPainelOrcamentos()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Data Final">
+            </div>
+
+            <div class="flex items-center gap-1 flex-wrap">
+              <button type="button" onclick="definirPeriodoRapidoPainel('hoje')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Hoje</button>
+              <button type="button" onclick="definirPeriodoRapidoPainel('7dias')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">7 Dias</button>
+              <button type="button" onclick="definirPeriodoRapidoPainel('mes_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Mês</button>
+              <button type="button" onclick="definirPeriodoRapidoPainel('mes_anterior')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Mês Anterior</button>
+              <button type="button" onclick="definirPeriodoRapidoPainel('ano_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Ano</button>
+              <button type="button" onclick="definirPeriodoRapidoPainel('todos')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition cursor-pointer">Todos</button>
+            </div>
+          </div>
+        </div>
+
         <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
           <span id="painel_contador_exibicao">Exibindo orçamentos em aberto</span>
           <span class="text-[11px] text-slate-500">Dica: ao fechar um orçamento, clique em <b>🟢 Fechar & Mover p/ Fábrica</b> para enviá-lo à linha de corte</span>
@@ -781,6 +802,27 @@
             </button>
           </div>
         </div>
+
+        <!-- Filtro por Período de Datas & Atalhos Rápidos do CRM -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-300">
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] font-bold text-slate-600 uppercase">📅 Período:</span>
+              <input type="date" id="filtro_crm_data_inicio" onchange="filtrarListaClientesCRM()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500" title="Data Inicial">
+              <span class="text-xs text-slate-400 font-medium">até</span>
+              <input type="date" id="filtro_crm_data_fim" onchange="filtrarListaClientesCRM()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500" title="Data Final">
+            </div>
+
+            <div class="flex items-center gap-1 flex-wrap">
+              <button type="button" onclick="definirPeriodoRapidoCRM('hoje')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Hoje</button>
+              <button type="button" onclick="definirPeriodoRapidoCRM('7dias')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">7 Dias</button>
+              <button type="button" onclick="definirPeriodoRapidoCRM('mes_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Mês</button>
+              <button type="button" onclick="definirPeriodoRapidoCRM('mes_anterior')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Mês Anterior</button>
+              <button type="button" onclick="definirPeriodoRapidoCRM('ano_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Ano</button>
+              <button type="button" onclick="definirPeriodoRapidoCRM('todos')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition cursor-pointer">Todos</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Container da Lista de Clientes -->
@@ -846,8 +888,28 @@
           </div>
         </div>
 
+        <!-- Filtro por Período de Datas da Fábrica -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-300">
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] font-bold text-slate-600 uppercase">📅 Data do Pedido:</span>
+              <input type="date" id="filtro_fabrica_data_inicio" onchange="renderizarFilaFabricaView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500" title="Data Inicial">
+              <span class="text-xs text-slate-400 font-medium">até</span>
+              <input type="date" id="filtro_fabrica_data_fim" onchange="renderizarFilaFabricaView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500" title="Data Final">
+            </div>
+
+            <div class="flex items-center gap-1 flex-wrap">
+              <button type="button" onclick="definirPeriodoRapidoFabrica('hoje')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Hoje</button>
+              <button type="button" onclick="definirPeriodoRapidoFabrica('7dias')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">7 Dias</button>
+              <button type="button" onclick="definirPeriodoRapidoFabrica('mes_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Mês</button>
+              <button type="button" onclick="definirPeriodoRapidoFabrica('mes_anterior')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Mês Anterior</button>
+              <button type="button" onclick="definirPeriodoRapidoFabrica('ano_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Ano</button>
+              <button type="button" onclick="definirPeriodoRapidoFabrica('todos')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition cursor-pointer">Todos</button>
+            </div>
+          </div>
+        </div>
+
         <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
-          <span id="fabrica_contador_exibicao">Exibindo pedidos confirmados na fábrica</span>
           <span class="text-[11px] text-slate-500">Dica: clique em <b>🖨️ Ficha O.S.</b> para imprimir a folha de corte das bancadas</span>
         </div>
       </div>
@@ -975,6 +1037,27 @@
           </div>
         </div>
 
+        <!-- Filtro por Período de Datas de Entregas -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-300">
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] font-bold text-slate-600 uppercase">📅 Data do Pedido:</span>
+              <input type="date" id="filtro_entregas_data_inicio" onchange="renderizarEntregasView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Data Inicial">
+              <span class="text-xs text-slate-400 font-medium">até</span>
+              <input type="date" id="filtro_entregas_data_fim" onchange="renderizarEntregasView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Data Final">
+            </div>
+
+            <div class="flex items-center gap-1 flex-wrap">
+              <button type="button" onclick="definirPeriodoRapidoEntregas('hoje')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Hoje</button>
+              <button type="button" onclick="definirPeriodoRapidoEntregas('7dias')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">7 Dias</button>
+              <button type="button" onclick="definirPeriodoRapidoEntregas('mes_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Mês</button>
+              <button type="button" onclick="definirPeriodoRapidoEntregas('mes_anterior')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Mês Anterior</button>
+              <button type="button" onclick="definirPeriodoRapidoEntregas('ano_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Ano</button>
+              <button type="button" onclick="definirPeriodoRapidoEntregas('todos')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition cursor-pointer">Todos</button>
+            </div>
+          </div>
+        </div>
+
         <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
           <span id="entregas_contador_exibicao">Exibindo entregas pendentes</span>
           <span class="text-[11px] text-slate-500">Dica: clique em <b>🚚 Baixa na Entrega</b> quando as peças forem entregues ou retiradas pelo cliente</span>
@@ -1056,6 +1139,27 @@
               <span>📞 Sem Retorno</span>
               <span id="cont_pill_canc_retorno" class="px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-900 text-[10px] font-mono font-bold">0</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Filtro por Período de Datas de Cancelados -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-300">
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] font-bold text-slate-600 uppercase">📅 Período:</span>
+              <input type="date" id="filtro_cancelados_data_inicio" onchange="renderizarCanceladosView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500" title="Data Inicial">
+              <span class="text-xs text-slate-400 font-medium">até</span>
+              <input type="date" id="filtro_cancelados_data_fim" onchange="renderizarCanceladosView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500" title="Data Final">
+            </div>
+
+            <div class="flex items-center gap-1 flex-wrap">
+              <button type="button" onclick="definirPeriodoRapidoCancelados('hoje')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Hoje</button>
+              <button type="button" onclick="definirPeriodoRapidoCancelados('7dias')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">7 Dias</button>
+              <button type="button" onclick="definirPeriodoRapidoCancelados('mes_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Mês</button>
+              <button type="button" onclick="definirPeriodoRapidoCancelados('mes_anterior')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Mês Anterior</button>
+              <button type="button" onclick="definirPeriodoRapidoCancelados('ano_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Ano</button>
+              <button type="button" onclick="definirPeriodoRapidoCancelados('todos')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition cursor-pointer">Todos</button>
+            </div>
           </div>
         </div>
 
@@ -2883,8 +2987,80 @@
       renderizarPainelHomeOrcamentos();
     }
 
+    function formatarDataIsoLocal(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function aplicarPeriodoRapido(tipo, idInicio, idFim, callback) {
+      const inInicio = document.getElementById(idInicio);
+      const inFim = document.getElementById(idFim);
+      if (!inInicio || !inFim) return;
+
+      const hoje = new Date();
+      if (tipo === "hoje") {
+        const dt = formatarDataIsoLocal(hoje);
+        inInicio.value = dt;
+        inFim.value = dt;
+      } else if (tipo === "7dias") {
+        const d7 = new Date();
+        d7.setDate(d7.getDate() - 7);
+        inInicio.value = formatarDataIsoLocal(d7);
+        inFim.value = formatarDataIsoLocal(hoje);
+      } else if (tipo === "mes_atual") {
+        const y = hoje.getFullYear();
+        const m = hoje.getMonth();
+        inInicio.value = formatarDataIsoLocal(new Date(y, m, 1));
+        inFim.value = formatarDataIsoLocal(new Date(y, m + 1, 0));
+      } else if (tipo === "mes_anterior") {
+        const y = hoje.getFullYear();
+        const m = hoje.getMonth() - 1;
+        inInicio.value = formatarDataIsoLocal(new Date(y, m, 1));
+        inFim.value = formatarDataIsoLocal(new Date(y, m + 1, 0));
+      } else if (tipo === "ano_atual") {
+        const y = hoje.getFullYear();
+        inInicio.value = `${y}-01-01`;
+        inFim.value = `${y}-12-31`;
+      } else if (tipo === "todos") {
+        inInicio.value = "";
+        inFim.value = "";
+      }
+
+      if (typeof callback === "function") callback();
+    }
+
+    function definirPeriodoRapidoPainel(tipo) {
+      aplicarPeriodoRapido(tipo, "filtro_painel_data_inicio", "filtro_painel_data_fim", () => {
+        paginaPainelOrcamentos = 1;
+        atualizarKpisDashboard();
+        renderizarPainelHomeOrcamentos();
+      });
+    }
+
+    function definirPeriodoRapidoCRM(tipo) {
+      aplicarPeriodoRapido(tipo, "filtro_crm_data_inicio", "filtro_crm_data_fim", () => {
+        atualizarKpisCRM();
+        renderizarListaClientesCRM();
+      });
+    }
+
+    function definirPeriodoRapidoFabrica(tipo) {
+      aplicarPeriodoRapido(tipo, "filtro_fabrica_data_inicio", "filtro_fabrica_data_fim", renderizarFilaFabricaView);
+    }
+
+    function definirPeriodoRapidoEntregas(tipo) {
+      aplicarPeriodoRapido(tipo, "filtro_entregas_data_inicio", "filtro_entregas_data_fim", renderizarEntregasView);
+    }
+
+    function definirPeriodoRapidoCancelados(tipo) {
+      aplicarPeriodoRapido(tipo, "filtro_cancelados_data_inicio", "filtro_cancelados_data_fim", renderizarCanceladosView);
+    }
+
     function filtrarPainelOrcamentos() {
       paginaPainelOrcamentos = 1;
+      atualizarKpisDashboard();
       renderizarPainelHomeOrcamentos();
     }
 
@@ -2899,7 +3075,18 @@
       let valorAprovado = 0, qtdAprovado = 0;
       let m2Fabrica = 0, qtdFabrica = 0;
 
-      (orcamentosSalvos || []).forEach(o => {
+      const dtInicio = document.getElementById("filtro_painel_data_inicio")?.value || "";
+      const dtFim = document.getElementById("filtro_painel_data_fim")?.value || "";
+
+      let orcamentosFiltrados = (orcamentosSalvos || []).filter(o => {
+        if (!dtInicio && !dtFim) return true;
+        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
+        if (dtFim && dtOrc && dtOrc > dtFim) return false;
+        return true;
+      });
+
+      orcamentosFiltrados.forEach(o => {
         const valorVista = (o.totalVista && o.totalVista > 0) ? o.totalVista : calcularTotaisOrcamento(o).totalVista;
         const m2 = (o.m2Total && o.m2Total > 0) ? o.m2Total : calcularTotaisOrcamento(o).m2Total;
 
@@ -2933,7 +3120,7 @@
       if (elQtdFabrica) elQtdFabrica.innerText = `${qtdFabrica} pedido(s) na fábrica`;
 
       const elTotalOrc = document.getElementById("kpi_painel_total_orcamentos");
-      if (elTotalOrc) elTotalOrc.innerText = orcamentosSalvos.length;
+      if (elTotalOrc) elTotalOrc.innerText = orcamentosFiltrados.length;
 
       const badgeNavOrc = document.getElementById("badge_nav_qtd_orc");
       if (badgeNavOrc) badgeNavOrc.innerText = qtdAberto;
@@ -2971,6 +3158,8 @@
       container.innerHTML = "";
 
       const termo = (document.getElementById("filtro_painel_busca") ? document.getElementById("filtro_painel_busca").value : "").toLowerCase().trim();
+      const dtInicio = document.getElementById("filtro_painel_data_inicio")?.value || "";
+      const dtFim = document.getElementById("filtro_painel_data_fim")?.value || "";
 
       // Regra de Ouro: Na tela inicial, exibir APENAS os orçamentos que NÃO foram fechados (em_aberto)
       const filtrados = (orcamentosSalvos || []).filter(o => {
@@ -2980,13 +3169,19 @@
         } else if (filtroPainelAtivo !== "todos") {
           matchesStatus = (o.status === filtroPainelAtivo);
         }
+        if (!matchesStatus) return false;
+
+        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
+        if (dtFim && dtOrc && dtOrc > dtFim) return false;
+
         const matchesTermo = !termo ||
           (o.numero || "").toLowerCase().includes(termo) ||
           (o.clienteNome || "").toLowerCase().includes(termo) ||
           (o.clienteFone || "").toLowerCase().includes(termo) ||
           (o.clienteEndereco || "").toLowerCase().includes(termo) ||
           (o.vendedor || "").toLowerCase().includes(termo);
-        return matchesStatus && matchesTermo;
+        return matchesTermo;
       });
 
       const totalFiltrados = filtrados.length;
@@ -3277,11 +3472,17 @@
       container.innerHTML = "";
 
       const termo = (document.getElementById("filtro_fabrica_busca") ? document.getElementById("filtro_fabrica_busca").value : "").toLowerCase().trim();
+      const dtInicio = document.getElementById("filtro_fabrica_data_inicio")?.value || "";
+      const dtFim = document.getElementById("filtro_fabrica_data_fim")?.value || "";
 
       // Pedidos na Fila da Fábrica são APENAS os orçamentos confirmados / fechados (aprovado, em_producao, concluido)
-      const todosConfirmados = (orcamentosSalvos || []).filter(o => 
-        o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido"
-      );
+      const todosConfirmados = (orcamentosSalvos || []).filter(o => {
+        if (o.status !== "aprovado" && o.status !== "em_producao" && o.status !== "concluido") return false;
+        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
+        if (dtFim && dtOrc && dtOrc > dtFim) return false;
+        return true;
+      });
 
       let totalPedidos = todosConfirmados.length;
       let totalEntregar = todosConfirmados.filter(o => o.tipoEntrega !== "buscar").length;
@@ -3677,11 +3878,17 @@
       const termo = inputBusca ? inputBusca.value.trim().toLowerCase() : "";
       const selectMod = document.getElementById("filtro_entrega_modalidade");
       const filtroMod = selectMod ? selectMod.value : "todos";
+      const dtInicio = document.getElementById("filtro_entregas_data_inicio")?.value || "";
+      const dtFim = document.getElementById("filtro_entregas_data_fim")?.value || "";
 
       // Considera todos os orçamentos confirmados na fábrica/venda
-      const todosConfirmados = (orcamentosSalvos || []).filter(o => 
-        o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido"
-      );
+      const todosConfirmados = (orcamentosSalvos || []).filter(o => {
+        if (o.status !== "aprovado" && o.status !== "em_producao" && o.status !== "concluido") return false;
+        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
+        if (dtFim && dtOrc && dtOrc > dtFim) return false;
+        return true;
+      });
 
       // Totalizadores de KPIs
       let totalPendentes = 0;
@@ -4333,8 +4540,16 @@
       container.innerHTML = "";
 
       const termo = (document.getElementById("filtro_cancelados_busca") ? document.getElementById("filtro_cancelados_busca").value : "").toLowerCase().trim();
+      const dtInicio = document.getElementById("filtro_cancelados_data_inicio")?.value || "";
+      const dtFim = document.getElementById("filtro_cancelados_data_fim")?.value || "";
 
-      const cancelados = (orcamentosSalvos || []).filter(o => o.status === "cancelado" || o.status === "recusado");
+      const cancelados = (orcamentosSalvos || []).filter(o => {
+        if (o.status !== "cancelado" && o.status !== "recusado") return false;
+        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
+        if (dtFim && dtOrc && dtOrc > dtFim) return false;
+        return true;
+      });
 
       let totalValor = 0;
       let totalM2 = 0;
@@ -5828,85 +6043,15 @@
     }
 
     function definirPeriodoRapidoFluxo(tipo) {
-      const hoje = new Date();
-      const hojeStr = hoje.toISOString().split("T")[0];
-      const inInicio = document.getElementById("filtro_fluxo_data_inicio");
-      const inFim = document.getElementById("filtro_fluxo_data_fim");
-      if (!inInicio || !inFim) return;
-
-      if (tipo === "hoje") {
-        inInicio.value = hojeStr;
-        inFim.value = hojeStr;
-      } else if (tipo === "7dias") {
-        const d7 = new Date();
-        d7.setDate(d7.getDate() - 7);
-        inInicio.value = d7.toISOString().split("T")[0];
-        inFim.value = hojeStr;
-      } else if (tipo === "mes_atual") {
-        const y = hoje.getFullYear();
-        const m = hoje.getMonth();
-        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
-        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
-      } else if (tipo === "mes_anterior") {
-        const y = hoje.getFullYear();
-        const m = hoje.getMonth() - 1;
-        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
-        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
-      } else if (tipo === "todos") {
-        inInicio.value = "";
-        inFim.value = "";
-      }
-      renderizarFluxoCaixaView();
+      aplicarPeriodoRapido(tipo, "filtro_fluxo_data_inicio", "filtro_fluxo_data_fim", renderizarFluxoCaixaView);
     }
 
     function definirPeriodoRapidoReceber(tipo) {
-      const hoje = new Date();
-      const inInicio = document.getElementById("filtro_receber_data_inicio");
-      const inFim = document.getElementById("filtro_receber_data_fim");
-      if (!inInicio || !inFim) return;
-
-      if (tipo === "mes_atual") {
-        const y = hoje.getFullYear();
-        const m = hoje.getMonth();
-        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
-        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
-      } else if (tipo === "mes_anterior") {
-        const y = hoje.getFullYear();
-        const m = hoje.getMonth() - 1;
-        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
-        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
-      } else if (tipo === "todos") {
-        inInicio.value = "";
-        inFim.value = "";
-      }
-      renderizarFinanceiroView();
+      aplicarPeriodoRapido(tipo, "filtro_receber_data_inicio", "filtro_receber_data_fim", renderizarFinanceiroView);
     }
 
     function definirPeriodoRapidoPagar(tipo) {
-      const hoje = new Date();
-      const hojeStr = hoje.toISOString().split("T")[0];
-      const inInicio = document.getElementById("filtro_pagar_data_inicio");
-      const inFim = document.getElementById("filtro_pagar_data_fim");
-      if (!inInicio || !inFim) return;
-
-      if (tipo === "hoje") {
-        inInicio.value = hojeStr;
-        inFim.value = hojeStr;
-      } else if (tipo === "mes_atual") {
-        const y = hoje.getFullYear();
-        const m = hoje.getMonth();
-        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
-        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
-      } else if (tipo === "mes_anterior") {
-        const y = hoje.getFullYear();
-        const m = hoje.getMonth() - 1;
-        inInicio.value = new Date(y, m, 1).toISOString().split("T")[0];
-        inFim.value = new Date(y, m + 1, 0).toISOString().split("T")[0];
-      } else if (tipo === "todos") {
-        inInicio.value = "";
-        inFim.value = "";
-      }
-      renderizarContasPagarView();
+      aplicarPeriodoRapido(tipo, "filtro_pagar_data_inicio", "filtro_pagar_data_fim", renderizarContasPagarView);
     }
 
     function renderizarFluxoCaixaView() {
@@ -11063,23 +11208,45 @@
     }
 
     function filtrarListaClientesCRM() {
+      atualizarKpisCRM();
       renderizarListaClientesCRM();
     }
 
     function atualizarKpisCRM() {
-      const totalCli = (clientesCadastrados || []).length;
+      const dtInicio = document.getElementById("filtro_crm_data_inicio")?.value || "";
+      const dtFim = document.getElementById("filtro_crm_data_fim")?.value || "";
+
       let totalFechamentos = 0;
       let valorTotalNegociado = 0;
 
       const clientesComFechamento = new Set();
+      const clientesComOrcNoPeriodo = new Set();
 
       (orcamentosSalvos || []).forEach(o => {
+        const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+        if (dtInicio && dtOrc && dtOrc < dtInicio) return;
+        if (dtFim && dtOrc && dtOrc > dtFim) return;
+
         const valor = o.totalVista || 0;
         valorTotalNegociado += valor;
-        if (["aprovado", "concluido", "em_producao"].includes(o.status)) {
-          if (o.clienteNome) clientesComFechamento.add(normalizarBusca(o.clienteNome));
+        if (o.clienteNome) {
+          const nomeNorm = normalizarBusca(o.clienteNome);
+          clientesComOrcNoPeriodo.add(nomeNorm);
+          if (["aprovado", "concluido", "em_producao"].includes(o.status)) {
+            clientesComFechamento.add(nomeNorm);
+          }
         }
       });
+
+      let totalCli = (clientesCadastrados || []).length;
+      if (dtInicio || dtFim) {
+        totalCli = (clientesCadastrados || []).filter(c => {
+          const dtC = (c.createdAt || "").split("T")[0];
+          const criadoNoPeriodo = (!dtInicio || (dtC && dtC >= dtInicio)) && (!dtFim || (dtC && dtC <= dtFim));
+          const nomeNorm = normalizarBusca(c.nome);
+          return criadoNoPeriodo || clientesComOrcNoPeriodo.has(nomeNorm);
+        }).length;
+      }
 
       const elTotal = document.getElementById("kpi_crm_total_clientes");
       const elAtivos = document.getElementById("kpi_crm_clientes_ativos");
@@ -11087,7 +11254,7 @@
 
       if (elTotal) elTotal.innerText = totalCli;
       if (elAtivos) elAtivos.innerText = clientesComFechamento.size;
-      if (elValor) elValor.innerText = "R$ " + valorTotalNegociado.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+      if (elValor) elValor.innerText = "R$ " + valorTotalNegociado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     function obterBadgeTipoCliente(tipo) {
@@ -11119,9 +11286,25 @@
       if (!container) return;
 
       const termo = normalizarBusca(document.getElementById("busca_crm_cliente").value).trim();
+      const dtInicio = document.getElementById("filtro_crm_data_inicio")?.value || "";
+      const dtFim = document.getElementById("filtro_crm_data_fim")?.value || "";
 
       let lista = (clientesCadastrados || []).filter(c => {
         if (filtroTipoCRMAtivo !== "todos" && c.tipo !== filtroTipoCRMAtivo) return false;
+        if (dtInicio || dtFim) {
+          const dtC = (c.createdAt || "").split("T")[0];
+          const criadoNoPeriodo = (!dtInicio || (dtC && dtC >= dtInicio)) && (!dtFim || (dtC && dtC <= dtFim));
+          const hasOrc = (orcamentosSalvos || []).some(o => {
+            const matchCli = normalizarBusca(o.clienteNome) === normalizarBusca(c.nome) ||
+              (c.fone && (o.clienteFone || "").replace(/\D/g, "") === c.fone.replace(/\D/g, ""));
+            if (!matchCli) return false;
+            const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+            if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
+            if (dtFim && dtOrc && dtOrc > dtFim) return false;
+            return true;
+          });
+          if (!criadoNoPeriodo && !hasOrc) return false;
+        }
         if (!termo) return true;
         const n = normalizarBusca(c.nome);
         const f = (c.fone || "").replace(/\D/g, "");
@@ -11144,10 +11327,17 @@
 
       container.innerHTML = lista.map(c => {
         // Busca orçamentos deste cliente
-        const orcs = (orcamentosSalvos || []).filter(o => 
-          normalizarBusca(o.clienteNome) === normalizarBusca(c.nome) ||
-          (c.fone && (o.clienteFone || "").replace(/\D/g, "") === c.fone.replace(/\D/g, ""))
-        );
+        const orcs = (orcamentosSalvos || []).filter(o => {
+          const matchCli = normalizarBusca(o.clienteNome) === normalizarBusca(c.nome) ||
+            (c.fone && (o.clienteFone || "").replace(/\D/g, "") === c.fone.replace(/\D/g, ""));
+          if (!matchCli) return false;
+          if (dtInicio || dtFim) {
+            const dtOrc = (o.dataCriacao || o.data || "").split("T")[0];
+            if (dtInicio && dtOrc && dtOrc < dtInicio) return false;
+            if (dtFim && dtOrc && dtOrc > dtFim) return false;
+          }
+          return true;
+        });
 
         let totalGasto = 0;
         let emAberto = 0;
@@ -11217,7 +11407,7 @@
 
               <div class="text-right">
                 <span class="text-slate-400 text-[11px] mr-1">Total em Propostas:</span>
-                <span class="font-mono font-black text-slate-900 text-xs">R$ ${totalGasto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                <span class="font-mono font-black text-slate-900 text-xs">R$ ${totalGasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
 
