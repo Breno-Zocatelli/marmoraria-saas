@@ -2884,12 +2884,21 @@
 
       // Reseta destaque do submenu lateral se não estiver na aba financeiro ou fábrica
       if (aba !== "financeiro") {
-        atualizarSubmenuSidebarFinanceiro(null);
+        if (typeof toggleSubmenuFinanceiro === "function") {
+          toggleSubmenuFinanceiro(false);
+        }
+        if (typeof atualizarSubmenuSidebarFinanceiro === "function") {
+          atualizarSubmenuSidebarFinanceiro(null);
+        }
       }
       if (aba !== "fabrica") {
+        if (typeof toggleSubmenuFabrica === "function") {
+          toggleSubmenuFabrica(false);
+        }
         if (typeof atualizarSubmenuSidebarFabrica === "function") {
           atualizarSubmenuSidebarFabrica(null);
         }
+        filtroEtapaFabricaAtivo = "todos";
       }
 
       const topbarTitle = document.getElementById("topbar_title");
@@ -3511,6 +3520,17 @@
       const estiloSubAtivo = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-xs cursor-pointer sidebar-item-container";
       const estiloSubInativo = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container";
 
+      const viewFabrica = document.getElementById("view_fila_fabrica");
+      const estaNaAbaFabrica = viewFabrica && !viewFabrica.classList.contains("hidden");
+
+      // Se não estiver visualizando a tela da fábrica ou a etapa for nula, mantém todos os botões do submenu inativos
+      if (!estaNaAbaFabrica || !etapaAtiva) {
+        if (btnTodos) btnTodos.className = estiloSubInativo;
+        if (btnCorte) btnCorte.className = estiloSubInativo;
+        if (btnConcluido) btnConcluido.className = estiloSubInativo;
+        return;
+      }
+
       if (btnTodos) btnTodos.className = (etapaAtiva === "todos") ? estiloSubAtivo : estiloSubInativo;
       if (btnCorte) btnCorte.className = (etapaAtiva === "aprovado") ? estiloSubAtivo : estiloSubInativo;
       if (btnConcluido) btnConcluido.className = (etapaAtiva === "concluido") ? estiloSubAtivo : estiloSubInativo;
@@ -3594,7 +3614,12 @@
       const bSubFabConcl = document.getElementById("badge_subnav_fab_concluido");
       if (bSubFabConcl) bSubFabConcl.innerText = totalConcluidos;
 
-      atualizarSubmenuSidebarFabrica(filtroEtapaFabricaAtivo);
+      const viewFabricaAtual = document.getElementById("view_fila_fabrica");
+      if (viewFabricaAtual && !viewFabricaAtual.classList.contains("hidden")) {
+        atualizarSubmenuSidebarFabrica(filtroEtapaFabricaAtivo || "todos");
+      } else {
+        atualizarSubmenuSidebarFabrica(null);
+      }
 
       // Aplica filtros de etapa e busca
       const pedidosFabrica = todosConfirmados.filter(o => {
@@ -5933,6 +5958,17 @@
 
       const estiloSubAtivo = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 shadow-xs cursor-pointer sidebar-item-container";
       const estiloSubInativo = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container";
+
+      const viewFinAtual = document.getElementById("view_financeiro");
+      const estaNoFinanceiro = viewFinAtual && !viewFinAtual.classList.contains("hidden");
+
+      if (!estaNoFinanceiro || !subabaAtiva) {
+        if (btnFluxo) btnFluxo.className = estiloSubInativo;
+        if (btnReceber) btnReceber.className = estiloSubInativo;
+        if (btnPagar) btnPagar.className = estiloSubInativo;
+        if (btnBancos) btnBancos.className = estiloSubInativo;
+        return;
+      }
 
       if (btnFluxo) btnFluxo.className = (subabaAtiva === "fluxo") ? estiloSubAtivo : estiloSubInativo;
       if (btnReceber) btnReceber.className = (subabaAtiva === "receber") ? estiloSubAtivo : estiloSubInativo;
