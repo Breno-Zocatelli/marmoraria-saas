@@ -332,6 +332,12 @@
                 <span class="sidebar-label truncate">Contas Bancárias</span>
               </div>
             </button>
+            <button id="btn_subnav_fin_lucratividade" onclick="navegarParaSubabaFinanceiro('lucratividade')" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container" title="Relatório de Lucratividade por Pedido (Custo vs. Venda)">
+              <div class="flex items-center gap-2 truncate">
+                <svg class="w-3.5 h-3.5 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                <span class="sidebar-label truncate">Lucratividade / Margem</span>
+              </div>
+            </button>
           </div>
 
           <!-- Cancelados & Recusas -->
@@ -1191,10 +1197,14 @@
                 <h2 class="text-lg font-black tracking-tight">Controle Financeiro & Fluxo de Caixa</h2>
                 <span id="lbl_empresa_financeiro_badge" class="px-2 py-0.5 text-[10px] font-mono font-bold bg-emerald-500 text-slate-950 rounded"></span>
               </div>
-              <p class="text-xs text-emerald-200/80">Gestão integrada de fluxo de caixa, contas a receber, contas a pagar e emissão de recibos comerciais</p>
+              <p class="text-xs text-emerald-200/80">Gestão integrada de fluxo de caixa, contas a receber, contas a pagar, lucratividade por pedido e recibos comerciais</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 self-start sm:self-auto">
+          <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <button onclick="abrirModalBackupsBanco()" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 transition flex items-center gap-1.5 border border-amber-500/40 shadow-sm cursor-pointer" title="Backups Automáticos Diários do Banco de Dados (Retenção 30 dias)">
+              <span>🛡️</span>
+              <span>Backups (30d)</span>
+            </button>
             <button onclick="abrirModalRelatorioFinanceiro('geral')" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5 shadow-md cursor-pointer" title="Imprimir Relatório Consolidado do Financeiro">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
               <span>Imprimir Relatório Geral</span>
@@ -1234,6 +1244,29 @@
             <span class="text-2xl font-black text-amber-300 font-mono" id="fin_stat_saldo_projetado">R$ 0,00</span>
             <span class="text-[10px] text-amber-400/80 block mt-0.5" id="fin_stat_sub_projetado">Caixa + A Receber - A Pagar</span>
           </div>
+        </div>
+
+        <!-- Barra de Sub-Abas do Financeiro -->
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-emerald-800/40">
+          <button id="btn_subaba_fluxo" onclick="alternarSubabaFinanceiro('fluxo')" class="px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 bg-emerald-500 text-slate-950 shadow-md cursor-pointer">
+            <span>📊</span> <span>Fluxo de Caixa</span>
+          </button>
+          <button id="btn_subaba_receber" onclick="alternarSubabaFinanceiro('receber')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+            <span>🟢</span> <span>Contas a Receber</span>
+            <span id="badge_fin_subaba_receber" class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px]">R$ 0,00</span>
+          </button>
+          <button id="btn_subaba_pagar" onclick="alternarSubabaFinanceiro('pagar')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+            <span>🔴</span> <span>Contas a Pagar</span>
+            <span id="badge_fin_subaba_pagar" class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px]">R$ 0,00</span>
+          </button>
+          <button id="btn_subaba_bancos" onclick="alternarSubabaFinanceiro('bancos')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+            <span>🏦</span> <span>Contas Bancárias</span>
+            <span id="badge_fin_subaba_bancos" class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[10px]">0</span>
+          </button>
+          <button id="btn_subaba_lucratividade" onclick="alternarSubabaFinanceiro('lucratividade')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+            <span>📈</span> <span>Lucratividade por Pedido</span>
+            <span id="badge_fin_subaba_lucratividade" class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]">Margem</span>
+          </button>
         </div>
 
       </div>
@@ -1528,6 +1561,87 @@
           <div id="container_tabela_bancos_detalhe" class="rounded-xl overflow-hidden border border-slate-300 bg-white">
             <!-- Populado por renderizarTabelaDetalheBancos() -->
           </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- SUB-ABA 5: RELATÓRIO DE LUCRATIVIDADE POR PEDIDO (CUSTO VS VENDA) -->
+      <!-- ============================================================ -->
+      <div id="subview_financeiro_lucratividade" class="space-y-4 hidden">
+        <!-- Painel de KPIs de Lucratividade -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="bloco-cinza p-4 rounded-2xl shadow-sm border-l-4 border-l-blue-600">
+            <span class="text-[10px] uppercase font-black text-slate-500 block">💰 Receita Total (Vendas)</span>
+            <span class="text-xl font-black text-slate-900 font-mono mt-1 block" id="lucro_stat_receita">R$ 0,00</span>
+            <span class="text-[11px] text-slate-600 font-medium block mt-0.5" id="lucro_stat_sub_receita">0 pedidos analisados</span>
+          </div>
+
+          <div class="bloco-cinza p-4 rounded-2xl shadow-sm border-l-4 border-l-rose-500">
+            <span class="text-[10px] uppercase font-black text-slate-500 block">🪨 Custo Total (Pedra + Cuba + RT/Extras)</span>
+            <span class="text-xl font-black text-rose-700 font-mono mt-1 block" id="lucro_stat_custo_total">R$ 0,00</span>
+            <span class="text-[11px] text-slate-600 font-medium block mt-0.5" id="lucro_stat_sub_custo">Chapas, cubas, frete e comissões</span>
+          </div>
+
+          <div class="bloco-cinza p-4 rounded-2xl shadow-sm border-l-4 border-l-emerald-600">
+            <span class="text-[10px] uppercase font-black text-slate-500 block">📈 Lucro Líquido Real</span>
+            <span class="text-xl font-black text-emerald-700 font-mono mt-1 block" id="lucro_stat_lucro_liquido">R$ 0,00</span>
+            <span class="text-[11px] text-slate-600 font-medium block mt-0.5" id="lucro_stat_sub_liquido">Venda Líquida - Custo Total</span>
+          </div>
+
+          <div class="bloco-cinza p-4 rounded-2xl shadow-sm border-l-4 border-l-amber-500">
+            <span class="text-[10px] uppercase font-black text-slate-500 block">🎯 Margem Média de Lucro</span>
+            <span class="text-xl font-black text-amber-700 font-mono mt-1 block" id="lucro_stat_margem_perc">0,0%</span>
+            <span class="text-[11px] text-slate-600 font-medium block mt-0.5" id="lucro_stat_sub_margem">Rentabilidade média sobre vendas</span>
+          </div>
+        </div>
+
+        <!-- Filtros e Atalhos de Configuração de Custos -->
+        <div class="bloco-cinza p-4 rounded-2xl shadow-sm space-y-3">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="relative flex-1">
+              <input type="text" id="filtro_lucro_busca" oninput="renderizarLucratividadeView()" placeholder="Buscar por cliente, nº do pedido, pedra/material, vendedor ou arquiteto..." class="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-800">
+              <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="filtro_lucro_escopo" onchange="renderizarLucratividadeView()" class="px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="fechados">✅ Apenas Pedidos Fechados (Aprovado / Produção / Concluído)</option>
+                <option value="todos">📋 Todos os Orçamentos (Incluindo Em Aberto)</option>
+              </select>
+
+              <button type="button" onclick="abrirModalGerenciarMateriais()" class="px-3 py-2 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Configurar Custo R$/m² de cada pedra no catálogo">
+                <span>🪨</span> <span>Custos de Pedras (m²)</span>
+              </button>
+
+              <button type="button" onclick="abrirModalGerenciarCubas()" class="px-3 py-2 rounded-xl bg-white hover:bg-blue-50 text-blue-800 border border-blue-300 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Configurar Custo R$ de compra das cubas">
+                <span>🚰</span> <span>Custos de Cubas</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-300">
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-bold text-slate-600 uppercase">📅 Período:</span>
+                <input type="date" id="filtro_lucro_data_inicio" onchange="renderizarLucratividadeView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <span class="text-xs text-slate-400 font-medium">até</span>
+                <input type="date" id="filtro_lucro_data_fim" onchange="renderizarLucratividadeView()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              </div>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="definirPeriodoRapidoLucro('mes_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Mês</button>
+                <button type="button" onclick="definirPeriodoRapidoLucro('mes_anterior')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Mês Anterior</button>
+                <button type="button" onclick="definirPeriodoRapidoLucro('ano_atual')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer">Este Ano</button>
+                <button type="button" onclick="definirPeriodoRapidoLucro('todos')" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition cursor-pointer">Todos</button>
+              </div>
+            </div>
+
+            <span id="lucro_contador_exibicao" class="text-xs font-bold text-slate-600">Analisando lucratividade por pedido</span>
+          </div>
+        </div>
+
+        <!-- Tabela Detalhada de Lucratividade por Pedido -->
+        <div id="container_tabela_lucratividade" class="bloco-cinza rounded-2xl shadow-sm overflow-hidden">
+          <!-- Renderizado dinamicamente por renderizarLucratividadeView() -->
         </div>
       </div>
 
@@ -1923,16 +2037,16 @@
 
     // Catálogo de pedras e chapas da Marmoraria Marmobraz (com persistência no localStorage)
     const MATERIAIS_PADRAO = [
-      { id: "prime", nome: "Branco Prime", categoria: "Quartzo / Composto", precoM2: 600.0 },
-      { id: "verde", nome: "Verde Ubatuba", categoria: "Granito", precoM2: 270.0 },
-      { id: "sao_gabriel", nome: "Preto São Gabriel", categoria: "Granito", precoM2: 380.0 },
-      { id: "arabesco", nome: "Granito Arabesco", categoria: "Granito", precoM2: 220.0 },
-      { id: "siena", nome: "Branco Siena Comercial", categoria: "Granito", precoM2: 180.0 },
-      { id: "rufus", nome: "Rufus", categoria: "Granito", precoM2: 120.0 },
-      { id: "travertino", nome: "Mármore Travertino Nacional", categoria: "Mármore", precoM2: 350.0 },
-      { id: "branco_parana", nome: "Mármore Branco Paraná", categoria: "Mármore", precoM2: 550.0 },
-      { id: "calacatta", nome: "Quartzo Calacatta", categoria: "Quartzo / Composto", precoM2: 950.0 },
-      { id: "outro", nome: "Material Sob Medida", categoria: "Outro", precoM2: 300.0 }
+      { id: "prime", nome: "Branco Prime", categoria: "Quartzo / Composto", precoM2: 600.0, custoM2: 310.0 },
+      { id: "verde", nome: "Verde Ubatuba", categoria: "Granito", precoM2: 270.0, custoM2: 130.0 },
+      { id: "sao_gabriel", nome: "Preto São Gabriel", categoria: "Granito", precoM2: 380.0, custoM2: 185.0 },
+      { id: "arabesco", nome: "Granito Arabesco", categoria: "Granito", precoM2: 220.0, custoM2: 105.0 },
+      { id: "siena", nome: "Branco Siena Comercial", categoria: "Granito", precoM2: 180.0, custoM2: 85.0 },
+      { id: "rufus", nome: "Rufus", categoria: "Granito", precoM2: 120.0, custoM2: 60.0 },
+      { id: "travertino", nome: "Mármore Travertino Nacional", categoria: "Mármore", precoM2: 350.0, custoM2: 170.0 },
+      { id: "branco_parana", nome: "Mármore Branco Paraná", categoria: "Mármore", precoM2: 550.0, custoM2: 270.0 },
+      { id: "calacatta", nome: "Quartzo Calacatta", categoria: "Quartzo / Composto", precoM2: 950.0, custoM2: 480.0 },
+      { id: "outro", nome: "Material Sob Medida", categoria: "Outro", precoM2: 300.0, custoM2: 150.0 }
     ];
 
     let MATERIAIS = [];
@@ -1951,16 +2065,16 @@
 
     // Catálogo de cubas e acessórios de bancada (com persistência no localStorage)
     const CUBAS_PADRAO = [
-      { id: "nenhuma", nome: "Sem Cuba", tipo: "Nenhum", preco: 0.0 },
-      { id: "inox_n2", nome: "Cuba Inox Tramontina Nº 2 (40x34cm)", tipo: "Inox Embutir", preco: 180.0 },
-      { id: "inox_n1", nome: "Cuba Inox Tramontina Nº 1 (47x30cm)", tipo: "Inox Embutir", preco: 210.0 },
-      { id: "inox_gourmet", nome: "Cuba Inox Gourmet Retangular (50x40cm)", tipo: "Inox Gourmet", preco: 350.0 },
-      { id: "louca_oval", nome: "Cuba Louça Oval Embutir (Deca/Incepa)", tipo: "Louça Embutir", preco: 160.0 },
-      { id: "louca_apoio", nome: "Cuba Louça Apoio Quadrada / Redonda", tipo: "Louça Apoio", preco: 230.0 },
-      { id: "esculpida_rampa", nome: "Cuba Esculpida na Pedra c/ Rampa Oculta", tipo: "Esculpida / Escavada", preco: 480.0 },
-      { id: "esculpida_fundo_reto", nome: "Cuba Esculpida c/ Fundo Falso Removível", tipo: "Esculpida / Escavada", preco: 550.0 },
-      { id: "tanque_inox", nome: "Cuba de Tanque Inox (50x40cm)", tipo: "Tanque", preco: 280.0 },
-      { id: "personalizada", nome: "Cuba Especial / Fornecida p/ Cliente", tipo: "Outro", preco: 0.0 }
+      { id: "nenhuma", nome: "Sem Cuba", tipo: "Nenhum", preco: 0.0, custo: 0.0 },
+      { id: "inox_n2", nome: "Cuba Inox Tramontina Nº 2 (40x34cm)", tipo: "Inox Embutir", preco: 180.0, custo: 95.0 },
+      { id: "inox_n1", nome: "Cuba Inox Tramontina Nº 1 (47x30cm)", tipo: "Inox Embutir", preco: 210.0, custo: 110.0 },
+      { id: "inox_gourmet", nome: "Cuba Inox Gourmet Retangular (50x40cm)", tipo: "Inox Gourmet", preco: 350.0, custo: 185.0 },
+      { id: "louca_oval", nome: "Cuba Louça Oval Embutir (Deca/Incepa)", tipo: "Louça Embutir", preco: 160.0, custo: 80.0 },
+      { id: "louca_apoio", nome: "Cuba Louça Apoio Quadrada / Redonda", tipo: "Louça Apoio", preco: 230.0, custo: 115.0 },
+      { id: "esculpida_rampa", nome: "Cuba Esculpida na Pedra c/ Rampa Oculta", tipo: "Esculpida / Escavada", preco: 480.0, custo: 190.0 },
+      { id: "esculpida_fundo_reto", nome: "Cuba Esculpida c/ Fundo Falso Removível", tipo: "Esculpida / Escavada", preco: 550.0, custo: 220.0 },
+      { id: "tanque_inox", nome: "Cuba de Tanque Inox (50x40cm)", tipo: "Tanque", preco: 280.0, custo: 145.0 },
+      { id: "personalizada", nome: "Cuba Especial / Fornecida p/ Cliente", tipo: "Outro", preco: 0.0, custo: 0.0 }
     ];
 
     let CUBAS = [];
@@ -1976,6 +2090,22 @@
     } catch(e) {
       CUBAS = (getTenantId() === "marmobraz") ? JSON.parse(JSON.stringify(CUBAS_PADRAO)) : [];
     }
+
+    function normalizarCustosCatalogos() {
+      (MATERIAIS || []).forEach(m => {
+        if (m.custoM2 === undefined || m.custoM2 === null) {
+          const pad = MATERIAIS_PADRAO.find(p => p.id === m.id);
+          m.custoM2 = pad ? pad.custoM2 : Math.round((parseFloat(m.precoM2) || 0) * 0.48);
+        }
+      });
+      (CUBAS || []).forEach(c => {
+        if (c.custo === undefined || c.custo === null) {
+          const pad = CUBAS_PADRAO.find(p => p.id === c.id);
+          c.custo = pad ? pad.custo : Math.round((parseFloat(c.preco) || 0) * 0.5);
+        }
+      });
+    }
+    normalizarCustosCatalogos();
 
     // Catálogo de tipos de acabamento linear (com persistência no localStorage - preservado em todos os bancos)
     const ACABAMENTOS_PADRAO = [
@@ -2287,10 +2417,12 @@
           if (data && data.catalogos) {
             if (data.catalogos.materiais && data.catalogos.materiais.length) {
               MATERIAIS = data.catalogos.materiais;
+              normalizarCustosCatalogos();
               localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
             }
             if (data.catalogos.cubas && data.catalogos.cubas.length) {
               CUBAS = data.catalogos.cubas;
+              normalizarCustosCatalogos();
               localStorage.setItem(getTenantStorageKey("cubas"), JSON.stringify(CUBAS));
             }
             if (data.catalogos.acabamentos && data.catalogos.acabamentos.length) {
@@ -5955,6 +6087,7 @@
       const btnReceber = document.getElementById("btn_subnav_fin_receber");
       const btnPagar = document.getElementById("btn_subnav_fin_pagar");
       const btnBancos = document.getElementById("btn_subnav_fin_bancos");
+      const btnLucro = document.getElementById("btn_subnav_fin_lucratividade");
 
       const estiloSubAtivo = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 shadow-xs cursor-pointer sidebar-item-container";
       const estiloSubInativo = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer sidebar-item-container";
@@ -5967,6 +6100,7 @@
         if (btnReceber) btnReceber.className = estiloSubInativo;
         if (btnPagar) btnPagar.className = estiloSubInativo;
         if (btnBancos) btnBancos.className = estiloSubInativo;
+        if (btnLucro) btnLucro.className = estiloSubInativo;
         return;
       }
 
@@ -5974,6 +6108,7 @@
       if (btnReceber) btnReceber.className = (subabaAtiva === "receber") ? estiloSubAtivo : estiloSubInativo;
       if (btnPagar) btnPagar.className = (subabaAtiva === "pagar") ? estiloSubAtivo : estiloSubInativo;
       if (btnBancos) btnBancos.className = (subabaAtiva === "bancos") ? estiloSubAtivo : estiloSubInativo;
+      if (btnLucro) btnLucro.className = (subabaAtiva === "lucratividade") ? estiloSubAtivo : estiloSubInativo;
     }
 
     function alternarSubabaFinanceiro(subaba) {
@@ -5982,16 +6117,19 @@
       const subReceber = document.getElementById("subview_financeiro_receber");
       const subPagar = document.getElementById("subview_financeiro_pagar");
       const subBancos = document.getElementById("subview_financeiro_bancos");
+      const subLucro = document.getElementById("subview_financeiro_lucratividade");
 
       const btnFluxo = document.getElementById("btn_subaba_fluxo");
       const btnReceber = document.getElementById("btn_subaba_receber");
       const btnPagar = document.getElementById("btn_subaba_pagar");
       const btnBancos = document.getElementById("btn_subaba_bancos");
+      const btnLucro = document.getElementById("btn_subaba_lucratividade");
 
       if (subFluxo) subFluxo.classList.toggle("hidden", subaba !== "fluxo");
       if (subReceber) subReceber.classList.toggle("hidden", subaba !== "receber");
       if (subPagar) subPagar.classList.toggle("hidden", subaba !== "pagar");
       if (subBancos) subBancos.classList.toggle("hidden", subaba !== "bancos");
+      if (subLucro) subLucro.classList.toggle("hidden", subaba !== "lucratividade");
 
       const estiloAtivo = "px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 bg-emerald-500 text-slate-950 shadow-md cursor-pointer";
       const estiloInativo = "px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer";
@@ -6000,6 +6138,7 @@
       if (btnReceber) btnReceber.className = (subaba === "receber") ? estiloAtivo : estiloInativo;
       if (btnPagar) btnPagar.className = (subaba === "pagar") ? estiloAtivo : estiloInativo;
       if (btnBancos) btnBancos.className = (subaba === "bancos") ? estiloAtivo : estiloInativo;
+      if (btnLucro) btnLucro.className = (subaba === "lucratividade") ? estiloAtivo : estiloInativo;
 
       // Sincroniza o destaque na sidebar esquerda
       atualizarSubmenuSidebarFinanceiro(subaba);
@@ -6015,6 +6154,409 @@
       } else if (subaba === "bancos") {
         renderizarCardsBancos();
         renderizarTabelaDetalheBancos();
+      } else if (subaba === "lucratividade") {
+        renderizarLucratividadeView();
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // MÓDULO DE LUCRATIVIDADE POR PEDIDO, CUSTOS DE OBRA, RT & BACKUPS
+    // -----------------------------------------------------------------
+    function calcularLucratividadeOrcamento(orc) {
+      if (!orc) return { receita: 0, custoPedra: 0, custoCubas: 0, custoRT: 0, custoComissao: 0, custoExtras: 0, custoTotal: 0, lucroLiquido: 0, margemPerc: 0, m2Total: 0, resumoPedras: "" };
+
+      const stFin = calcularStatusFinanceiro(orc);
+      const receita = stFin.total || 0;
+
+      let custoPedraCalculado = 0;
+      let custoCubasCalculado = 0;
+      let m2Total = 0;
+      const pedrasUsadas = new Set();
+
+      (orc.itens || []).forEach(it => {
+        const qtd = parseFloat(it.qtd) || 1;
+        const comp = parseFloat(it.comp) || 0;
+        const larg = parseFloat(it.larg) || 0;
+        const rb = parseFloat(it.rb) || 0;
+
+        const m2Peca = comp * (larg + rb);
+        let m2Saia = 0;
+        if (it.temSaia) {
+          const altSaia = parseFloat(it.saiaAlt) || 0.05;
+          const ladosSaia = REGRAS_LADOS.find(r => r.id === (it.saiaRegra || it.regraLados)) || { fatC: 1, fatL: 0 };
+          const compLinearSaia = (comp * ladosSaia.fatC) + (larg * ladosSaia.fatL);
+          m2Saia = compLinearSaia * altSaia;
+        }
+        const m2ItemTotal = (m2Peca + m2Saia) * qtd;
+        m2Total += m2ItemTotal;
+
+        const matCat = (MATERIAIS || []).find(m => m.id === it.materialId);
+        if (matCat && matCat.nome) pedrasUsadas.add(matCat.nome);
+        const custoM2Unit = (matCat && matCat.custoM2 !== undefined) ? (parseFloat(matCat.custoM2) || 0) : ((parseFloat(it.precoM2) || 0) * 0.48);
+        custoPedraCalculado += m2ItemTotal * custoM2Unit;
+
+        if (it.cubaId && it.cubaId !== "nenhuma") {
+          const cubaCat = (CUBAS || []).find(c => c.id === it.cubaId);
+          const custoCubaUnit = (cubaCat && cubaCat.custo !== undefined) ? (parseFloat(cubaCat.custo) || 0) : ((parseFloat(it.cuba) || 0) * 0.5);
+          custoCubasCalculado += custoCubaUnit * qtd;
+        }
+      });
+
+      const cx = orc.custosExtras || {};
+      const custoPedra = (cx.custoPedraManual !== undefined && cx.custoPedraManual !== null && cx.custoPedraManual !== "")
+        ? (parseFloat(cx.custoPedraManual) || 0)
+        : custoPedraCalculado;
+      const custoCubas = (cx.custoCubasManual !== undefined && cx.custoCubasManual !== null && cx.custoCubasManual !== "")
+        ? (parseFloat(cx.custoCubasManual) || 0)
+        : custoCubasCalculado;
+
+      // RT Arquiteto (% ou valor fixo)
+      const rtPerc = parseFloat(cx.rtPercentual) || 0;
+      const rtFixo = parseFloat(cx.rtValorFixo) || 0;
+      const custoRT = rtFixo > 0 ? rtFixo : (receita * (rtPerc / 100));
+
+      // Comissão Vendedor (% ou valor fixo)
+      const comPerc = parseFloat(cx.comissaoPercentual) || 0;
+      const comFixo = parseFloat(cx.comissaoValorFixo) || 0;
+      const custoComissao = comFixo > 0 ? comFixo : (receita * (comPerc / 100));
+
+      // Outros custos (frete, terceiros, insumos)
+      const custoExtras = parseFloat(cx.outrosCustos) || 0;
+
+      const custoTotal = custoPedra + custoCubas + custoRT + custoComissao + custoExtras;
+      const lucroLiquido = receita - custoTotal;
+      const margemPerc = receita > 0 ? ((lucroLiquido / receita) * 100) : 0;
+
+      return {
+        receita,
+        custoPedra,
+        custoPedraCalculado,
+        custoCubas,
+        custoCubasCalculado,
+        custoRT,
+        custoComissao,
+        custoExtras,
+        custoTotal,
+        lucroLiquido,
+        margemPerc,
+        m2Total,
+        arquitetoNome: cx.arquitetoNome || "",
+        vendedorNome: cx.vendedorNome || orc.vendedor || "",
+        obsCustos: cx.obs || "",
+        resumoPedras: Array.from(pedrasUsadas).join(", ") || "Diversos"
+      };
+    }
+
+    function definirPeriodoRapidoLucro(tipo) {
+      aplicarPeriodoRapido(tipo, "filtro_lucro_data_inicio", "filtro_lucro_data_fim", renderizarLucratividadeView);
+    }
+
+    function renderizarLucratividadeView() {
+      const container = document.getElementById("container_tabela_lucratividade");
+      if (!container) return;
+
+      const termo = (document.getElementById("filtro_lucro_busca")?.value || "").toLowerCase().trim();
+      const escopo = document.getElementById("filtro_lucro_escopo")?.value || "fechados";
+      const dtInicio = document.getElementById("filtro_lucro_data_inicio")?.value || "";
+      const dtFim = document.getElementById("filtro_lucro_data_fim")?.value || "";
+
+      let lista = (orcamentosSalvos || []).filter(o => o.status !== "cancelado" && o.status !== "recusado");
+      if (escopo === "fechados") {
+        lista = lista.filter(o => o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido");
+      }
+
+      if (dtInicio || dtFim) {
+        lista = lista.filter(o => {
+          const dtYMD = extrairDataYMD(o);
+          if (dtInicio && dtYMD && dtYMD < dtInicio) return false;
+          if (dtFim && dtYMD && dtYMD > dtFim) return false;
+          return true;
+        });
+      }
+
+      const analisados = lista.map(o => ({
+        orc: o,
+        luc: calcularLucratividadeOrcamento(o)
+      })).filter(item => {
+        if (!termo) return true;
+        const o = item.orc;
+        const l = item.luc;
+        return (o.numero || "").toLowerCase().includes(termo) ||
+               (o.clienteNome || "").toLowerCase().includes(termo) ||
+               (l.resumoPedras || "").toLowerCase().includes(termo) ||
+               (l.arquitetoNome || "").toLowerCase().includes(termo) ||
+               (l.vendedorNome || "").toLowerCase().includes(termo);
+      });
+
+      let somaReceita = 0;
+      let somaCustos = 0;
+      let somaLucro = 0;
+      let somaM2 = 0;
+
+      analisados.forEach(({ luc }) => {
+        somaReceita += luc.receita;
+        somaCustos += luc.custoTotal;
+        somaLucro += luc.lucroLiquido;
+        somaM2 += luc.m2Total;
+      });
+
+      const margemMedia = somaReceita > 0 ? ((somaLucro / somaReceita) * 100) : 0;
+
+      const elRec = document.getElementById("lucro_stat_receita");
+      if (elRec) elRec.innerText = `R$ ${somaReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const elSubRec = document.getElementById("lucro_stat_sub_receita");
+      if (elSubRec) elSubRec.innerText = `${analisados.length} pedido(s) • ${somaM2.toFixed(2)} m²`;
+
+      const elCusto = document.getElementById("lucro_stat_custo_total");
+      if (elCusto) elCusto.innerText = `R$ ${somaCustos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      const elLucro = document.getElementById("lucro_stat_lucro_liquido");
+      if (elLucro) {
+        elLucro.innerText = `R$ ${somaLucro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        elLucro.className = `text-xl font-black font-mono mt-1 block ${somaLucro >= 0 ? 'text-emerald-700' : 'text-rose-600'}`;
+      }
+
+      const elMargem = document.getElementById("lucro_stat_margem_perc");
+      if (elMargem) {
+        elMargem.innerText = `${margemMedia.toFixed(1).replace('.', ',')}%`;
+        elMargem.className = `text-xl font-black font-mono mt-1 block ${margemMedia >= 35 ? 'text-emerald-700' : (margemMedia >= 18 ? 'text-amber-700' : 'text-rose-600')}`;
+      }
+
+      const badgeLucroTop = document.getElementById("badge_fin_subaba_lucratividade");
+      if (badgeLucroTop) {
+        badgeLucroTop.innerText = `${margemMedia.toFixed(0)}%`;
+      }
+
+      const contEl = document.getElementById("lucro_contador_exibicao");
+      if (contEl) contEl.innerText = `Exibindo ${analisados.length} pedido(s) com cálculo de custo e margem real`;
+
+      if (analisados.length === 0) {
+        container.innerHTML = `
+          <div class="p-10 text-center space-y-2">
+            <span class="text-3xl block">📈</span>
+            <h4 class="text-sm font-bold text-slate-800">Nenhum pedido encontrado neste filtro</h4>
+            <p class="text-xs text-slate-500">Altere o filtro para "Todos os Orçamentos" ou ajuste o período de datas acima.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-800 text-white text-[11px] uppercase tracking-wider">
+                <th class="py-3 px-4 font-bold">Pedido / Cliente</th>
+                <th class="py-3 px-3 font-bold">Pedras & m²</th>
+                <th class="py-3 px-3 font-bold text-right">Venda Líquida</th>
+                <th class="py-3 px-3 font-bold text-right">Custo Pedra/Cuba</th>
+                <th class="py-3 px-3 font-bold text-right">RT / Comissões / Extras</th>
+                <th class="py-3 px-3 font-bold text-right">Lucro Líquido</th>
+                <th class="py-3 px-3 font-bold text-center">Margem %</th>
+                <th class="py-3 px-4 font-bold text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white text-xs">
+              ${analisados.map(({ orc, luc }) => {
+                const corMargem = luc.margemPerc >= 35
+                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                  : (luc.margemPerc >= 18 ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-rose-100 text-rose-900 border-rose-300');
+                const custoMatTotal = luc.custoPedra + luc.custoCubas;
+                const custoIndiretoTotal = luc.custoRT + luc.custoComissao + luc.custoExtras;
+                return `
+                  <tr class="hover:bg-slate-50 transition">
+                    <td class="py-3 px-4">
+                      <div class="flex items-center gap-2">
+                        <span class="font-mono font-black text-slate-900">${orc.numero || 'ORC'}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">${(orc.status || '').replace('_', ' ')}</span>
+                      </div>
+                      <div class="font-bold text-slate-800 mt-0.5">${orc.clienteNome || 'Consumidor'}</div>
+                      <div class="text-[10px] text-slate-500">${orc.dataCriacao || ''}</div>
+                    </td>
+                    <td class="py-3 px-3">
+                      <div class="font-semibold text-slate-800 truncate max-w-[180px]" title="${luc.resumoPedras}">${luc.resumoPedras}</div>
+                      <div class="text-[11px] font-mono text-slate-500">${luc.m2Total.toFixed(2)} m²</div>
+                    </td>
+                    <td class="py-3 px-3 text-right font-mono font-black text-slate-900">
+                      R$ ${luc.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td class="py-3 px-3 text-right font-mono text-rose-700">
+                      <div class="font-bold">- R$ ${custoMatTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                      <div class="text-[10px] text-slate-500">🪨 R$ ${luc.custoPedra.toFixed(0)} | 🚰 R$ ${luc.custoCubas.toFixed(0)}</div>
+                    </td>
+                    <td class="py-3 px-3 text-right font-mono text-amber-800">
+                      <div class="font-bold">${custoIndiretoTotal > 0 ? `- R$ ${custoIndiretoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'R$ 0,00'}</div>
+                      <div class="text-[10px] text-slate-500">
+                        ${luc.arquitetoNome ? `📐 RT: ${luc.arquitetoNome}` : (luc.custoRT > 0 ? `RT: R$ ${luc.custoRT.toFixed(0)}` : 'Sem RT/Extras')}
+                      </div>
+                    </td>
+                    <td class="py-3 px-3 text-right font-mono font-black ${luc.lucroLiquido >= 0 ? 'text-emerald-700' : 'text-rose-600'}">
+                      R$ ${luc.lucroLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                      <span class="px-2.5 py-1 rounded-full text-xs font-mono font-black border ${corMargem}">
+                        ${luc.margemPerc.toFixed(1).replace('.', ',')}%
+                      </span>
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                      <button onclick="abrirModalCustosPedido('${orc.id}')" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold transition inline-flex items-center gap-1 cursor-pointer shadow-xs" title="Ajustar custos da obra, RT de arquiteto, comissão e frete">
+                        <span>⚙️</span> <span>Custos / RT</span>
+                      </button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function abrirModalCustosPedido(orcId) {
+      const orc = (orcamentosSalvos || []).find(o => o.id === orcId);
+      if (!orc) return;
+
+      const luc = calcularLucratividadeOrcamento(orc);
+      const cx = orc.custosExtras || {};
+
+      document.getElementById("custos_pedido_orc_id").value = orc.id;
+      document.getElementById("custos_pedido_titulo").innerText = `${orc.numero} - ${orc.clienteNome || 'Cliente'}`;
+      document.getElementById("custos_pedido_resumo_venda").innerText = `Venda Líquida: R$ ${luc.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${luc.m2Total.toFixed(2)} m² de ${luc.resumoPedras})`;
+
+      document.getElementById("custos_pedido_pedra_auto").innerText = `Automático pelo catálogo: R$ ${luc.custoPedraCalculado.toFixed(2)}`;
+      document.getElementById("custos_pedido_pedra_manual").value = (cx.custoPedraManual !== undefined && cx.custoPedraManual !== null && cx.custoPedraManual !== "") ? cx.custoPedraManual : "";
+
+      document.getElementById("custos_pedido_cuba_auto").innerText = `Automático pelo catálogo: R$ ${luc.custoCubasCalculado.toFixed(2)}`;
+      document.getElementById("custos_pedido_cuba_manual").value = (cx.custoCubasManual !== undefined && cx.custoCubasManual !== null && cx.custoCubasManual !== "") ? cx.custoCubasManual : "";
+
+      document.getElementById("custos_pedido_arquiteto_nome").value = cx.arquitetoNome || "";
+      document.getElementById("custos_pedido_rt_perc").value = cx.rtPercentual || "";
+      document.getElementById("custos_pedido_rt_fixo").value = cx.rtValorFixo || "";
+
+      document.getElementById("custos_pedido_vendedor_nome").value = cx.vendedorNome || orc.vendedor || "";
+      document.getElementById("custos_pedido_comissao_perc").value = cx.comissaoPercentual || "";
+      document.getElementById("custos_pedido_comissao_fixo").value = cx.comissaoValorFixo || "";
+
+      document.getElementById("custos_pedido_outros").value = cx.outrosCustos || "";
+      document.getElementById("custos_pedido_obs").value = cx.obs || "";
+
+      document.getElementById("modal_custos_pedido").classList.remove("hidden");
+    }
+
+    function fecharModalCustosPedido() {
+      const m = document.getElementById("modal_custos_pedido");
+      if (m) m.classList.add("hidden");
+    }
+
+    function salvarCustosPedido() {
+      const orcId = document.getElementById("custos_pedido_orc_id").value;
+      const orc = (orcamentosSalvos || []).find(o => o.id === orcId);
+      if (!orc) return;
+
+      const pedraMan = document.getElementById("custos_pedido_pedra_manual").value.trim();
+      const cubaMan = document.getElementById("custos_pedido_cuba_manual").value.trim();
+
+      orc.custosExtras = {
+        custoPedraManual: pedraMan !== "" ? (parseFloat(pedraMan) || 0) : null,
+        custoCubasManual: cubaMan !== "" ? (parseFloat(cubaMan) || 0) : null,
+        arquitetoNome: document.getElementById("custos_pedido_arquiteto_nome").value.trim(),
+        rtPercentual: parseFloat(document.getElementById("custos_pedido_rt_perc").value) || 0,
+        rtValorFixo: parseFloat(document.getElementById("custos_pedido_rt_fixo").value) || 0,
+        vendedorNome: document.getElementById("custos_pedido_vendedor_nome").value.trim(),
+        comissaoPercentual: parseFloat(document.getElementById("custos_pedido_comissao_perc").value) || 0,
+        comissaoValorFixo: parseFloat(document.getElementById("custos_pedido_comissao_fixo").value) || 0,
+        outrosCustos: parseFloat(document.getElementById("custos_pedido_outros").value) || 0,
+        obs: document.getElementById("custos_pedido_obs").value.trim()
+      };
+
+      localStorage.setItem(getTenantStorageKey("orcamentos_salvos"), JSON.stringify(orcamentosSalvos));
+      enviarOrcamentoParaNuvem(orc);
+      fecharModalCustosPedido();
+      renderizarLucratividadeView();
+      mostrarToast(`Custos e margem do pedido ${orc.numero} atualizados!`, "📈");
+    }
+
+    function enviarCobrancaWhatsApp(orcId) {
+      const orc = (orcamentosSalvos || []).find(o => o.id === orcId);
+      if (!orc) return;
+      const st = calcularStatusFinanceiro(orc);
+      const foneLimpo = (orc.clienteFone || "").replace(/\D/g, "");
+      if (foneLimpo.length < 10) {
+        alert("Este cliente não possui um número de WhatsApp válido cadastrado no pedido.");
+        return;
+      }
+      const empresa = typeof getNomeEmpresaAtiva === "function" ? getNomeEmpresaAtiva() : "Marmoraria";
+      const msg = [
+        `Olá *${orc.clienteNome || 'Cliente'}*, tudo bem? 👋`,
+        `Aqui é do financeiro da *${empresa}*.`,
+        ``,
+        `Passando para enviar o resumo atualizado do seu pedido *${orc.numero}*:`,
+        `• Valor Total do Pedido: *R$ ${st.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}*`,
+        `• Valor Já Recebido: *R$ ${st.totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}*`,
+        `• *Saldo Restante a Pagar: R$ ${st.saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}*`,
+        ``,
+        `Caso deseje realizar a quitação via PIX ou transferência, estamos à disposição para enviar o recibo atualizado. Muito obrigado!`
+      ].join("\n");
+
+      const url = `https://wa.me/55${foneLimpo}?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank");
+    }
+
+    async function abrirModalBackupsBanco() {
+      const m = document.getElementById("modal_backups_banco");
+      if (m) m.classList.remove("hidden");
+      await carregarListaBackups();
+    }
+
+    function fecharModalBackupsBanco() {
+      const m = document.getElementById("modal_backups_banco");
+      if (m) m.classList.add("hidden");
+    }
+
+    async function carregarListaBackups() {
+      const container = document.getElementById("lista_backups_modal");
+      if (!container) return;
+      container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500">Carregando backups do servidor...</div>`;
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/backups`);
+        if (!resp.ok) throw new Error("Falha ao listar backups");
+        const data = await resp.json();
+        const backups = data.backups || [];
+        if (backups.length === 0) {
+          container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">Nenhum backup encontrado ainda. Clique em "Gerar Backup Agora".</div>`;
+          return;
+        }
+        container.innerHTML = backups.map(b => `
+          <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white transition">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm">🗄️</span>
+              <div>
+                <div class="font-mono font-bold text-xs text-slate-900">${b.filename}</div>
+                <div class="text-[11px] text-slate-500">Criado em: <b>${b.created_at}</b> • Tamanho: <b>${b.size_kb} KB</b></div>
+              </div>
+            </div>
+            <a href="${API_BASE_URL}/api/backups/download/${encodeURIComponent(b.filename)}" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1">
+              ⬇️ Baixar .tar.gz
+            </a>
+          </div>
+        `).join("");
+      } catch (e) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-rose-500">Não foi possível conectar ao servidor de backups no momento.</div>`;
+      }
+    }
+
+    async function dispararBackupManual() {
+      try {
+        mostrarToast("Gerando backup compactado de todos os bancos...", "🛡️");
+        const resp = await fetch(`${API_BASE_URL}/api/backups/criar`, { method: "POST" });
+        if (resp.ok) {
+          mostrarToast("Backup gerado e armazenado com sucesso!", "✅");
+          await carregarListaBackups();
+        } else {
+          alert("Erro ao criar backup no servidor.");
+        }
+      } catch (e) {
+        alert("Falha de conexão ao disparar backup manual.");
       }
     }
 
@@ -7074,12 +7616,20 @@
               </div>
 
               <!-- Atalhos rápidos -->
-              <div class="flex items-center gap-1.5 self-start sm:self-auto">
+              <div class="flex flex-wrap items-center gap-1.5 self-start sm:self-auto">
+                ${(linkWhats && st.saldoDevedor > 0.01) ? `
+                  <button onclick="enviarCobrancaWhatsApp('${o.id}')" class="px-3 py-1.5 rounded-xl text-amber-900 hover:bg-amber-100 bg-amber-50 border border-amber-300 transition text-xs font-bold cursor-pointer shadow-2xs" title="Enviar lembrete amigável de cobrança do saldo via WhatsApp">
+                    📲 Cobrar Saldo
+                  </button>
+                ` : ''}
                 ${linkWhats ? `
                   <a href="${linkWhats}" target="_blank" class="p-2 rounded-xl text-emerald-700 hover:bg-emerald-50 bg-white border border-emerald-300 transition text-xs font-bold" title="Chamar no WhatsApp">
                     💬 WhatsApp
                   </a>
                 ` : ''}
+                <button onclick="abrirModalCustosPedido('${o.id}')" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition cursor-pointer shadow-2xs" title="Custos de Obra, RT e Margem de Lucro">
+                  📈 Margem / RT
+                </button>
                 <button onclick="carregarOrcamento('${o.id}')" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition cursor-pointer shadow-2xs" title="Abrir Orçamento">
                   ✏️ Abrir
                 </button>
@@ -10196,22 +10746,31 @@
         const div = document.createElement("div");
         div.className = `flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl border gap-2 transition ${editando ? 'border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/20' : 'border-slate-200 bg-slate-50/70 hover:bg-white'}`;
 
+        const custoAtual = mat.custoM2 !== undefined ? mat.custoM2 : Math.round((parseFloat(mat.precoM2) || 0) * 0.48);
+        const margemPedra = mat.precoM2 > 0 ? Math.round(((mat.precoM2 - custoAtual) / mat.precoM2) * 100) : 0;
+
         div.innerHTML = `
           <div class="flex items-center gap-2.5">
             <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">🪨</span>
             <div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-bold text-xs text-slate-900">${mat.nome}</span>
                 ${getBadgeCategoriaMaterial(mat.categoria)}
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${margemPedra >= 40 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}" title="Margem bruta sobre a pedra">Margem: ${margemPedra}%</span>
               </div>
               <span class="text-[11px] text-slate-500">Código ID: <span class="font-mono text-slate-600">${mat.id}</span></span>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 self-end sm:self-auto">
+          <div class="flex flex-wrap items-center gap-2 self-end sm:self-auto">
+            <div class="flex items-center gap-1 bg-rose-50/80 px-2 py-1 rounded-lg border border-rose-200 shadow-xs" title="Custo de compra da chapa por m²">
+              <span class="text-[10px] text-rose-500 font-bold">Custo R$</span>
+              <input type="number" step="5" value="${custoAtual}" onchange="editarCustoRapidoMaterial('${mat.id}', parseFloat(this.value) || 0)" class="w-14 text-right font-mono font-bold text-xs bg-transparent focus:outline-none text-rose-800">
+              <span class="text-[10px] text-rose-400 font-mono">/m²</span>
+            </div>
             <div class="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-xs" title="Preço de venda da chapa por m²">
-              <span class="text-[10px] text-slate-400 font-mono">R$</span>
-              <input type="number" step="10" value="${mat.precoM2}" onchange="editarPrecoRapidoMaterial('${mat.id}', parseFloat(this.value) || 0)" class="w-16 text-right font-mono font-bold text-xs bg-transparent focus:outline-none focus:text-emerald-700 text-slate-800">
+              <span class="text-[10px] text-emerald-600 font-bold">Venda R$</span>
+              <input type="number" step="10" value="${mat.precoM2}" onchange="editarPrecoRapidoMaterial('${mat.id}', parseFloat(this.value) || 0)" class="w-14 text-right font-mono font-bold text-xs bg-transparent focus:outline-none focus:text-emerald-700 text-slate-800">
               <span class="text-[10px] text-slate-400 font-mono">/m²</span>
             </div>
             <button type="button" onclick="iniciarEdicaoMaterial(${idx})" title="Editar cadastro completo" class="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition">
@@ -10233,6 +10792,8 @@
       document.getElementById("novo_mat_nome").value = mat.nome;
       document.getElementById("novo_mat_categoria").value = mat.categoria || "Granito";
       document.getElementById("novo_mat_preco").value = mat.precoM2;
+      const custoEl = document.getElementById("novo_mat_custo");
+      if (custoEl) custoEl.value = mat.custoM2 !== undefined ? mat.custoM2 : Math.round((parseFloat(mat.precoM2) || 0) * 0.48);
 
       document.getElementById("modal_mat_form_titulo").innerText = `Editando Pedra: ${mat.nome}`;
       document.getElementById("btn_salvar_mat").innerText = "✓ Salvar Alterações";
@@ -10247,6 +10808,8 @@
       if (nomeInput) nomeInput.value = "";
       const precoInput = document.getElementById("novo_mat_preco");
       if (precoInput) precoInput.value = "280";
+      const custoInput = document.getElementById("novo_mat_custo");
+      if (custoInput) custoInput.value = "135";
       const catInput = document.getElementById("novo_mat_categoria");
       if (catInput) catInput.value = "Granito";
 
@@ -10266,6 +10829,8 @@
       const nomeInput = document.getElementById("novo_mat_nome");
       const categoria = document.getElementById("novo_mat_categoria").value;
       const preco = parseFloat(document.getElementById("novo_mat_preco").value) || 0;
+      const custoEl = document.getElementById("novo_mat_custo");
+      const custo = custoEl && custoEl.value !== "" ? (parseFloat(custoEl.value) || 0) : Math.round(preco * 0.48);
       const nome = nomeInput.value.trim();
 
       if (!nome) {
@@ -10278,6 +10843,7 @@
         MATERIAIS[indexMaterialEditando].nome = nome;
         MATERIAIS[indexMaterialEditando].categoria = categoria;
         MATERIAIS[indexMaterialEditando].precoM2 = preco;
+        MATERIAIS[indexMaterialEditando].custoM2 = custo;
 
         // Atualiza peças ativas que usam esse material
         const matId = MATERIAIS[indexMaterialEditando].id;
@@ -10289,15 +10855,18 @@
         cancelarEdicaoMaterial();
       } else {
         const id = "mat_" + Date.now();
-        MATERIAIS.push({ id, nome, categoria, precoM2: preco });
+        MATERIAIS.push({ id, nome, categoria, precoM2: preco, custoM2: custo });
         mostrarToast(`Pedra "${nome}" cadastrada no catálogo!`, "🪨");
         nomeInput.value = "";
         document.getElementById("novo_mat_preco").value = "280";
+        if (custoEl) custoEl.value = "135";
       }
 
       localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
+      salvarCatalogoNuvem("materiais", MATERIAIS);
       renderizarListaMateriaisModal();
       renderTabela();
+      if (typeof renderizarLucratividadeView === "function") renderizarLucratividadeView();
     }
 
     function editarPrecoRapidoMaterial(id, novoPreco) {
@@ -10308,8 +10877,23 @@
           if (it.materialId === id) it.precoM2 = novoPreco;
         });
         localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
+        salvarCatalogoNuvem("materiais", MATERIAIS);
+        renderizarListaMateriaisModal();
         renderTabela();
-        mostrarToast(`Preço do ${mat.nome} alterado para R$ ${novoPreco.toFixed(2)}/m²`, "💰");
+        if (typeof renderizarLucratividadeView === "function") renderizarLucratividadeView();
+        mostrarToast(`Preço de venda do ${mat.nome} alterado para R$ ${novoPreco.toFixed(2)}/m²`, "💰");
+      }
+    }
+
+    function editarCustoRapidoMaterial(id, novoCusto) {
+      const mat = MATERIAIS.find(m => m.id === id);
+      if (mat) {
+        mat.custoM2 = novoCusto;
+        localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
+        salvarCatalogoNuvem("materiais", MATERIAIS);
+        renderizarListaMateriaisModal();
+        if (typeof renderizarLucratividadeView === "function") renderizarLucratividadeView();
+        mostrarToast(`Custo do ${mat.nome} alterado para R$ ${novoCusto.toFixed(2)}/m²`, "🪨");
       }
     }
 
@@ -10318,8 +10902,10 @@
       if (confirm(`Deseja remover "${mat.nome}" do catálogo de pedras?`)) {
         MATERIAIS.splice(index, 1);
         localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
+        salvarCatalogoNuvem("materiais", MATERIAIS);
         renderizarListaMateriaisModal();
         renderTabela();
+        if (typeof renderizarLucratividadeView === "function") renderizarLucratividadeView();
         mostrarToast(`Pedra "${mat.nome}" removida.`, "🗑️");
       }
     }
@@ -10328,9 +10914,11 @@
       if (confirm("Deseja restaurar as pedras e chapas padrões da marmoraria?")) {
         MATERIAIS = JSON.parse(JSON.stringify(MATERIAIS_PADRAO));
         localStorage.setItem(getTenantStorageKey("materiais"), JSON.stringify(MATERIAIS));
+        salvarCatalogoNuvem("materiais", MATERIAIS);
         cancelarEdicaoMaterial();
         renderizarListaMateriaisModal();
         renderTabela();
+        if (typeof renderizarLucratividadeView === "function") renderizarLucratividadeView();
         mostrarToast("Catálogo de pedras restaurado aos padrões!", "↺");
       }
     }
@@ -10385,6 +10973,8 @@
         const div = document.createElement("div");
         div.className = `flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl border gap-2 transition ${editando ? 'border-blue-500 bg-blue-50/60 ring-2 ring-blue-500/20' : 'border-slate-200 bg-slate-50/70 hover:bg-white'}`;
 
+        const custoCuba = cuba.custo !== undefined ? cuba.custo : Math.round((parseFloat(cuba.preco) || 0) * 0.5);
+
         div.innerHTML = `
           <div class="flex items-center gap-2.5">
             <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-sm">🚰</span>
@@ -10397,10 +10987,14 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-2 self-end sm:self-auto">
-            <div class="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-xs" title="Preço de tabela da cuba">
-              <span class="text-[10px] text-slate-400 font-mono">R$</span>
-              <input type="number" step="10" value="${cuba.preco}" onchange="editarPrecoRapidoCuba('${cuba.id}', parseFloat(this.value) || 0)" class="w-16 text-right font-mono font-bold text-xs bg-transparent focus:outline-none focus:text-blue-700 text-slate-800">
+          <div class="flex flex-wrap items-center gap-2 self-end sm:self-auto">
+            <div class="flex items-center gap-1 bg-rose-50/80 px-2 py-1 rounded-lg border border-rose-200 shadow-xs" title="Custo de aquisição/produção da cuba">
+              <span class="text-[10px] text-rose-500 font-bold">Custo R$</span>
+              <input type="number" step="5" value="${custoCuba}" onchange="editarCustoRapidoCuba('${cuba.id}', parseFloat(this.value) || 0)" class="w-14 text-right font-mono font-bold text-xs bg-transparent focus:outline-none text-rose-800">
+            </div>
+            <div class="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-xs" title="Preço de venda da cuba">
+              <span class="text-[10px] text-blue-600 font-bold">Venda R$</span>
+              <input type="number" step="10" value="${cuba.preco}" onchange="editarPrecoRapidoCuba('${cuba.id}', parseFloat(this.value) || 0)" class="w-14 text-right font-mono font-bold text-xs bg-transparent focus:outline-none focus:text-blue-700 text-slate-800">
             </div>
             <button type="button" onclick="iniciarEdicaoCuba(${idx})" title="Editar modelo" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -10421,6 +11015,8 @@
       document.getElementById("nova_cuba_nome").value = cuba.nome;
       document.getElementById("nova_cuba_tipo").value = cuba.tipo || "Inox Embutir";
       document.getElementById("nova_cuba_preco").value = cuba.preco;
+      const custoEl = document.getElementById("nova_cuba_custo");
+      if (custoEl) custoEl.value = cuba.custo !== undefined ? cuba.custo : Math.round((parseFloat(cuba.preco) || 0) * 0.5);
 
       document.getElementById("modal_cuba_form_titulo").innerText = `Editando Cuba: ${cuba.nome}`;
       document.getElementById("btn_salvar_cuba").innerText = "✓ Salvar Alterações";
@@ -10435,6 +11031,8 @@
       if (nomeInput) nomeInput.value = "";
       const precoInput = document.getElementById("nova_cuba_preco");
       if (precoInput) precoInput.value = "180";
+      const custoInput = document.getElementById("nova_cuba_custo");
+      if (custoInput) custoInput.value = "90";
       const tipoInput = document.getElementById("nova_cuba_tipo");
       if (tipoInput) tipoInput.value = "Inox Embutir";
 
@@ -10454,6 +11052,8 @@
       const nomeInput = document.getElementById("nova_cuba_nome");
       const tipo = document.getElementById("nova_cuba_tipo").value;
       const preco = parseFloat(document.getElementById("nova_cuba_preco").value) || 0;
+      const custoEl = document.getElementById("nova_cuba_custo");
+      const custo = custoEl && custoEl.value !== "" ? (parseFloat(custoEl.value) || 0) : Math.round(preco * 0.5);
       const nome = nomeInput.value.trim();
 
       if (!nome) {
@@ -10466,6 +11066,7 @@
         CUBAS[indexCubaEditando].nome = nome;
         CUBAS[indexCubaEditando].tipo = tipo;
         CUBAS[indexCubaEditando].preco = preco;
+        CUBAS[indexCubaEditando].custo = custo;
 
         // Atualiza peças que usam essa cuba
         const cubaId = CUBAS[indexCubaEditando].id;
@@ -10480,15 +11081,18 @@
         cancelarEdicaoCuba();
       } else {
         const id = "cuba_" + Date.now();
-        CUBAS.push({ id, nome, tipo, preco });
+        CUBAS.push({ id, nome, tipo, preco, custo });
         mostrarToast(`Cuba "${nome}" adicionada ao catálogo!`, "🚰");
         nomeInput.value = "";
         document.getElementById("nova_cuba_preco").value = "180";
+        if (custoEl) custoEl.value = "90";
       }
 
       localStorage.setItem(getTenantStorageKey("cubas"), JSON.stringify(CUBAS));
+      salvarCatalogoNuvem("cubas", CUBAS);
       renderizarListaCubasModal();
       renderTabela();
+      if (typeof renderizarLucratividadeView === "function") renderizarLucratividadeView();
     }
 
     function editarPrecoRapidoCuba(id, novoPreco) {
@@ -10499,8 +11103,23 @@
           if (it.cubaId === id) it.cuba = novoPreco;
         });
         localStorage.setItem(getTenantStorageKey("cubas"), JSON.stringify(CUBAS));
+        salvarCatalogoNuvem("cubas", CUBAS);
+        renderizarListaCubasModal();
         renderTabela();
-        mostrarToast(`Preço da ${cuba.nome} alterado para R$ ${novoPreco.toFixed(2)}`, "💰");
+        if (typeof renderizarLucratividadeView === "function") renderizarLucratividadeView();
+        mostrarToast(`Preço de venda da ${cuba.nome} alterado para R$ ${novoPreco.toFixed(2)}`, "💰");
+      }
+    }
+
+    function editarCustoRapidoCuba(id, novoCusto) {
+      const cuba = CUBAS.find(c => c.id === id);
+      if (cuba) {
+        cuba.custo = novoCusto;
+        localStorage.setItem(getTenantStorageKey("cubas"), JSON.stringify(CUBAS));
+        salvarCatalogoNuvem("cubas", CUBAS);
+        renderizarListaCubasModal();
+        if (typeof renderizarLucratividadeView === "function") renderizarLucratividadeView();
+        mostrarToast(`Custo da ${cuba.nome} alterado para R$ ${novoCusto.toFixed(2)}`, "🚰");
       }
     }
 
@@ -10509,9 +11128,24 @@
       if (confirm(`Deseja remover a cuba "${cuba.nome}" do catálogo?`)) {
         CUBAS.splice(index, 1);
         localStorage.setItem(getTenantStorageKey("cubas"), JSON.stringify(CUBAS));
+        salvarCatalogoNuvem("cubas", CUBAS);
         renderizarListaCubasModal();
         renderTabela();
+        if (typeof renderizarLucratividadeView === "function") renderizarLucratividadeView();
         mostrarToast(`Cuba "${cuba.nome}" removida.`, "🗑️");
+      }
+    }
+
+    function restaurarPadroesCubas() {
+      if (confirm("Deseja restaurar os modelos de cubas padrões da marmoraria?")) {
+        CUBAS = JSON.parse(JSON.stringify(CUBAS_PADRAO));
+        localStorage.setItem(getTenantStorageKey("cubas"), JSON.stringify(CUBAS));
+        salvarCatalogoNuvem("cubas", CUBAS);
+        cancelarEdicaoCuba();
+        renderizarListaCubasModal();
+        renderTabela();
+        if (typeof renderizarLucratividadeView === "function") renderizarLucratividadeView();
+        mostrarToast("Catálogo de cubas restaurado aos padrões!", "↺");
       }
     }
 
@@ -13538,7 +14172,7 @@
       <!-- Add/Edit Material Form -->
       <div class="p-4 rounded-xl border border-emerald-100 bg-emerald-50/30 space-y-3">
         <span id="modal_mat_form_titulo" class="text-xs font-bold text-emerald-900 uppercase tracking-wider block">Cadastrar Nova Pedra / Chapa</span>
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+        <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
           <div class="sm:col-span-2">
             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nome do Material / Chapa</label>
             <input type="text" id="novo_mat_nome" placeholder="Ex: Granito Preto Via Láctea, Quartzo..." class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-white font-medium focus:ring-1 focus:ring-emerald-500">
@@ -13554,7 +14188,11 @@
             </select>
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Preço R$/m²</label>
+            <label class="block text-[11px] font-semibold text-rose-700 mb-1">Custo R$/m²</label>
+            <input type="number" id="novo_mat_custo" value="135" min="0" step="5" class="w-full px-3 py-1.5 text-xs font-mono font-bold rounded-lg border border-rose-200 bg-white focus:ring-1 focus:ring-rose-500 text-right text-rose-800">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-emerald-700 mb-1">Venda R$/m²</label>
             <input type="number" id="novo_mat_preco" value="280" min="0" step="10" class="w-full px-3 py-1.5 text-xs font-mono font-bold rounded-lg border border-slate-200 bg-white focus:ring-1 focus:ring-emerald-500 text-right">
           </div>
         </div>
@@ -13615,7 +14253,7 @@
       <!-- Add/Edit Cuba Form -->
       <div class="p-4 rounded-xl border border-blue-100 bg-blue-50/30 space-y-3">
         <span id="modal_cuba_form_titulo" class="text-xs font-bold text-blue-900 uppercase tracking-wider block">Cadastrar Novo Modelo de Cuba</span>
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+        <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
           <div class="sm:col-span-2">
             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Modelo / Nome da Cuba</label>
             <input type="text" id="nova_cuba_nome" placeholder="Ex: Cuba Inox Tramontina Nº 1, Esculpida..." class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-white font-medium focus:ring-1 focus:ring-blue-500">
@@ -13633,7 +14271,11 @@
             </select>
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Preço R$</label>
+            <label class="block text-[11px] font-semibold text-rose-700 mb-1">Custo R$</label>
+            <input type="number" id="nova_cuba_custo" value="90" min="0" step="5" class="w-full px-3 py-1.5 text-xs font-mono font-bold rounded-lg border border-rose-200 bg-white focus:ring-1 focus:ring-rose-500 text-right text-rose-800">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-blue-700 mb-1">Venda R$</label>
             <input type="number" id="nova_cuba_preco" value="180" min="0" step="10" class="w-full px-3 py-1.5 text-xs font-mono font-bold rounded-lg border border-slate-200 bg-white focus:ring-1 focus:ring-blue-500 text-right">
           </div>
         </div>
@@ -13670,6 +14312,123 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- MODAL DE CUSTOS POR PEDIDO, RT DE ARQUITETO & COMISSÃO -->
+  <div id="modal_custos_pedido" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-150 max-h-[90vh] overflow-y-auto">
+      <input type="hidden" id="custos_pedido_orc_id">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-xl">📈</div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900" id="custos_pedido_titulo">Custos e Margem do Pedido</h3>
+            <p class="text-xs text-emerald-700 font-bold" id="custos_pedido_resumo_venda"></p>
+          </div>
+        </div>
+        <button onclick="fecharModalCustosPedido()" class="text-slate-400 hover:text-slate-600 font-bold text-lg p-1.5 rounded-lg hover:bg-slate-100 transition">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">🪨 Custo de Pedra / Chapas (R$)</label>
+            <span id="custos_pedido_pedra_auto" class="block text-[11px] text-slate-500 mb-1"></span>
+            <input type="number" id="custos_pedido_pedra_manual" step="10" placeholder="Deixe vazio p/ usar automático" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-mono">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">🚰 Custo de Cubas (R$)</label>
+            <span id="custos_pedido_cuba_auto" class="block text-[11px] text-slate-500 mb-1"></span>
+            <input type="number" id="custos_pedido_cuba_manual" step="10" placeholder="Deixe vazio p/ usar automático" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-mono">
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-amber-50/50 border border-amber-200 space-y-2.5">
+          <span class="font-bold text-amber-900 uppercase tracking-wider text-[11px] block">📐 Reserva Técnica (RT de Arquiteto / Indicador)</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nome do Arquiteto</label>
+              <input type="text" id="custos_pedido_arquiteto_nome" placeholder="Ex: Arq. Juliana" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">RT (%)</label>
+              <input type="number" id="custos_pedido_rt_perc" step="0.5" placeholder="Ex: 5" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">ou Valor Fixo (R$)</label>
+              <input type="number" id="custos_pedido_rt_fixo" step="10" placeholder="0,00" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono">
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-blue-50/40 border border-blue-200 space-y-2.5">
+          <span class="font-bold text-blue-900 uppercase tracking-wider text-[11px] block">💼 Comissão de Vendedor & Custos Extras da Obra</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Vendedor</label>
+              <input type="text" id="custos_pedido_vendedor_nome" placeholder="Nome do vendedor" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Comissão (%)</label>
+              <input type="number" id="custos_pedido_comissao_perc" step="0.5" placeholder="Ex: 3" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">ou Comissão Fixa (R$)</label>
+              <input type="number" id="custos_pedido_comissao_fixo" step="10" placeholder="0,00" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">🚚 Outros Custos (Frete / Instalação / Insumos R$)</label>
+              <input type="number" id="custos_pedido_outros" step="10" placeholder="0,00" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">📝 Observações de Custo</label>
+              <input type="text" id="custos_pedido_obs" placeholder="Ex: Frete munck + massa plástica..." class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+        <button type="button" onclick="fecharModalCustosPedido()" class="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">Cancelar</button>
+        <button type="button" onclick="salvarCustosPedido()" class="px-5 py-2 text-xs font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition cursor-pointer">✓ Salvar Custos e Margem</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE BACKUPS AUTOMÁTICOS DIÁRIOS DO BANCO (30 DIAS) -->
+  <div id="modal_backups_banco" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-150 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-xl">🛡️</div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Backups Automáticos do Banco de Dados</h3>
+            <p class="text-xs text-slate-500">Rotina diária automática com compactação .tar.gz e retenção de 30 dias no servidor</p>
+          </div>
+        </div>
+        <button onclick="fecharModalBackupsBanco()" class="text-slate-400 hover:text-slate-600 font-bold text-lg p-1.5 rounded-lg hover:bg-slate-100 transition">✕</button>
+      </div>
+
+      <div class="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
+        <div class="text-xs text-emerald-900">
+          <span class="font-bold block">✅ Proteção Ativa (Retenção: últimos 30 dias)</span>
+          <span class="text-[11px] text-emerald-700">Inclui banco master e todos os bancos SQLite da marmoraria de forma consistente.</span>
+        </div>
+        <button type="button" onclick="dispararBackupManual()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm cursor-pointer shrink-0">
+          ⚡ Gerar Backup Agora
+        </button>
+      </div>
+
+      <div id="lista_backups_modal" class="space-y-2 flex-1 overflow-y-auto pr-1 max-h-[320px]">
+        <!-- Populado dinamicamente por carregarListaBackups() -->
+      </div>
+
+      <div class="flex items-center justify-end pt-3 border-t border-slate-100">
+        <button type="button" onclick="fecharModalBackupsBanco()" class="px-5 py-2 text-xs font-bold rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition">Fechar</button>
+      </div>
     </div>
   </div>
 

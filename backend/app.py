@@ -5,11 +5,15 @@ Arquitetura Database-per-Tenant com isolamento total por subdomínio
 import os
 import re
 import json
+import time
 import shutil
+import tarfile
+import tempfile
+import threading
 import sqlite3
 import hashlib
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional, Any, Dict
 from contextvars import ContextVar
 from fastapi import FastAPI, HTTPException, Body, Request, Header
@@ -46,17 +50,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Caminho dos bancos de dados e arquivos estáticos
+# Caminho dos bancos de dados e arquivos estáticos (Fonte única: index.html na raiz)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 TENANTS_DIR = os.path.join(DATA_DIR, "tenants")
+BACKUPS_DIR = os.path.join(DATA_DIR, "backups")
 os.makedirs(TENANTS_DIR, exist_ok=True)
+os.makedirs(BACKUPS_DIR, exist_ok=True)
 
 MASTER_DB_PATH = os.path.join(DATA_DIR, "master.db")
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
-INDEX_PATH = os.path.join(FRONTEND_DIR, "index.html")
+INDEX_PATH = os.path.join(BASE_DIR, "index.html")
 if not os.path.exists(INDEX_PATH):
-    INDEX_PATH = os.path.join(BASE_DIR, "index.html")
+    INDEX_PATH = os.path.join(FRONTEND_DIR, "index.html")
 
 ADMIN_PATH = os.path.join(FRONTEND_DIR, "admin.html")
 if not os.path.exists(ADMIN_PATH):
@@ -1576,6 +1582,155 @@ def delete_usuario(usuario_id: str):
     conn.close()
     return {"status": "deleted", "id": usuario_id}
 
+# --- SISTEMA DE BACKUP AUTOMÁTICO DIÁRIO E SOB DEMANDA (RETENÇÃO 30 DIAS) ---
+
+RETENCAO_BACKUP_DIAS = 30
+
+def _copiar_sqlite_seguro(origem_db: str, destino_db: str):
+    """Realiza backup atômico do SQLite usando a API nativa .backup() para evitar corrupção em modo WAL"""
+    if not os.path.exists(origem_db):
+        return False
+    src = sqlite3.connect(origem_db, timeout=30.0)
+    dst = sqlite3.connect(destino_db)
+    with dst:
+        src.backup(dst)
+    dst.close()
+    src.close()
+    return True
+
+def executar_backup_bancos(motivo: str = "diario") -> Dict[str, Any]:
+    """Gera arquivo .tar.gz compactado com todos os bancos SQLite e limpa arquivos com mais de 30 dias"""
+    os.makedirs(BACKUPS_DIR, exist_ok=True)
+    agora = datetime.now()
+    stamp = agora.strftime("%Y-%m-%d_%H%M%S")
+    nome_arquivo = f"backup_marmoraria_{stamp}_{motivo}.tar.gz"
+    caminho_final = os.path.join(BACKUPS_DIR, nome_arquivo)
+
+    arquivos_incluidos = []
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # 1. Backup do master.db
+        if os.path.exists(MASTER_DB_PATH):
+            dst_master = os.path.join(tmpdir, "master.db")
+            if _copiar_sqlite_seguro(MASTER_DB_PATH, dst_master):
+                arquivos_incluidos.append("master.db")
+
+        # 2. Backup de marmoraria.db legado se existir
+        legado_db = os.path.join(DATA_DIR, "marmoraria.db")
+        if os.path.exists(legado_db):
+            dst_legado = os.path.join(tmpdir, "marmoraria.db")
+            if _copiar_sqlite_seguro(legado_db, dst_legado):
+                arquivos_incluidos.append("marmoraria.db")
+
+        # 3. Backup de todos os bancos de tenants
+        if os.path.exists(TENANTS_DIR):
+            tenants_tmp = os.path.join(tmpdir, "tenants")
+            os.makedirs(tenants_tmp, exist_ok=True)
+            for fname in os.listdir(TENANTS_DIR):
+                if fname.endswith(".db"):
+                    orig = os.path.join(TENANTS_DIR, fname)
+                    dest = os.path.join(tenants_tmp, fname)
+                    if _copiar_sqlite_seguro(orig, dest):
+                        arquivos_incluidos.append(f"tenants/{fname}")
+
+        # 4. Salva manifesto do backup
+        manifesto = {
+            "created_at": agora.isoformat(),
+            "motivo": motivo,
+            "arquivos": arquivos_incluidos,
+            "retencao_dias": RETENCAO_BACKUP_DIAS
+        }
+        manifesto_path = os.path.join(tmpdir, "backup_info.json")
+        with open(manifesto_path, "w", encoding="utf-8") as mf:
+            json.dump(manifesto, mf, ensure_ascii=False, indent=2)
+
+        # 5. Compacta em .tar.gz
+        with tarfile.open(caminho_final, "w:gz") as tar:
+            for item in os.listdir(tmpdir):
+                tar.add(os.path.join(tmpdir, item), arcname=item)
+
+    # 6. Limpeza de retenção (remove backups com mais de 30 dias)
+    limite_tempo = time.time() - (RETENCAO_BACKUP_DIAS * 86400)
+    removidos = 0
+    for f in os.listdir(BACKUPS_DIR):
+        if f.startswith("backup_marmoraria_") and f.endswith(".tar.gz"):
+            fp = os.path.join(BACKUPS_DIR, f)
+            try:
+                if os.path.getmtime(fp) < limite_tempo:
+                    os.remove(fp)
+                    removidos += 1
+            except Exception:
+                pass
+
+    tamanho_bytes = os.path.getsize(caminho_final) if os.path.exists(caminho_final) else 0
+    return {
+        "filename": nome_arquivo,
+        "size_bytes": tamanho_bytes,
+        "size_kb": round(tamanho_bytes / 1024, 2),
+        "created_at": agora.strftime("%d/%m/%Y %H:%M:%S"),
+        "arquivos_count": len(arquivos_incluidos),
+        "removidos_antigos": removidos
+    }
+
+def _worker_backup_diario():
+    """Thread em segundo plano que garante pelo menos 1 backup diário automático"""
+    while True:
+        try:
+            os.makedirs(BACKUPS_DIR, exist_ok=True)
+            hoje_prefix = f"backup_marmoraria_{datetime.now().strftime('%Y-%m-%d')}"
+            ja_tem_hoje = any(
+                f.startswith(hoje_prefix) and f.endswith(".tar.gz")
+                for f in os.listdir(BACKUPS_DIR)
+            )
+            if not ja_tem_hoje:
+                executar_backup_bancos(motivo="auto_diario")
+        except Exception as e:
+            print(f"[Backup Automático] Aviso: {e}")
+        time.sleep(3600)
+
+threading.Thread(target=_worker_backup_diario, daemon=True).start()
+
+@app.get("/api/backups")
+def listar_backups():
+    """Lista os backups compactados disponíveis e status da retenção de 30 dias"""
+    os.makedirs(BACKUPS_DIR, exist_ok=True)
+    lista = []
+    for f in sorted(os.listdir(BACKUPS_DIR), reverse=True):
+        if f.startswith("backup_marmoraria_") and f.endswith(".tar.gz"):
+            fp = os.path.join(BACKUPS_DIR, f)
+            try:
+                st = os.stat(fp)
+                dt_str = datetime.fromtimestamp(st.st_mtime).strftime("%d/%m/%Y %H:%M:%S")
+                lista.append({
+                    "filename": f,
+                    "size_bytes": st.st_size,
+                    "size_kb": round(st.st_size / 1024, 2),
+                    "created_at": dt_str
+                })
+            except Exception:
+                pass
+    return {
+        "retencao_dias": RETENCAO_BACKUP_DIAS,
+        "total_backups": len(lista),
+        "backups": lista[:60]
+    }
+
+@app.post("/api/backups/criar")
+def criar_backup_manual():
+    """Dispara um backup imediato sob demanda de todos os bancos SQLite"""
+    info = executar_backup_bancos(motivo="manual")
+    return {"status": "ok", "backup": info}
+
+@app.get("/api/backups/download/{filename}")
+def download_backup(filename: str):
+    """Baixa uma cópia compactada (.tar.gz) de um backup específico"""
+    seguro = os.path.basename(filename)
+    if not (seguro.startswith("backup_marmoraria_") and seguro.endswith(".tar.gz")):
+        raise HTTPException(status_code=400, detail="Nome de arquivo inválido.")
+    fp = os.path.join(BACKUPS_DIR, seguro)
+    if not os.path.exists(fp):
+        raise HTTPException(status_code=404, detail="Arquivo de backup não encontrado.")
+    return FileResponse(fp, media_type="application/gzip", filename=seguro)
+
 # --- ROTAS DE SERVIÇO DE FRONTEND ---
 
 @app.get("/admin")
@@ -1587,8 +1742,9 @@ def serve_admin():
 
 @app.get("/")
 @app.get("/suporte")
+@app.get("/static/index.html")
 def serve_index(request: Request):
-    """Serve a aplicação para o cliente ou admin dependendo do subdomínio"""
+    """Serve a aplicação a partir da fonte única index.html para o cliente ou admin dependendo do subdomínio"""
     host = request.headers.get("host", "")
     sub = extract_subdomain(host)
     
