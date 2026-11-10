@@ -464,6 +464,14 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <!-- Barra de Busca Global Rápida (Ctrl + K) -->
+        <button type="button" onclick="abrirModalBuscaGlobal()" class="h-9 px-3 sm:px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 hover:border-blue-400 text-slate-600 hover:text-slate-900 transition shadow-2xs flex items-center gap-2 cursor-pointer group" title="Pesquisar cliente, orçamento, fábrica ou financeiro (Atalho: Ctrl + K)">
+          <svg class="w-4 h-4 text-blue-600 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <span class="hidden md:inline text-xs font-medium text-slate-500 group-hover:text-slate-800">Buscar cliente, ORC, fábrica...</span>
+          <span class="inline md:hidden text-xs font-bold text-slate-700">Buscar</span>
+          <kbd class="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-500 bg-slate-100 border border-slate-300 rounded-md">Ctrl+K</kbd>
+        </button>
+
         <!-- Badge Usuário Logado -->
         <div id="badge_usuario_logado" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-200/80 border border-slate-300 text-xs text-slate-800" title="Usuário Conectado">
           <span class="w-6 h-6 rounded-lg bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0" id="avatar_usuario_logado">U</span>
@@ -491,6 +499,11 @@
     <!-- VISÃO 1: PAINEL DE ORÇAMENTOS COMERCIAIS (TELA INICIAL)       -->
     <!-- ============================================================ -->
     <div id="view_painel_orcamentos" class="space-y-6">
+
+      <!-- PAINEL INTELIGENTE: RESUMO "MEU DIA" (ALERTAS DE PENDÊNCIAS COM 1 CLIQUE) -->
+      <div id="painel_resumo_meu_dia" class="bloco-cinza p-4 sm:p-5 rounded-2xl shadow-sm border-l-4 border-l-blue-600 space-y-3">
+        <!-- Renderizado dinamicamente por renderizarResumoMeuDia() -->
+      </div>
       
       <!-- KPIs Comerciais -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1823,7 +1836,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <div>
           <h2 class="text-base font-bold text-slate-900">2. Itens, Peças e Medições</h2>
-          <p class="text-xs text-slate-500">Altere qualquer dimensão abaixo. O cálculo recalcula instantaneamente.</p>
+          <p class="text-xs text-slate-500">Use o lançamento rápido com <kbd class="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-slate-200 text-slate-800 rounded border border-slate-300">Enter ↵</kbd> ou altere qualquer dimensão na tabela abaixo.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto no-print">
           <button onclick="abrirModalGerenciarMateriais()" class="px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-sm flex items-center gap-1.5" title="Cadastrar e gerenciar pedras, mármores e chapas">
@@ -1842,10 +1855,68 @@
             <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
             Regras de Lados
           </button>
-          <button onclick="adicionarItem()" class="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm flex items-center gap-1.5">
+          <button onclick="adicionarItem()" class="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm flex items-center gap-1.5 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Nova Peça
           </button>
+        </div>
+      </div>
+
+      <!-- ⚡ BARRA DE LANÇAMENTO RÁPIDO PELO TECLADO (ENTER INTELIGENTE) + ESBOÇO 2D AO VIVO -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-50/90 via-indigo-50/60 to-slate-50 border border-blue-200/80 space-y-3 no-print">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-md bg-blue-600 text-white font-black text-[10px] uppercase tracking-wider">⚡ Lançamento Rápido</span>
+            <span class="text-xs font-bold text-slate-800">Digite o Comprimento + <kbd class="px-1.5 py-0.2 bg-white border border-slate-300 rounded text-[10px] font-mono">Enter ↵</kbd> → Largura + <kbd class="px-1.5 py-0.2 bg-white border border-slate-300 rounded text-[10px] font-mono">Enter ↵</kbd> para adicionar sem usar o mouse!</span>
+          </div>
+          <!-- Botões de Pré-Preenchimento Rápido -->
+          <div class="flex flex-wrap items-center gap-1">
+            <span class="text-[10px] font-bold text-slate-500 uppercase mr-1">Kits / Modelos:</span>
+            <button type="button" onclick="preencherModeloRapidoCalc('Bancada Cozinha', 'pia_frente', 'inox_n2', 'fundo_1lat', 15, 'frente', 4, 0.60)" class="px-2 py-1 text-[11px] font-bold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition cursor-pointer">🍳 Pia Cozinha</button>
+            <button type="button" onclick="preencherModeloRapidoCalc('Lavatório Banheiro', 'pia_frente', 'louca_oval', 'fundo_1lat', 10, 'frente', 4, 0.50)" class="px-2 py-1 text-[11px] font-bold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition cursor-pointer">🚿 Banheiro</button>
+            <button type="button" onclick="preencherModeloRapidoCalc('Soleira de Porta', 'peitoril_2', 'nenhuma', 'nenhum', 0, 'nenhuma', 0, 0.15)" class="px-2 py-1 text-[11px] font-bold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition cursor-pointer">🚪 Soleira (15cm)</button>
+            <button type="button" onclick="preencherModeloRapidoCalc('Peitoril de Janela', 'peitoril_4', 'nenhuma', 'nenhum', 0, 'nenhuma', 0, 0.18)" class="px-2 py-1 text-[11px] font-bold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition cursor-pointer">🪟 Peitoril (18cm)</button>
+            <button type="button" onclick="preencherModeloRapidoCalc('Ilha / Balcão Gourmet', 'peitoril_4', 'nenhuma', 'nenhum', 0, 'ilha', 7, 0.80)" class="px-2 py-1 text-[11px] font-bold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition cursor-pointer">🍷 Ilha Gourmet</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
+          <!-- Campos de Digitação Rápida -->
+          <div class="lg:col-span-8 grid grid-cols-2 sm:grid-cols-12 gap-2.5 items-end">
+            <div class="col-span-2 sm:col-span-4">
+              <label class="block text-[10px] font-bold uppercase text-slate-600 mb-1">Ambiente / Descrição da Peça</label>
+              <input type="text" id="rapido_desc" value="Bancada / Peça" oninput="atualizarPreviewRapido2D()" onkeydown="aoTeclarInputRapidoCalc(event, 'desc')" placeholder="Ex: Pia Cozinha, Soleira..." class="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+            </div>
+            <div class="col-span-2 sm:col-span-3">
+              <label class="block text-[10px] font-bold uppercase text-slate-600 mb-1">Material (Pedra)</label>
+              <select id="rapido_material" onchange="atualizarPreviewRapido2D()" class="w-full px-2.5 py-2 text-xs font-semibold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                <!-- Preenchido dinamicamente -->
+              </select>
+            </div>
+            <div class="col-span-1 sm:col-span-1">
+              <label class="block text-[10px] font-bold uppercase text-slate-600 mb-1">Qtd</label>
+              <input type="number" id="rapido_qtd" value="1" min="1" step="1" oninput="atualizarPreviewRapido2D()" onkeydown="aoTeclarInputRapidoCalc(event, 'qtd')" class="w-full px-2 py-2 text-xs font-mono font-bold text-center rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+            </div>
+            <div class="col-span-1 sm:col-span-2">
+              <label class="block text-[10px] font-extrabold uppercase text-blue-700 mb-1">Comp. (m) ↵</label>
+              <input type="number" id="rapido_comp" step="0.01" placeholder="Ex: 1.80" oninput="atualizarPreviewRapido2D()" onkeydown="aoTeclarInputRapidoCalc(event, 'comp')" class="w-full px-2.5 py-2 text-xs font-mono font-black text-right rounded-xl border-2 border-blue-400 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600">
+            </div>
+            <div class="col-span-1 sm:col-span-2">
+              <label class="block text-[10px] font-extrabold uppercase text-emerald-700 mb-1">Larg. (m) ↵</label>
+              <input type="number" id="rapido_larg" step="0.01" placeholder="Ex: 0.60" oninput="atualizarPreviewRapido2D()" onkeydown="aoTeclarInputRapidoCalc(event, 'larg')" class="w-full px-2.5 py-2 text-xs font-mono font-black text-right rounded-xl border-2 border-emerald-400 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+            </div>
+          </div>
+
+          <!-- Preview 2D em Tempo Real + Botão Adicionar -->
+          <div class="lg:col-span-4 flex items-center justify-between gap-3 bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+            <div id="preview_esboco_rapido_2d" class="flex-1 flex items-center justify-center min-h-[68px] overflow-hidden">
+              <!-- SVG 2D ao vivo -->
+            </div>
+            <button type="button" onclick="confirmarAdicaoRapidaCalc()" class="px-3.5 py-3 text-xs font-black rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition flex flex-col items-center justify-center gap-0.5 shrink-0 cursor-pointer" title="Adicionar Peça na Lista (ou aperte Enter na Largura)">
+              <span>+ Adicionar</span>
+              <span class="text-[9px] font-mono opacity-85 font-normal">[Enter ↵]</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1869,6 +1940,19 @@
             <!-- Dynamic rows -->
           </tbody>
         </table>
+      </div>
+
+      <!-- Legenda Visual dos Esboços 2D Técnicos -->
+      <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600">
+        <div class="flex items-center gap-1.5 font-bold text-slate-700">
+          <span>📐</span>
+          <span>Legenda do Esboço Técnico 2D (Calculadora & O.S. da Fábrica):</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+          <span class="flex items-center gap-1.5"><span class="inline-block w-5 h-1.5 bg-indigo-600 rounded-xs border-b-2 border-indigo-900"></span> <b>Linha Dupla Azul:</b> Rodabanca / Espelho na Parede</span>
+          <span class="flex items-center gap-1.5"><span class="inline-block w-5 h-0 border-b-2 border-dashed border-amber-600"></span> <b>Linha Tracejada Laranja:</b> Saia / Meia-Esquadria / Acabamento</span>
+          <span class="flex items-center gap-1.5"><span class="inline-block w-3.5 h-2.5 rounded-xs border border-cyan-600 bg-cyan-100"></span> <b>Retângulo Interno:</b> Recorte de Cuba / Furo</span>
+        </div>
       </div>
     </div>
 
@@ -2545,7 +2629,328 @@
       return (regra.fatC * comp + regra.fatL * larg) * qtd;
     }
 
+    // =================================================================
+    // GERADOR DE ESBOÇO VISUAL 2D AUTOMÁTICO DA PEÇA (CALCULADORA & O.S.)
+    // =================================================================
+    function gerarSvgEsbocoPeca2D(item, opcoes = {}) {
+      const comp = Math.max(0.05, parseFloat(item?.comp) || 1.0);
+      const larg = Math.max(0.05, parseFloat(item?.larg) || 0.60);
+      const compacto = !!opcoes.compacto;
+      const impressao = !!opcoes.impressao;
+
+      const svgW = compacto ? 168 : (impressao ? 185 : 220);
+      const svgH = compacto ? 66 : (impressao ? 78 : 96);
+
+      const padX = compacto ? 24 : 30;
+      const padY = compacto ? 14 : 18;
+      const maxDrawW = svgW - padX * 2;
+      const maxDrawH = svgH - padY * 2;
+
+      // Mantém proporção visual agradável (limitando extremos para soleiras muito finas ainda ficarem legíveis)
+      const ratio = Math.min(4.2, Math.max(0.35, comp / larg));
+      let rectW = maxDrawW;
+      let rectH = rectW / ratio;
+      if (rectH > maxDrawH) {
+        rectH = maxDrawH;
+        rectW = rectH * ratio;
+      }
+      rectW = Math.max(compacto ? 46 : 58, Math.min(maxDrawW, rectW));
+      rectH = Math.max(compacto ? 20 : 24, Math.min(maxDrawH, rectH));
+
+      const x0 = Math.round((svgW - rectW) / 2);
+      const y0 = Math.round((svgH - rectH) / 2);
+      const x1 = x0 + rectW;
+      const y1 = y0 + rectH;
+
+      // Determina lados com Rodabanca (Espelho na Parede) -> Linha Dupla Azul/Índigo
+      const ladosRb = item?.configRb?.ladosRb || (parseFloat(item?.rb) > 0 ? "fundo" : "nenhum");
+      const rbTop = ["fundo", "fundo_1lat", "fundo_2lat", "perimetro"].includes(ladosRb);
+      const rbLeft = ["fundo_1lat", "fundo_2lat", "perimetro"].includes(ladosRb);
+      const rbRight = ["fundo_2lat", "perimetro"].includes(ladosRb);
+      const rbBottom = ["perimetro"].includes(ladosRb);
+
+      // Determina lados com Saia / Acabamento Meia-Esquadria -> Linha Tracejada Laranja/Âmbar
+      const ladosSaia = item?.configRb?.ladosSaia || "nenhuma";
+      const regraAcab = item?.regraAcab || "nenhum";
+
+      const saiaBottom = ["frente", "frente_1lat", "frente_2lat", "ilha"].includes(ladosSaia) ||
+                         ["pia_frente", "pia_2", "pia_3", "peitoril_2", "peitoril_3", "peitoril_4"].includes(regraAcab);
+      const saiaRight = ["frente_1lat", "frente_2lat", "ilha"].includes(ladosSaia) ||
+                        ["pia_2", "pia_3", "peitoril_3", "peitoril_4", "laterais_2", "lateral_1"].includes(regraAcab);
+      const saiaLeft = ["frente_2lat", "ilha"].includes(ladosSaia) ||
+                       ["pia_3", "peitoril_4", "laterais_2"].includes(regraAcab);
+      const saiaTop = ["ilha"].includes(ladosSaia) ||
+                      ["peitoril_2", "peitoril_3", "peitoril_4"].includes(regraAcab);
+
+      // Verifica se tem Cuba
+      const temCuba = (parseFloat(item?.cuba) > 0) ||
+                      (item?.cubaId && item.cubaId !== "nenhuma") ||
+                      (item?.cubaNome && item.cubaNome !== "Sem Cuba");
+
+      let linhasExtras = "";
+
+      // 1. Desenha Linha Dupla de Rodabanca (Parede)
+      const corRb = impressao ? "#1e3a8a" : "#4f46e5";
+      if (rbTop) {
+        linhasExtras += `<line x1="${x0}" y1="${y0 - 3}" x2="${x1}" y2="${y0 - 3}" stroke="${corRb}" stroke-width="2.2" />`;
+        linhasExtras += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="${corRb}" stroke-width="2.2" />`;
+      }
+      if (rbLeft) {
+        linhasExtras += `<line x1="${x0 - 3}" y1="${y0}" x2="${x0 - 3}" y2="${y1}" stroke="${corRb}" stroke-width="2.2" />`;
+        linhasExtras += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y1}" stroke="${corRb}" stroke-width="2.2" />`;
+      }
+      if (rbRight) {
+        linhasExtras += `<line x1="${x1 + 3}" y1="${y0}" x2="${x1 + 3}" y2="${y1}" stroke="${corRb}" stroke-width="2.2" />`;
+        linhasExtras += `<line x1="${x1}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${corRb}" stroke-width="2.2" />`;
+      }
+      if (rbBottom) {
+        linhasExtras += `<line x1="${x0}" y1="${y1 + 3}" x2="${x1}" y2="${y1 + 3}" stroke="${corRb}" stroke-width="2.2" />`;
+      }
+
+      // 2. Desenha Linha Tracejada de Saia / Acabamento
+      const corSaia = impressao ? "#b45309" : "#d97706";
+      if (saiaBottom) {
+        linhasExtras += `<line x1="${x0 + 2}" y1="${y1 - 2.5}" x2="${x1 - 2}" y2="${y1 - 2.5}" stroke="${corSaia}" stroke-width="2.2" stroke-dasharray="4,2.5" />`;
+      }
+      if (saiaRight) {
+        linhasExtras += `<line x1="${x1 - 2.5}" y1="${y0 + 2}" x2="${x1 - 2.5}" y2="${y1 - 2}" stroke="${corSaia}" stroke-width="2.2" stroke-dasharray="4,2.5" />`;
+      }
+      if (saiaLeft) {
+        linhasExtras += `<line x1="${x0 + 2.5}" y1="${y0 + 2}" x2="${x0 + 2.5}" y2="${y1 - 2}" stroke="${corSaia}" stroke-width="2.2" stroke-dasharray="4,2.5" />`;
+      }
+      if (saiaTop && !rbTop) {
+        linhasExtras += `<line x1="${x0 + 2}" y1="${y0 + 2.5}" x2="${x1 - 2}" y2="${y0 + 2.5}" stroke="${corSaia}" stroke-width="2.2" stroke-dasharray="4,2.5" />`;
+      }
+
+      // 3. Desenha Recorte de Cuba (se houver)
+      let cubaSvg = "";
+      if (temCuba && rectW >= 36 && rectH >= 18) {
+        const cw = Math.max(18, Math.min(rectW * 0.42, 46));
+        const ch = Math.max(10, Math.min(rectH * 0.56, 26));
+        const cx = Math.round(x0 + (rectW - cw) / 2);
+        const cy = Math.round(y0 + (rectH - ch) / 2);
+        const raloX = Math.round(cx + cw / 2);
+        const raloY = Math.round(cy + ch * 0.38);
+        cubaSvg = `
+          <rect x="${cx}" y="${cy}" width="${cw}" height="${ch}" rx="3" fill="${impressao ? '#e0f2fe' : '#ecfeff'}" stroke="#0284c7" stroke-width="1.4" />
+          <circle cx="${raloX}" cy="${raloY}" r="2.2" fill="none" stroke="#0369a1" stroke-width="1.1" />
+        `;
+      }
+
+      const compTxt = `${(parseFloat(item?.comp) || 0).toFixed(2)}m`;
+      const largTxt = `${(parseFloat(item?.larg) || 0).toFixed(2)}m`;
+      const fontSz = compacto ? 8.5 : 9.5;
+
+      return `
+        <svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" class="mx-auto select-none overflow-visible">
+          <!-- Corpo da Bancada / Pedra -->
+          <rect x="${x0}" y="${y0}" width="${rectW}" height="${rectH}" rx="1.5" fill="${impressao ? '#f8fafc' : '#f1f5f9'}" stroke="#334155" stroke-width="1.5" />
+          ${cubaSvg}
+          ${linhasExtras}
+          <!-- Cota Comprimento (Base) -->
+          <text x="${Math.round(svgW / 2)}" y="${y1 + (compacto ? 11 : 13)}" text-anchor="middle" font-size="${fontSz}" font-family="monospace" font-weight="bold" fill="#0f172a">${compTxt}</text>
+          <!-- Cota Largura (Lateral) -->
+          <text x="${x0 - 4}" y="${Math.round(y0 + rectH / 2 + 3)}" text-anchor="end" font-size="${fontSz - 0.5}" font-family="monospace" font-weight="bold" fill="#334155">${largTxt}</text>
+        </svg>
+      `;
+    }
+
+    // Configuração temporária para a Barra de Lançamento Rápido
+    let configRapidaCalc = {
+      regraAcab: "pia_frente",
+      cubaId: "nenhuma",
+      ladosRb: "nenhum",
+      alturaRb: 0,
+      ladosSaia: "nenhuma",
+      alturaSaia: 0
+    };
+
+    function popularSelectRapidoCalc() {
+      const sel = document.getElementById("rapido_material");
+      if (!sel) return;
+      const valAtual = sel.value;
+      sel.innerHTML = (MATERIAIS || []).map(m =>
+        `<option value="${m.id}" ${m.id === valAtual ? 'selected' : ''}>${m.nome} (R$ ${(Number(m.precoM2) || 0).toFixed(2)}/m²)</option>`
+      ).join("");
+      atualizarPreviewRapido2D();
+    }
+
+    function preencherModeloRapidoCalc(desc, regraAcab, cubaId, ladosRb, alturaRb, ladosSaia, alturaSaia, largPadrao) {
+      const inpDesc = document.getElementById("rapido_desc");
+      const inpLarg = document.getElementById("rapido_larg");
+      const inpComp = document.getElementById("rapido_comp");
+      if (inpDesc) inpDesc.value = desc;
+      if (inpLarg && largPadrao) inpLarg.value = largPadrao.toFixed(2);
+      configRapidaCalc = { regraAcab, cubaId, ladosRb, alturaRb, ladosSaia, alturaSaia };
+      atualizarPreviewRapido2D();
+      if (inpComp) {
+        inpComp.focus();
+        inpComp.select();
+      }
+      mostrarToast(`Modelo "${desc}" selecionado! Digite o Comprimento e aperte Enter.`, "⚡");
+    }
+
+    function obterItemPreviewRapido() {
+      const desc = document.getElementById("rapido_desc")?.value || "Nova Peça";
+      const matId = document.getElementById("rapido_material")?.value || (MATERIAIS[0]?.id || "outro");
+      const qtd = Math.max(1, parseInt(document.getElementById("rapido_qtd")?.value) || 1);
+      const comp = parseValorNumerico(document.getElementById("rapido_comp")?.value) || 1.20;
+      const larg = parseValorNumerico(document.getElementById("rapido_larg")?.value) || 0.60;
+      const cubaObj = (CUBAS || []).find(c => c.id === configRapidaCalc.cubaId) || { id: "nenhuma", nome: "Sem Cuba", preco: 0 };
+
+      return {
+        descricao: desc,
+        materialId: matId,
+        qtd,
+        comp,
+        larg,
+        regraAcab: configRapidaCalc.regraAcab || "pia_frente",
+        cubaId: cubaObj.id,
+        cubaNome: cubaObj.nome,
+        cuba: cubaObj.preco || 0,
+        configRb: {
+          ladosRb: configRapidaCalc.ladosRb || "nenhum",
+          alturaRb: configRapidaCalc.alturaRb || 0,
+          ladosSaia: configRapidaCalc.ladosSaia || "nenhuma",
+          alturaSaia: configRapidaCalc.alturaSaia || 0
+        }
+      };
+    }
+
+    function atualizarPreviewRapido2D() {
+      const box = document.getElementById("preview_esboco_rapido_2d");
+      if (!box) return;
+      const itemTemp = obterItemPreviewRapido();
+      box.innerHTML = gerarSvgEsbocoPeca2D(itemTemp, { compacto: true });
+    }
+
+    function aoTeclarInputRapidoCalc(event, campo) {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      if (campo === "desc") {
+        const elComp = document.getElementById("rapido_comp");
+        if (elComp) { elComp.focus(); elComp.select(); }
+      } else if (campo === "qtd") {
+        const elComp = document.getElementById("rapido_comp");
+        if (elComp) { elComp.focus(); elComp.select(); }
+      } else if (campo === "comp") {
+        const elLarg = document.getElementById("rapido_larg");
+        if (elLarg) { elLarg.focus(); elLarg.select(); }
+      } else if (campo === "larg") {
+        confirmarAdicaoRapidaCalc();
+      }
+    }
+
+    function confirmarAdicaoRapidaCalc() {
+      const inpComp = document.getElementById("rapido_comp");
+      const inpLarg = document.getElementById("rapido_larg");
+      const compVal = parseValorNumerico(inpComp?.value);
+      const largVal = parseValorNumerico(inpLarg?.value);
+
+      if (compVal <= 0) {
+        mostrarToast("Digite o Comprimento (m) da peça.", "⚠️");
+        if (inpComp) inpComp.focus();
+        return;
+      }
+      if (largVal <= 0) {
+        mostrarToast("Digite a Largura (m) da peça.", "⚠️");
+        if (inpLarg) inpLarg.focus();
+        return;
+      }
+
+      const desc = (document.getElementById("rapido_desc")?.value || "Bancada / Peça").trim();
+      const matId = document.getElementById("rapido_material")?.value || (MATERIAIS[0]?.id || "outro");
+      const matObj = (MATERIAIS || []).find(m => m.id === matId) || MATERIAIS[0] || { id: "outro", precoM2: 0 };
+      const qtd = Math.max(1, parseInt(document.getElementById("rapido_qtd")?.value) || 1);
+      const primeiroAcab = TIPOS_ACABAMENTO[0] || { id: "boleado", precoM: 20.0 };
+      const cubaObj = (CUBAS || []).find(c => c.id === configRapidaCalc.cubaId) || { id: "nenhuma", nome: "Sem Cuba", preco: 0 };
+
+      // Calcula R.B. e Saia se o kit tiver configurado
+      const ladosRb = configRapidaCalc.ladosRb || "nenhum";
+      const altRbCm = parseFloat(configRapidaCalc.alturaRb) || 0;
+      const ladosSaia = configRapidaCalc.ladosSaia || "nenhuma";
+      const altSaiaCm = parseFloat(configRapidaCalc.alturaSaia) || 0;
+
+      let mLinRb = 0;
+      if (ladosRb === "fundo") mLinRb = compVal * qtd;
+      else if (ladosRb === "fundo_1lat") mLinRb = (compVal + largVal) * qtd;
+      else if (ladosRb === "fundo_2lat") mLinRb = (compVal + 2 * largVal) * qtd;
+      else if (ladosRb === "perimetro") mLinRb = (2 * compVal + 2 * largVal) * qtd;
+
+      let mLinSaia = 0;
+      if (ladosSaia === "frente") mLinSaia = compVal * qtd;
+      else if (ladosSaia === "frente_1lat") mLinSaia = (compVal + largVal) * qtd;
+      else if (ladosSaia === "frente_2lat") mLinSaia = (compVal + 2 * largVal) * qtd;
+      else if (ladosSaia === "ilha") mLinSaia = (2 * compVal + 2 * largVal) * qtd;
+
+      const totalRb = parseFloat(((mLinRb * (altRbCm / 100.0)) + (mLinSaia * (altSaiaCm / 100.0))).toFixed(3));
+      const partesRb = [];
+      if (ladosRb !== "nenhum" && altRbCm > 0) partesRb.push(`RB ${altRbCm}cm`);
+      if (ladosSaia !== "nenhuma" && altSaiaCm > 0) partesRb.push(`Saia ${altSaiaCm}cm`);
+
+      itens.push({
+        id: Date.now(),
+        descricao: desc,
+        materialId: matObj.id,
+        precoM2: matObj.precoM2 || 0.0,
+        qtd: qtd,
+        comp: compVal,
+        larg: largVal,
+        rb: totalRb,
+        configRbDesc: partesRb.join(" + "),
+        configRb: (partesRb.length > 0) ? {
+          ladosRb,
+          alturaRb: altRbCm,
+          ladosSaia,
+          alturaSaia: altSaiaCm,
+          descricao: partesRb.join(" + ")
+        } : null,
+        tipoAcabamentoId: primeiroAcab.id,
+        regraAcab: configRapidaCalc.regraAcab || "pia_frente",
+        precoMetroLinear: primeiroAcab.precoM || 20.0,
+        cubaId: cubaObj.id,
+        cubaNome: cubaObj.nome,
+        cuba: cubaObj.preco || 0.0
+      });
+
+      renderTabela();
+      mostrarToast(`Peça "${desc}" (${compVal}m × ${largVal}m) adicionada!`, "✅");
+
+      // Limpa o comprimento para digitar a próxima peça imediatamente sem usar o mouse
+      if (inpComp) {
+        inpComp.value = "";
+        inpComp.focus();
+      }
+      atualizarPreviewRapido2D();
+    }
+
+    // Navegação inteligente com Enter diretamente nas linhas da tabela
+    function navegarEnterTabelaCalc(event, index, campo) {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      if (campo === "descricao" || campo === "qtd") {
+        const elComp = document.getElementById(`inp_comp_${index}`);
+        if (elComp) { elComp.focus(); elComp.select(); }
+      } else if (campo === "comp") {
+        const elLarg = document.getElementById(`inp_larg_${index}`);
+        if (elLarg) { elLarg.focus(); elLarg.select(); }
+      } else if (campo === "larg") {
+        // Se houver próxima linha, pula para ela; se for a última, adiciona nova peça mantendo a pedra atual!
+        if (index + 1 < itens.length) {
+          const proxComp = document.getElementById(`inp_comp_${index + 1}`);
+          if (proxComp) { proxComp.focus(); proxComp.select(); }
+        } else {
+          adicionarItem();
+          setTimeout(() => {
+            const novoComp = document.getElementById(`inp_comp_${itens.length - 1}`);
+            if (novoComp) { novoComp.focus(); novoComp.select(); }
+          }, 30);
+        }
+      }
+    }
+
     function renderTabela() {
+      popularSelectRapidoCalc();
       const tbody = document.getElementById("corpo_tabela");
       tbody.innerHTML = "";
 
@@ -2556,7 +2961,7 @@
               <div class="max-w-xs mx-auto space-y-2">
                 <span class="text-3xl block">📐</span>
                 <p class="text-sm font-semibold text-slate-600">Nenhuma peça adicionada ainda</p>
-                <p class="text-xs text-slate-400">Clique em "+ Nova Peça" para começar a orçar.</p>
+                <p class="text-xs text-slate-400">Digite o Comprimento e Largura na barra rápida acima e aperte <b>Enter ↵</b> ou clique em "+ Nova Peça".</p>
               </div>
             </td>
           </tr>
@@ -2583,7 +2988,7 @@
         trPrincipal.innerHTML = `
           <td class="p-2.5 text-slate-400 font-mono text-center font-bold text-xs">${index + 1}</td>
           <td class="p-2.5">
-            <input type="text" value="${item.descricao || ''}" oninput="atualizarItem(${index}, 'descricao', this.value)" placeholder="Ex: Pia Cozinha" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="inp_desc_${index}" value="${item.descricao || ''}" oninput="atualizarItem(${index}, 'descricao', this.value)" onkeydown="navegarEnterTabelaCalc(event, ${index}, 'descricao')" placeholder="Ex: Pia Cozinha" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </td>
           <td class="p-2.5">
             <select onchange="atualizarMaterial(${index}, this.value)" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -2592,13 +2997,13 @@
             </select>
           </td>
           <td class="p-2.5">
-            <input type="number" min="1" step="1" value="${item.qtd !== undefined ? item.qtd : 1}" oninput="atualizarItem(${index}, 'qtd', this.value)" class="w-full text-center px-1.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="number" id="inp_qtd_${index}" min="1" step="1" value="${item.qtd !== undefined ? item.qtd : 1}" oninput="atualizarItem(${index}, 'qtd', this.value)" onkeydown="navegarEnterTabelaCalc(event, ${index}, 'qtd')" class="w-full text-center px-1.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </td>
           <td class="p-2.5">
-            <input type="number" step="0.001" value="${item.comp !== undefined ? item.comp : ''}" oninput="atualizarItem(${index}, 'comp', this.value)" placeholder="Comp" class="w-full min-w-[65px] text-right px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-mono font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="number" id="inp_comp_${index}" step="0.001" value="${item.comp !== undefined ? item.comp : ''}" oninput="atualizarItem(${index}, 'comp', this.value)" onkeydown="navegarEnterTabelaCalc(event, ${index}, 'comp')" title="Aperte Enter para pular para a Largura" placeholder="Comp" class="w-full min-w-[65px] text-right px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-mono font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </td>
           <td class="p-2.5">
-            <input type="number" step="0.001" value="${item.larg !== undefined ? item.larg : ''}" oninput="atualizarItem(${index}, 'larg', this.value)" placeholder="Larg" class="w-full min-w-[65px] text-right px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-mono font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="number" id="inp_larg_${index}" step="0.001" value="${item.larg !== undefined ? item.larg : ''}" oninput="atualizarItem(${index}, 'larg', this.value)" onkeydown="navegarEnterTabelaCalc(event, ${index}, 'larg')" title="Aperte Enter para adicionar/avançar para a próxima peça" placeholder="Larg" class="w-full min-w-[65px] text-right px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-mono font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </td>
           <td class="p-2.5">
             <div class="flex items-center gap-1 justify-end">
@@ -2626,62 +3031,69 @@
           </td>
         `;
 
-        // 2. Linha Secundária (Acabamentos e Cubas integrados)
+        // 2. Linha Secundária (Acabamentos, Cubas e Esboço 2D em Tempo Real)
         const trDetalhes = document.createElement("tr");
         trDetalhes.className = "bg-slate-50/80 border-b border-slate-200/90 hover:bg-slate-100/50 transition";
 
         trDetalhes.innerHTML = `
           <td class="py-1.5 px-2.5 text-center text-slate-300 font-mono text-[11px] select-none">↳</td>
           <td colspan="9" class="py-1.5 px-2.5">
-            <div class="flex flex-wrap items-center gap-2.5 text-xs">
-              
-              <!-- Bloco Acabamento Linear -->
-              <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs">
-                <span class="text-indigo-600 font-bold text-[11px] flex items-center gap-1 shrink-0">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                  Acabamento:
-                </span>
-                <select onchange="atualizarTipoAcabamento(${index}, this.value)" class="px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[190px]" title="Tipo de acabamento">
-                  ${TIPOS_ACABAMENTO.map(a => `<option value="${a.id}" ${a.id === item.tipoAcabamentoId ? 'selected' : ''}>${a.nome} (R$ ${a.precoM.toFixed(2)}/m)</option>`).join('')}
-                  <option value="_novo_" class="font-bold text-indigo-600 bg-indigo-50">+ Cadastrar Tipo...</option>
-                </select>
-                <span class="text-slate-400 text-[11px] font-medium">• Lados:</span>
-                <select onchange="atualizarRegraLados(${index}, this.value)" class="px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[180px]" title="Regra de lados">
-                  ${REGRAS_LADOS.map(r => `<option value="${r.id}" ${r.id === item.regraAcab ? 'selected' : ''}>${r.nome}</option>`).join('')}
-                  <option value="_nova_regra_" class="font-bold text-blue-600 bg-blue-50">+ Cadastrar Regra...</option>
-                </select>
-                <div class="flex items-center gap-1 text-[11px] pl-1 font-mono">
-                  <span class="text-slate-400">R$/m:</span>
-                  <input type="number" step="0.5" id="preco_linear_${index}" value="${item.precoMetroLinear}" oninput="atualizarItem(${index}, 'precoMetroLinear', this.value)" title="Preço unitário do metro linear" class="w-16 text-right px-1.5 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-mono font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                  <span class="text-slate-400 font-mono pl-1">=</span>
-                  <span id="metros_lineares_${index}" class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold font-mono text-xs">
-                    ${metrosLineares.toFixed(2)}m
+            <div class="flex flex-wrap items-center justify-between gap-2.5 text-xs">
+              <div class="flex flex-wrap items-center gap-2.5">
+                <!-- Bloco Acabamento Linear -->
+                <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs">
+                  <span class="text-indigo-600 font-bold text-[11px] flex items-center gap-1 shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Acabamento:
                   </span>
+                  <select onchange="atualizarTipoAcabamento(${index}, this.value)" class="px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[190px]" title="Tipo de acabamento">
+                    ${TIPOS_ACABAMENTO.map(a => `<option value="${a.id}" ${a.id === item.tipoAcabamentoId ? 'selected' : ''}>${a.nome} (R$ ${a.precoM.toFixed(2)}/m)</option>`).join('')}
+                    <option value="_novo_" class="font-bold text-indigo-600 bg-indigo-50">+ Cadastrar Tipo...</option>
+                  </select>
+                  <span class="text-slate-400 text-[11px] font-medium">• Lados:</span>
+                  <select onchange="atualizarRegraLados(${index}, this.value)" class="px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[180px]" title="Regra de lados">
+                    ${REGRAS_LADOS.map(r => `<option value="${r.id}" ${r.id === item.regraAcab ? 'selected' : ''}>${r.nome}</option>`).join('')}
+                    <option value="_nova_regra_" class="font-bold text-blue-600 bg-blue-50">+ Cadastrar Regra...</option>
+                  </select>
+                  <div class="flex items-center gap-1 text-[11px] pl-1 font-mono">
+                    <span class="text-slate-400">R$/m:</span>
+                    <input type="number" step="0.5" id="preco_linear_${index}" value="${item.precoMetroLinear}" oninput="atualizarItem(${index}, 'precoMetroLinear', this.value)" title="Preço unitário do metro linear" class="w-16 text-right px-1.5 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-mono font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    <span class="text-slate-400 font-mono pl-1">=</span>
+                    <span id="metros_lineares_${index}" class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold font-mono text-xs">
+                      ${metrosLineares.toFixed(2)}m
+                    </span>
+                  </div>
                 </div>
+
+                <!-- Bloco Cuba / Acessório -->
+                <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs">
+                  <span class="text-blue-600 font-bold text-[11px] flex items-center gap-1 shrink-0">
+                    <span class="text-sm">🚰</span> Cuba:
+                  </span>
+                  <select onchange="atualizarModeloCuba(${index}, this.value)" class="px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[200px]" title="Modelo da cuba ou acessório">
+                    ${CUBAS.length > 0 ? CUBAS.map(c => `<option value="${c.id}" ${c.id === (item.cubaId || (item.cuba > 0 ? '' : 'nenhuma')) ? 'selected' : ''}>${c.nome}${c.preco > 0 ? ` (R$ ${c.preco.toFixed(2)})` : ''}</option>`).join('') : '<option value="nenhuma">Sem Cuba (R$ 0,00)</option>'}
+                    <option value="_nova_cuba_" class="font-bold text-blue-600 bg-blue-50">+ Cadastrar Cuba...</option>
+                  </select>
+                  <div class="flex items-center gap-1 text-[11px] pl-1 font-mono">
+                    <span class="text-slate-400">R$:</span>
+                    <input type="number" step="10" id="cuba_preco_${index}" value="${item.cuba !== undefined ? item.cuba : 0}" oninput="atualizarItem(${index}, 'cuba', this.value)" title="Valor ajustável da cuba/serviço" class="w-20 text-right px-1.5 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-mono font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+                  </div>
+                </div>
+
+                <!-- Detalhes de Rodabanca/Saia configurada -->
+                ${item.configRbDesc ? `
+                  <div class="flex items-center gap-1 text-[10px] text-indigo-700 bg-indigo-50/80 px-2 py-1 rounded-lg border border-indigo-200/60 font-medium" title="${item.configRbDesc}">
+                    <span>📐</span> <span class="truncate max-w-[200px]">${item.configRbDesc}</span>
+                  </div>
+                ` : ''}
               </div>
 
-              <!-- Bloco Cuba / Acessório -->
-              <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs">
-                <span class="text-blue-600 font-bold text-[11px] flex items-center gap-1 shrink-0">
-                  <span class="text-sm">🚰</span> Cuba:
-                </span>
-                <select onchange="atualizarModeloCuba(${index}, this.value)" class="px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[200px]" title="Modelo da cuba ou acessório">
-                  ${CUBAS.length > 0 ? CUBAS.map(c => `<option value="${c.id}" ${c.id === (item.cubaId || (item.cuba > 0 ? '' : 'nenhuma')) ? 'selected' : ''}>${c.nome}${c.preco > 0 ? ` (R$ ${c.preco.toFixed(2)})` : ''}</option>`).join('') : '<option value="nenhuma">Sem Cuba (R$ 0,00)</option>'}
-                  <option value="_nova_cuba_" class="font-bold text-blue-600 bg-blue-50">+ Cadastrar Cuba...</option>
-                </select>
-                <div class="flex items-center gap-1 text-[11px] pl-1 font-mono">
-                  <span class="text-slate-400">R$:</span>
-                  <input type="number" step="10" id="cuba_preco_${index}" value="${item.cuba !== undefined ? item.cuba : 0}" oninput="atualizarItem(${index}, 'cuba', this.value)" title="Valor ajustável da cuba/serviço" class="w-20 text-right px-1.5 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-mono font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+              <!-- Esboço 2D Dinâmico da Peça na Linha -->
+              <div onclick="abrirModalRb(${index})" class="flex items-center gap-2 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs cursor-pointer hover:border-indigo-400 transition" title="Esboço 2D da Peça (Clique para configurar Rodabanca e Saia)">
+                <div id="esboco_peca_2d_${index}" class="shrink-0">
+                  ${gerarSvgEsbocoPeca2D(item, { compacto: true })}
                 </div>
               </div>
-
-              <!-- Detalhes de Rodabanca/Saia configurada -->
-              ${item.configRbDesc ? `
-                <div class="flex items-center gap-1 text-[10px] text-indigo-700 bg-indigo-50/80 px-2 py-1 rounded-lg border border-indigo-200/60 font-medium" title="${item.configRbDesc}">
-                  <span>📐</span> <span class="truncate max-w-[200px]">${item.configRbDesc}</span>
-                </div>
-              ` : ''}
-
             </div>
           </td>
         `;
@@ -2743,6 +3155,9 @@
 
       const elTotal = document.getElementById(`total_item_${index}`);
       if (elTotal) elTotal.innerText = `R$ ${totalItem.toFixed(2)}`;
+
+      const elEsboco = document.getElementById(`esboco_peca_2d_${index}`);
+      if (elEsboco) elEsboco.innerHTML = gerarSvgEsbocoPeca2D(item, { compacto: true });
 
       calcularTotais();
     }
@@ -2807,19 +3222,20 @@
     }
 
     function adicionarItem() {
-      const primeiroMat = MATERIAIS[0] || { id: "outro", precoM2: 0.0 };
-      const primeiroAcab = TIPOS_ACABAMENTO[0] || { id: "boleado", precoM: 20.0 };
+      const ultimoItem = (itens && itens.length > 0) ? itens[itens.length - 1] : null;
+      const matPadrao = (ultimoItem && MATERIAIS.find(m => m.id === ultimoItem.materialId)) || MATERIAIS[0] || { id: "outro", precoM2: 0.0 };
+      const primeiroAcab = (ultimoItem && TIPOS_ACABAMENTO.find(a => a.id === ultimoItem.tipoAcabamentoId)) || TIPOS_ACABAMENTO[0] || { id: "boleado", precoM: 20.0 };
       itens.push({
         id: Date.now(),
         descricao: "Nova Bancada / Peça",
-        materialId: primeiroMat.id,
-        precoM2: primeiroMat.precoM2 || 0.0,
+        materialId: matPadrao.id,
+        precoM2: matPadrao.precoM2 || 0.0,
         qtd: 1,
         comp: 1.0,
         larg: 0.6,
         rb: 0.0,
         tipoAcabamentoId: primeiroAcab.id,
-        regraAcab: "pia_frente",
+        regraAcab: ultimoItem?.regraAcab || "pia_frente",
         precoMetroLinear: primeiroAcab.precoM || 20.0,
         cubaId: "nenhuma",
         cubaNome: "Sem Cuba",
@@ -3361,6 +3777,296 @@
 
       const pillFabLink = document.getElementById("pill_cont_fabrica_link");
       if (pillFabLink) pillFabLink.innerText = qtdFabrica;
+
+      if (typeof renderizarResumoMeuDia === "function") {
+        renderizarResumoMeuDia();
+      }
+    }
+
+    // =================================================================
+    // 🔔 RESUMO "MEU DIA" (ALERTAS DE PENDÊNCIAS COM 1 CLIQUE NO TOPO)
+    // =================================================================
+    let abaDetalheMeuDiaAtiva = null; // 'medicoes' | 'fabrica' | 'followup' | 'saldos' | null
+
+    function toggleDetalheResumoMeuDia(aba) {
+      abaDetalheMeuDiaAtiva = (abaDetalheMeuDiaAtiva === aba) ? null : aba;
+      renderizarResumoMeuDia();
+    }
+
+    function enviarFollowUpWhatsApp(orcId) {
+      const orc = (orcamentosSalvos || []).find(o => o.id === orcId || o.numero === orcId);
+      if (!orc) return;
+      const foneLimpo = String(orc.clienteFone || "").replace(/\D/g, "");
+      const valor = (orc.totalVista && orc.totalVista > 0) ? orc.totalVista : (calcularTotaisOrcamento(orc).totalVista || 0);
+      const valorFmt = valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const nomeEmp = typeof getNomeEmpresaAtiva === "function" ? getNomeEmpresaAtiva() : "Marmoraria";
+
+      const msg = `Olá *${orc.clienteNome || "Cliente"}*, tudo bem? 😊\n\n` +
+        `Aqui é da *${nomeEmp}*. Estou passando para saber se você conseguiu avaliar o nosso orçamento *${orc.numero}* (no valor de *R$ ${valorFmt}*) ou se ficou alguma dúvida sobre medidas, materiais ou condições de pagamento.\n\n` +
+        `Se quiser ajustar algum detalhe ou agendar a medição final na obra, é só me chamar por aqui!`;
+
+      if (foneLimpo.length >= 10) {
+        const ddiFone = foneLimpo.startsWith("55") ? foneLimpo : "55" + foneLimpo;
+        window.open(`https://wa.me/${ddiFone}?text=${encodeURIComponent(msg)}`, "_blank");
+      } else {
+        navigator.clipboard.writeText(msg).then(() => {
+          mostrarToast("Mensagem de retorno copiada! (Cliente sem telefone cadastrado)", "📋");
+        });
+      }
+    }
+
+    function renderizarResumoMeuDia() {
+      const container = document.getElementById("painel_resumo_meu_dia");
+      if (!container) return;
+
+      const hojeObj = new Date();
+      const hojeYMD = hojeObj.toISOString().split("T")[0];
+      const amanhaObj = new Date(hojeObj.getTime() + 86400000);
+      const amanhaYMD = amanhaObj.toISOString().split("T")[0];
+
+      // 1. Medições agendadas para hoje (ou pendentes)
+      const listaAgenda = (typeof agendaCompromissos !== "undefined" ? agendaCompromissos : []).map(normalizarEventoAgenda).filter(Boolean);
+      const medicoesHoje = listaAgenda.filter(a => a.status !== "realizada" && a.data === hojeYMD);
+      const medicoesPendentes = listaAgenda.filter(a => a.status !== "realizada");
+      const listaMedicoesExibir = medicoesHoje.length > 0 ? medicoesHoje : medicoesPendentes;
+
+      // 2. Pedidos na fábrica com entrega prevista para hoje, amanhã ou atrasada
+      const pedidosFabricaCriticos = (orcamentosSalvos || []).filter(o => {
+        if (o.status !== "aprovado" && o.status !== "em_producao") return false;
+        if (!o.dataEntregaPrevista) return false;
+        return o.dataEntregaPrevista <= amanhaYMD;
+      });
+      const todosEmProducao = (orcamentosSalvos || []).filter(o => o.status === "aprovado" || o.status === "em_producao");
+      const listaFabricaExibir = pedidosFabricaCriticos.length > 0 ? pedidosFabricaCriticos : todosEmProducao;
+
+      // 3. Orçamentos em aberto há mais de 5 dias (Follow-up Comercial)
+      const todosEmAberto = (orcamentosSalvos || []).filter(o => o.status === "em_aberto");
+      const orcamentosFollowUp5Dias = todosEmAberto.filter(o => {
+        const ymd = typeof extrairDataYMD === "function" ? extrairDataYMD(o) : "";
+        if (!ymd) return true;
+        const dtCriacao = new Date(ymd + "T12:00:00");
+        const diffDias = Math.floor((hojeObj - dtCriacao) / 86400000);
+        return diffDias >= 5;
+      });
+      const listaFollowUpExibir = orcamentosFollowUp5Dias.length > 0 ? orcamentosFollowUp5Dias : todosEmAberto;
+
+      // 4. Saldos de entrega pendentes de recebimento
+      const pedidosSaldoPendente = [];
+      let somaSaldosPendentes = 0;
+      (orcamentosSalvos || []).forEach(o => {
+        if (o.status !== "aprovado" && o.status !== "em_producao" && o.status !== "concluido") return;
+        const total = (o.totalVista && o.totalVista > 0) ? o.totalVista : (calcularTotaisOrcamento(o).totalVista || 0);
+        const pago = (o.pagamentos || []).reduce((acc, p) => acc + (parseFloat(p.valor) || 0), 0);
+        const saldo = Math.max(0, total - pago);
+        if (saldo > 0.01) {
+          pedidosSaldoPendente.push({ orc: o, total, pago, saldo });
+          somaSaldosPendentes += saldo;
+        }
+      });
+
+      // Renderiza a gaveta de detalhes se alguma aba estiver clicada
+      let htmlDetalhe = "";
+      if (abaDetalheMeuDiaAtiva === "medicoes") {
+        htmlDetalhe = `
+          <div class="p-3.5 rounded-xl bg-white border border-purple-200 space-y-2 animate-in fade-in duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span class="text-xs font-extrabold text-purple-900">📏 ${medicoesHoje.length > 0 ? 'Medições Agendadas para Hoje' : 'Próximas Medições / Visitas Pendentes'}</span>
+              <div class="flex items-center gap-2">
+                <button onclick="navegarParaAba('agenda')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition cursor-pointer">Abrir Agenda Completa →</button>
+                <button onclick="toggleDetalheResumoMeuDia(null)" class="text-xs text-slate-400 hover:text-slate-700 font-bold px-1.5 cursor-pointer">✕</button>
+              </div>
+            </div>
+            ${listaMedicoesExibir.length === 0 ? `<p class="text-xs text-slate-500 py-2">Nenhuma medição pendente na agenda.</p>` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-56 overflow-y-auto">
+                ${listaMedicoesExibir.slice(0, 6).map(m => {
+                  const fone = String(m.clienteFone || "").replace(/\D/g, "");
+                  const endMapa = encodeURIComponent(m.endereco || "");
+                  return `
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
+                      <div class="min-w-0">
+                        <span class="font-bold text-slate-900 block truncate">${m.clienteNome || 'Cliente'}</span>
+                        <span class="text-[11px] text-slate-500 block truncate">📅 ${m.data ? m.data.split('-').reverse().join('/') : 'Hoje'} às ${m.hora || '09:00'} • 📍 ${m.endereco || 'Local não informado'}</span>
+                      </div>
+                      <div class="flex items-center gap-1 shrink-0">
+                        ${fone ? `<a href="https://wa.me/${fone.startsWith('55') ? fone : '55'+fone}" target="_blank" class="px-2 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[10px] hover:bg-emerald-700 transition">📱 Whats</a>` : ''}
+                        ${m.endereco ? `<a href="https://www.google.com/maps/search/?api=1&query=${endMapa}" target="_blank" class="px-2 py-1 rounded-lg bg-blue-600 text-white font-bold text-[10px] hover:bg-blue-700 transition">🗺️ Mapa</a>` : ''}
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            `}
+          </div>
+        `;
+      } else if (abaDetalheMeuDiaAtiva === "fabrica") {
+        htmlDetalhe = `
+          <div class="p-3.5 rounded-xl bg-white border border-blue-200 space-y-2 animate-in fade-in duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span class="text-xs font-extrabold text-blue-900">🏭 ${pedidosFabricaCriticos.length > 0 ? 'Pedidos c/ Entrega Hoje, Amanhã ou Atrasada' : 'Pedidos Ativos na Fila da Fábrica'}</span>
+              <div class="flex items-center gap-2">
+                <button onclick="navegarParaAba('fabrica')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition cursor-pointer">Ir para a Fábrica →</button>
+                <button onclick="toggleDetalheResumoMeuDia(null)" class="text-xs text-slate-400 hover:text-slate-700 font-bold px-1.5 cursor-pointer">✕</button>
+              </div>
+            </div>
+            ${listaFabricaExibir.length === 0 ? `<p class="text-xs text-slate-500 py-2">Nenhum pedido pendente na fila de corte.</p>` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-56 overflow-y-auto">
+                ${listaFabricaExibir.slice(0, 6).map(o => {
+                  const dtFmt = o.dataEntregaPrevista ? o.dataEntregaPrevista.split('-').reverse().join('/') : 'Sem data';
+                  const isAtrasado = o.dataEntregaPrevista && o.dataEntregaPrevista < hojeYMD;
+                  return `
+                    <div class="p-2.5 rounded-xl bg-slate-50 border ${isAtrasado ? 'border-rose-300 bg-rose-50/40' : 'border-slate-200'} flex items-center justify-between gap-2 text-xs">
+                      <div class="min-w-0">
+                        <span class="font-bold text-slate-900 block truncate">${o.numero} — ${o.clienteNome || 'Cliente'}</span>
+                        <span class="text-[11px] ${isAtrasado ? 'text-rose-700 font-bold' : 'text-slate-500'} block">🗓️ Entrega: ${dtFmt} ${isAtrasado ? '(ATRASADO)' : ''} • ${(o.m2Total || 0).toFixed(2)} m²</span>
+                      </div>
+                      <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="abrirFichaProducaoPorId('${o.id}')" class="px-2 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-[10px] hover:bg-amber-600 transition cursor-pointer">🖨️ O.S.</button>
+                        <button onclick="navegarParaAba('fabrica')" class="px-2 py-1 rounded-lg bg-blue-600 text-white font-bold text-[10px] hover:bg-blue-700 transition cursor-pointer">🏭 Ver</button>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            `}
+          </div>
+        `;
+      } else if (abaDetalheMeuDiaAtiva === "followup") {
+        htmlDetalhe = `
+          <div class="p-3.5 rounded-xl bg-white border border-amber-200 space-y-2 animate-in fade-in duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span class="text-xs font-extrabold text-amber-900">💬 Orçamentos em Aberto Precisando de Retorno Comercial</span>
+              <button onclick="toggleDetalheResumoMeuDia(null)" class="text-xs text-slate-400 hover:text-slate-700 font-bold px-1.5 cursor-pointer">✕</button>
+            </div>
+            ${listaFollowUpExibir.length === 0 ? `<p class="text-xs text-slate-500 py-2">Nenhum orçamento em aberto no momento!</p>` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                ${listaFollowUpExibir.slice(0, 8).map(o => {
+                  const val = (o.totalVista && o.totalVista > 0) ? o.totalVista : (calcularTotaisOrcamento(o).totalVista || 0);
+                  return `
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
+                      <div class="min-w-0">
+                        <span class="font-bold text-slate-900 block truncate">${o.numero} — ${o.clienteNome || 'Cliente'}</span>
+                        <span class="text-[11px] text-slate-500 block">📅 ${o.dataCriacao || 'Recente'} • <b class="text-emerald-700 font-mono">R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></span>
+                      </div>
+                      <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="enviarFollowUpWhatsApp('${o.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[10px] hover:bg-emerald-700 transition flex items-center gap-1 cursor-pointer" title="Mandar mensagem de retorno no WhatsApp">
+                          <span>📲</span> Retorno Whats
+                        </button>
+                        <button onclick="carregarOrcamentoNaCalculadora('${o.id}')" class="px-2 py-1 rounded-lg bg-white border border-slate-300 text-slate-700 font-bold text-[10px] hover:bg-slate-100 transition cursor-pointer">Abrir</button>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            `}
+          </div>
+        `;
+      } else if (abaDetalheMeuDiaAtiva === "saldos") {
+        htmlDetalhe = `
+          <div class="p-3.5 rounded-xl bg-white border border-emerald-200 space-y-2 animate-in fade-in duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span class="text-xs font-extrabold text-emerald-900">💰 Pedidos c/ Saldo Pendente de Recebimento (Total: R$ ${somaSaldosPendentes.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})})</span>
+              <div class="flex items-center gap-2">
+                <button onclick="navegarParaSubabaFinanceiro('receber')" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition cursor-pointer">Ir para Contas a Receber →</button>
+                <button onclick="toggleDetalheResumoMeuDia(null)" class="text-xs text-slate-400 hover:text-slate-700 font-bold px-1.5 cursor-pointer">✕</button>
+              </div>
+            </div>
+            ${pedidosSaldoPendente.length === 0 ? `<p class="text-xs text-slate-500 py-2">Todos os pedidos fechados estão 100% quitados!</p>` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                ${pedidosSaldoPendente.slice(0, 8).map(item => {
+                  const o = item.orc;
+                  return `
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
+                      <div class="min-w-0">
+                        <span class="font-bold text-slate-900 block truncate">${o.numero} — ${o.clienteNome || 'Cliente'}</span>
+                        <span class="text-[11px] text-slate-500 block">Falta receber: <b class="text-rose-700 font-mono">R$ ${item.saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></span>
+                      </div>
+                      <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="enviarCobrancaWhatsApp('${o.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[10px] hover:bg-emerald-700 transition cursor-pointer">📲 Cobrar Whats</button>
+                        <button onclick="abrirModalRegistrarPagamento('${o.id}')" class="px-2 py-1 rounded-lg bg-blue-600 text-white font-bold text-[10px] hover:bg-blue-700 transition cursor-pointer">💸 Baixar</button>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm shadow-2xs">🔔</span>
+            <div>
+              <h3 class="text-xs sm:text-sm font-black text-slate-900 tracking-tight">Resumo "Meu Dia" — Ações Rápidas com 1 Clique</h3>
+              <p class="text-[11px] text-slate-500">Clique em qualquer alerta abaixo para agir na hora (WhatsApp, Mapa, Fábrica ou Financeiro)</p>
+            </div>
+          </div>
+          <span class="text-[11px] font-mono font-bold text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200 self-start sm:self-auto">
+            📅 Hoje: ${hojeObj.toLocaleDateString('pt-BR')}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <!-- Alerta 1: Medições -->
+          <div onclick="toggleDetalheResumoMeuDia('medicoes')" class="p-3 rounded-xl bg-white border ${abaDetalheMeuDiaAtiva === 'medicoes' ? 'border-purple-500 ring-2 ring-purple-500/20' : 'border-slate-200/90 hover:border-purple-400'} transition cursor-pointer flex items-center justify-between gap-2 shadow-2xs">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center text-base shrink-0 font-bold">📏</span>
+              <div class="min-w-0">
+                <div class="text-xs font-extrabold text-slate-900 truncate">
+                  ${medicoesHoje.length > 0 ? `${medicoesHoje.length} Medição(ões) Hoje` : `${medicoesPendentes.length} Medição(ões) Agendada(s)`}
+                </div>
+                <div class="text-[10px] text-purple-700 font-semibold truncate">Clique p/ abrir WhatsApp ou Mapa</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-400 font-bold">${abaDetalheMeuDiaAtiva === 'medicoes' ? '▲' : '▼'}</span>
+          </div>
+
+          <!-- Alerta 2: Entregas da Fábrica -->
+          <div onclick="toggleDetalheResumoMeuDia('fabrica')" class="p-3 rounded-xl bg-white border ${abaDetalheMeuDiaAtiva === 'fabrica' ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200/90 hover:border-blue-400'} transition cursor-pointer flex items-center justify-between gap-2 shadow-2xs">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-9 h-9 rounded-xl ${pedidosFabricaCriticos.length > 0 ? 'bg-rose-50 text-rose-700' : 'bg-blue-50 text-blue-700'} flex items-center justify-center text-base shrink-0 font-bold">🏭</span>
+              <div class="min-w-0">
+                <div class="text-xs font-extrabold text-slate-900 truncate">
+                  ${pedidosFabricaCriticos.length > 0 ? `${pedidosFabricaCriticos.length} Entrega(s) p/ Hoje/Amanhã` : `${todosEmProducao.length} Pedido(s) em Produção`}
+                </div>
+                <div class="text-[10px] ${pedidosFabricaCriticos.length > 0 ? 'text-rose-600 font-bold' : 'text-blue-700 font-semibold'} truncate">Clique p/ ver O.S. e fila de corte</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-400 font-bold">${abaDetalheMeuDiaAtiva === 'fabrica' ? '▲' : '▼'}</span>
+          </div>
+
+          <!-- Alerta 3: Follow-up de Orçamentos -->
+          <div onclick="toggleDetalheResumoMeuDia('followup')" class="p-3 rounded-xl bg-white border ${abaDetalheMeuDiaAtiva === 'followup' ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-slate-200/90 hover:border-amber-400'} transition cursor-pointer flex items-center justify-between gap-2 shadow-2xs">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-base shrink-0 font-bold">💬</span>
+              <div class="min-w-0">
+                <div class="text-xs font-extrabold text-slate-900 truncate">
+                  ${orcamentosFollowUp5Dias.length > 0 ? `${orcamentosFollowUp5Dias.length} Orçamento(s) +5 dias` : `${todosEmAberto.length} Orçamento(s) em Aberto`}
+                </div>
+                <div class="text-[10px] text-amber-700 font-semibold truncate">1 clique: Mandar retorno no Whats</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-400 font-bold">${abaDetalheMeuDiaAtiva === 'followup' ? '▲' : '▼'}</span>
+          </div>
+
+          <!-- Alerta 4: Saldos de Entrega Pendentes -->
+          <div onclick="toggleDetalheResumoMeuDia('saldos')" class="p-3 rounded-xl bg-white border ${abaDetalheMeuDiaAtiva === 'saldos' ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200/90 hover:border-emerald-400'} transition cursor-pointer flex items-center justify-between gap-2 shadow-2xs">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-base shrink-0 font-bold">💰</span>
+              <div class="min-w-0">
+                <div class="text-xs font-extrabold text-slate-900 truncate">
+                  ${pedidosSaldoPendente.length} Saldo(s) a Receber
+                </div>
+                <div class="text-[10px] text-emerald-700 font-mono font-bold truncate">R$ ${somaSaldosPendentes.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} pendente</div>
+              </div>
+            </div>
+            <span class="text-xs text-slate-400 font-bold">${abaDetalheMeuDiaAtiva === 'saldos' ? '▲' : '▼'}</span>
+          </div>
+        </div>
+
+        ${htmlDetalhe}
+      `;
     }
 
     // Renderização dos Cards de Orçamento no Painel Principal (Apenas Não Fechados por padrão)
@@ -9816,31 +10522,33 @@
 
         const compFmt = (Number(it.comp) || 0).toFixed(3);
         const largFmt = (Number(it.larg) || 0).toFixed(3);
+        const esboco2dHtml = typeof gerarSvgEsbocoPeca2D === 'function' ? gerarSvgEsbocoPeca2D(it, { impressao: true, compacto: true }) : '';
 
         return `
           <tr class="border-b border-slate-300 text-slate-900 text-xs">
-            <td class="py-3 px-2.5 font-mono font-black text-center text-sm bg-slate-100">${idx + 1}</td>
-            <td class="py-3 px-3">
+            <td class="py-2.5 px-2 font-mono font-black text-center text-sm bg-slate-100">${idx + 1}</td>
+            <td class="py-2.5 px-2.5">
               <span class="font-extrabold text-sm block">${it.descricao || 'Peça'}</span>
-              <span class="text-[11px] text-slate-500 font-mono">Chapa: <b>${mat.nome}</b></span>
+              <span class="text-[11px] text-slate-600 font-mono">Chapa: <b>${mat.nome}</b></span>
+              ${(it.cuba > 0 || (it.cubaNome && it.cubaNome !== 'Sem Cuba')) ? `<span class="text-[10px] font-bold text-indigo-900 block mt-0.5">🚰 ${it.cubaNome || 'Cuba / Recorte'}</span>` : ''}
             </td>
-            <td class="py-3 px-2 text-center font-mono font-black text-base bg-amber-50/60">${it.qtd || 1}</td>
-            <td class="py-3 px-3 text-center font-mono font-extrabold text-sm text-blue-900 bg-blue-50/40">
+            <td class="py-2.5 px-1.5 text-center font-mono font-black text-base bg-amber-50/60">${it.qtd || 1}</td>
+            <td class="py-2.5 px-2.5 text-center font-mono font-extrabold text-sm text-blue-900 bg-blue-50/40">
               ${compFmt} × ${largFmt} m
               <span class="text-[10px] text-slate-500 block font-normal font-mono">${areaPeca} m²</span>
             </td>
-            <td class="py-3 px-3 text-[11px] leading-tight">
+            <td class="py-1.5 px-2 text-center bg-white">
+              ${esboco2dHtml}
+            </td>
+            <td class="py-2.5 px-2.5 text-[11px] leading-tight">
               ${rbSaiaTexto}
             </td>
-            <td class="py-3 px-3 text-[11px] leading-tight">
+            <td class="py-2.5 px-2.5 text-[11px] leading-tight">
               <span class="font-bold block">${acabObj.nome}</span>
               <span class="text-slate-600 block">${ladoObj.nome}</span>
               <span class="text-slate-500 font-mono font-bold block">${metrosAcab}m linear</span>
             </td>
-            <td class="py-3 px-3 text-[11px]">
-              ${(it.cuba > 0 || (it.cubaNome && it.cubaNome !== 'Sem Cuba')) ? `<span class="font-bold text-indigo-900 block">${it.cubaNome || '✓ Cuba / Acessório'}</span><span class="text-[10px] text-slate-500">Recorte + Colagem</span>` : `<span class="text-slate-400">-</span>`}
-            </td>
-            <td class="py-3 px-2 text-center font-mono text-[10px] space-y-1">
+            <td class="py-2.5 px-2 text-center font-mono text-[10px] space-y-1">
               <div class="flex items-center gap-1 justify-center"><input type="checkbox" class="w-3.5 h-3.5 rounded border-slate-400"> <span>Corte</span></div>
               <div class="flex items-center gap-1 justify-center"><input type="checkbox" class="w-3.5 h-3.5 rounded border-slate-400"> <span>Colagem</span></div>
               <div class="flex items-center gap-1 justify-center"><input type="checkbox" class="w-3.5 h-3.5 rounded border-slate-400"> <span>Polido</span></div>
@@ -9896,21 +10604,27 @@
 
         <!-- Tabela das Peças para a Fábrica -->
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">1. Peças, Dimensões de Corte e Acabamento da Bancada</h3>
+          <div class="flex items-center justify-between mb-1.5">
+            <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">1. Peças, Esboço Técnico 2D, Dimensões de Corte e Acabamento</h3>
             <span class="text-xs font-mono font-bold text-slate-700">Total de Chapas: ${(orc.m2Total || 0).toFixed(3)} m²</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-4 px-2.5 py-1 mb-2 rounded bg-slate-100 border border-slate-300 text-[10px] text-slate-700">
+            <span class="font-bold uppercase text-slate-900">📐 Legenda do Desenho 2D:</span>
+            <span><b class="text-blue-900">══ Linha Dupla Azul:</b> Lado c/ Rodabanca / Parede</span>
+            <span><b class="text-amber-800">- - Linha Tracejada:</b> Lado c/ Saia 45° / Acabamento Polido</span>
+            <span><b class="text-sky-800">[ ○ ] Retângulo Interno:</b> Posição de Corte da Cuba</span>
           </div>
 
           <table class="w-full text-left border-2 border-slate-800 rounded-lg overflow-hidden">
             <thead class="bg-slate-900 text-white font-bold text-xs uppercase">
               <tr>
                 <th class="py-2.5 px-2 text-center w-8">#</th>
-                <th class="py-2.5 px-3">Peça / Ambiente</th>
-                <th class="py-2.5 px-2 text-center w-12">Qtd</th>
-                <th class="py-2.5 px-3 text-center">Corte Bruto (C × L)</th>
-                <th class="py-2.5 px-3">Rodabanca / Saia</th>
-                <th class="py-2.5 px-3">Acabamento Linear</th>
-                <th class="py-2.5 px-3">Cuba / Furo</th>
+                <th class="py-2.5 px-2.5">Peça / Material / Cuba</th>
+                <th class="py-2.5 px-1.5 text-center w-10">Qtd</th>
+                <th class="py-2.5 px-2.5 text-center">Corte Bruto (C × L)</th>
+                <th class="py-2.5 px-2 text-center">Esboço 2D (Lados)</th>
+                <th class="py-2.5 px-2.5">Rodabanca / Saia</th>
+                <th class="py-2.5 px-2.5">Acabamento Linear</th>
                 <th class="py-2.5 px-2 text-center w-24">Checklist</th>
               </tr>
             </thead>
@@ -10345,6 +11059,21 @@
       document.getElementById("modal_calc_m2_saia").innerText = `${areaSaia.toFixed(3)} m²`;
 
       document.getElementById("modal_calc_total").innerText = `${totalM2Rb.toFixed(3)} m²`;
+
+      // Atualiza esboço visual 2D em tempo real no modal
+      const boxEsbocoModal = document.getElementById("modal_rb_esboco_2d");
+      if (boxEsbocoModal && typeof gerarSvgEsbocoPeca2D === "function") {
+        const itemPreviewModal = {
+          ...item,
+          configRb: {
+            ladosRb,
+            alturaRb: altRbCm,
+            ladosSaia,
+            alturaSaia: altSaiaCm
+          }
+        };
+        boxEsbocoModal.innerHTML = gerarSvgEsbocoPeca2D(itemPreviewModal, { compacto: false });
+      }
     }
 
     function aplicarModalRb() {
@@ -10407,6 +11136,277 @@
 
       fecharModalRb();
       renderTabela();
+    }
+
+    function carregarOrcamentoNaCalculadora(id) {
+      if (typeof carregarOrcamento === "function") {
+        carregarOrcamento(id, true);
+      }
+    }
+
+    // =================================================================
+    // 🔍 BUSCA GLOBAL INSTANTÂNEA (Ctrl + K / Barra no Topo)
+    // =================================================================
+    let filtroCategoriaBuscaGlobal = "todos";
+    let primeiraAcaoBuscaGlobal = null;
+
+    function abrirModalBuscaGlobal() {
+      const modal = document.getElementById("modal_busca_global");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      const inp = document.getElementById("input_busca_global");
+      if (inp) {
+        setTimeout(() => {
+          inp.focus();
+          inp.select();
+        }, 40);
+        executarBuscaGlobal(inp.value || "");
+      }
+    }
+
+    function fecharModalBuscaGlobal() {
+      const modal = document.getElementById("modal_busca_global");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function limparInputBuscaGlobal() {
+      const inp = document.getElementById("input_busca_global");
+      if (inp) {
+        inp.value = "";
+        inp.focus();
+      }
+      executarBuscaGlobal("");
+    }
+
+    function setFiltroCategoriaBuscaGlobal(cat) {
+      filtroCategoriaBuscaGlobal = cat;
+      const cats = ["todos", "clientes", "orcamentos", "fabrica", "financeiro"];
+      cats.forEach(c => {
+        const pill = document.getElementById(`pill_bg_${c}`);
+        if (!pill) return;
+        if (c === cat) {
+          pill.className = "px-2.5 py-1 rounded-lg font-bold bg-blue-600 text-white transition cursor-pointer";
+        } else {
+          pill.className = "px-2.5 py-1 rounded-lg font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition cursor-pointer";
+        }
+      });
+      const inp = document.getElementById("input_busca_global");
+      executarBuscaGlobal(inp ? inp.value : "");
+    }
+
+    function aoTeclarBuscaGlobal(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        fecharModalBuscaGlobal();
+      } else if (event.key === "Enter") {
+        if (typeof primeiraAcaoBuscaGlobal === "function") {
+          event.preventDefault();
+          primeiraAcaoBuscaGlobal();
+        }
+      }
+    }
+
+    // Atalho global de teclado Ctrl+K / Cmd+K
+    window.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        const modal = document.getElementById("modal_busca_global");
+        if (modal && !modal.classList.contains("hidden")) {
+          fecharModalBuscaGlobal();
+        } else {
+          abrirModalBuscaGlobal();
+        }
+      } else if (e.key === "Escape") {
+        const modal = document.getElementById("modal_busca_global");
+        if (modal && !modal.classList.contains("hidden")) {
+          fecharModalBuscaGlobal();
+        }
+      }
+    });
+
+    function executarBuscaGlobal(termoBruto) {
+      const box = document.getElementById("resultados_busca_global");
+      const btnLimpar = document.getElementById("btn_limpar_busca_global");
+      if (!box) return;
+
+      const termo = (termoBruto || "").toLowerCase().trim();
+      if (btnLimpar) {
+        if (termo.length > 0) btnLimpar.classList.remove("hidden");
+        else btnLimpar.classList.add("hidden");
+      }
+
+      primeiraAcaoBuscaGlobal = null;
+      const secoesHtml = [];
+
+      // 1. CLIENTES CADASTRADOS
+      if (filtroCategoriaBuscaGlobal === "todos" || filtroCategoriaBuscaGlobal === "clientes") {
+        const clientesMatch = (clientesCadastrados || []).filter(c => {
+          if (!termo) return true;
+          return (c.nome || "").toLowerCase().includes(termo) ||
+                 (c.fone || "").toLowerCase().includes(termo) ||
+                 (c.documento || "").toLowerCase().includes(termo) ||
+                 (c.endereco || "").toLowerCase().includes(termo) ||
+                 (c.bairro || "").toLowerCase().includes(termo) ||
+                 (c.cidade || "").toLowerCase().includes(termo);
+        }).slice(0, termo ? 8 : 4);
+
+        if (clientesMatch.length > 0) {
+          if (!primeiraAcaoBuscaGlobal) {
+            const c0 = clientesMatch[0];
+            primeiraAcaoBuscaGlobal = () => {
+              fecharModalBuscaGlobal();
+              verHistoricoOrcamentosCliente(c0.id);
+            };
+          }
+          secoesHtml.push(`
+            <div class="pt-2 first:pt-0 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-black uppercase tracking-wider text-slate-500">👤 Clientes Cadastrados (${clientesMatch.length})</span>
+                <button onclick="fecharModalBuscaGlobal(); navegarParaAba('clientes')" class="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer">Ver todos no CRM →</button>
+              </div>
+              <div class="space-y-1.5">
+                ${clientesMatch.map(c => {
+                  const foneLimpo = String(c.fone || "").replace(/\D/g, "");
+                  return `
+                    <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-blue-50/40 hover:border-blue-300 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                          <span class="font-extrabold text-slate-900 truncate">${c.nome}</span>
+                          ${c.tipo ? `<span class="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">${c.tipo}</span>` : ''}
+                        </div>
+                        <div class="text-[11px] text-slate-500 truncate">
+                          📞 ${c.fone ? formatarTelefonePadrao(c.fone) : 'Sem fone'} • 📍 ${c.endereco || c.cidade || 'Endereço não informado'}
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="fecharModalBuscaGlobal(); verHistoricoOrcamentosCliente('${c.id}')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 text-slate-700 font-bold text-[11px] hover:bg-slate-100 transition cursor-pointer">📂 Histórico</button>
+                        <button onclick="fecharModalBuscaGlobal(); iniciarOrcamentoParaClienteCRM('${c.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[11px] hover:bg-emerald-700 transition cursor-pointer">+ Orçamento</button>
+                        ${foneLimpo.length >= 10 ? `<a href="https://wa.me/${foneLimpo.startsWith('55') ? foneLimpo : '55'+foneLimpo}" target="_blank" class="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-[11px] hover:bg-emerald-200 transition">📱</a>` : ''}
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          `);
+        }
+      }
+
+      // 2. ORÇAMENTOS, ETAPA NA FÁBRICA E SALDO FINANCEIRO
+      const orcamentosMatch = (orcamentosSalvos || []).filter(o => {
+        if (filtroCategoriaBuscaGlobal === "fabrica") {
+          if (o.status !== "aprovado" && o.status !== "em_producao" && o.status !== "concluido") return false;
+        }
+        if (filtroCategoriaBuscaGlobal === "financeiro") {
+          if (o.status !== "aprovado" && o.status !== "em_producao" && o.status !== "concluido") return false;
+          const tot = (o.totalVista && o.totalVista > 0) ? o.totalVista : (calcularTotaisOrcamento(o).totalVista || 0);
+          const pg = (o.pagamentos || []).reduce((acc, p) => acc + (parseFloat(p.valor) || 0), 0);
+          if ((tot - pg) <= 0.01) return false;
+        }
+        if (!termo) return true;
+        return (o.numero || "").toLowerCase().includes(termo) ||
+               (o.clienteNome || "").toLowerCase().includes(termo) ||
+               (o.clienteFone || "").toLowerCase().includes(termo) ||
+               (o.clienteEndereco || "").toLowerCase().includes(termo) ||
+               (o.vendedor || "").toLowerCase().includes(termo);
+      }).slice(0, termo ? 12 : 6);
+
+      if (filtroCategoriaBuscaGlobal !== "clientes" && orcamentosMatch.length > 0) {
+        if (!primeiraAcaoBuscaGlobal) {
+          const o0 = orcamentosMatch[0];
+          primeiraAcaoBuscaGlobal = () => {
+            fecharModalBuscaGlobal();
+            carregarOrcamento(o0.id, true);
+          };
+        }
+
+        secoesHtml.push(`
+          <div class="pt-3 first:pt-0 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-black uppercase tracking-wider text-slate-500">📋 Orçamentos, Etapa na Fábrica & Saldo Financeiro (${orcamentosMatch.length})</span>
+            </div>
+            <div class="space-y-2">
+              ${orcamentosMatch.map(o => {
+                const total = (o.totalVista && o.totalVista > 0) ? o.totalVista : (calcularTotaisOrcamento(o).totalVista || 0);
+                const pago = (o.pagamentos || []).reduce((acc, p) => acc + (parseFloat(p.valor) || 0), 0);
+                const saldo = Math.max(0, total - pago);
+                const isFechado = (o.status === "aprovado" || o.status === "em_producao" || o.status === "concluido");
+
+                // Etapa da Fábrica
+                let badgeEtapa = `<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold text-[10px]">🟡 Orçamento em Aberto</span>`;
+                if (o.status === "aprovado" || o.status === "em_producao") {
+                  badgeEtapa = `<span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold text-[10px]">🏭 Fábrica: Em Corte / Acabamento</span>`;
+                } else if (o.status === "concluido") {
+                  if (o.statusEntrega === "entregue" || o.statusEntrega === "realizada") {
+                    badgeEtapa = `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]">🚚 Concluído & Entregue</span>`;
+                  } else {
+                    badgeEtapa = `<span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 font-bold text-[10px]">✅ Pronto na Fábrica (Aguard. Entrega)</span>`;
+                  }
+                } else if (o.status === "cancelado" || o.status === "recusado") {
+                  badgeEtapa = `<span class="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px]">❌ Cancelado</span>`;
+                }
+
+                // Badge Financeiro
+                let badgeFin = "";
+                if (isFechado) {
+                  if (saldo <= 0.01) {
+                    badgeFin = `<span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-mono font-bold text-[10px]">💰 Quitado</span>`;
+                  } else {
+                    badgeFin = `<span class="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 font-mono font-bold text-[10px]">💰 Falta: R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+                  }
+                }
+
+                return `
+                  <div class="p-3 rounded-xl border border-slate-200 bg-white hover:border-blue-400 transition flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs shadow-2xs">
+                    <div class="space-y-1 min-w-0">
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <span class="font-mono font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">${o.numero}</span>
+                        <span class="font-extrabold text-slate-900 truncate">${o.clienteNome || 'Cliente não informado'}</span>
+                        ${badgeEtapa}
+                        ${badgeFin}
+                      </div>
+                      <div class="text-[11px] text-slate-500 flex flex-wrap items-center gap-3">
+                        <span>💵 Total: <b class="text-slate-800 font-mono">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b></span>
+                        <span>📐 ${(o.m2Total || 0).toFixed(2)} m²</span>
+                        ${o.clienteFone ? `<span>📞 ${formatarTelefonePadrao(o.clienteFone)}</span>` : ''}
+                        ${o.dataEntregaPrevista ? `<span>🗓️ Entrega: ${o.dataEntregaPrevista.split('-').reverse().join('/')}</span>` : ''}
+                      </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                      <button onclick="fecharModalBuscaGlobal(); carregarOrcamento('${o.id}', true)" class="px-2.5 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-[11px] hover:bg-blue-700 transition cursor-pointer" title="Abrir na Calculadora">
+                        📐 Abrir Orçamento
+                      </button>
+                      ${isFechado ? `
+                        <button onclick="fecharModalBuscaGlobal(); abrirFichaProducaoPorId('${o.id}')" class="px-2.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold text-[11px] hover:bg-amber-600 transition cursor-pointer" title="Abrir O.S. da Fábrica">
+                          🏭 O.S. Fábrica
+                        </button>
+                      ` : ''}
+                      ${(isFechado && saldo > 0.01) ? `
+                        <button onclick="fecharModalBuscaGlobal(); abrirModalRegistrarPagamento('${o.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-[11px] hover:bg-emerald-700 transition cursor-pointer" title="Dar baixa de pagamento no Financeiro">
+                          💸 Receber
+                        </button>
+                      ` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `);
+      }
+
+      if (secoesHtml.length === 0) {
+        box.innerHTML = `
+          <div class="text-center py-10 space-y-2 text-slate-400">
+            <div class="text-3xl">🔍</div>
+            <p class="text-sm font-bold text-slate-700">Nenhum resultado encontrado para "${termoBruto}"</p>
+            <p class="text-xs text-slate-400">Tente buscar pelo nome do cliente, número do orçamento (ORC-...), telefone ou endereço.</p>
+          </div>
+        `;
+      } else {
+        box.innerHTML = secoesHtml.join("");
+      }
     }
 
     // -----------------------------------------------------------------
@@ -13572,6 +14572,17 @@
         </div>
       </div>
 
+      <!-- Esboço Visual 2D em Tempo Real da Peça no Modal R.B./Saia -->
+      <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1.5">
+        <div class="flex items-center justify-between text-[10px] font-bold text-slate-600 uppercase">
+          <span>📐 Esboço Técnico 2D da Peça (Em Tempo Real)</span>
+          <span class="text-slate-400 font-normal">══ Parede/RB • -- Saia/Borda</span>
+        </div>
+        <div id="modal_rb_esboco_2d" class="flex items-center justify-center bg-white rounded-lg border border-slate-200 py-2 min-h-[110px]">
+          <!-- Renderizado dinamicamente por recalcularModalRb() -->
+        </div>
+      </div>
+
       <!-- Total Calculated Summary -->
       <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
         <div>
@@ -13598,6 +14609,36 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- MODAL DE BUSCA GLOBAL INSTANTÂNEA (Ctrl + K) -->
+  <div id="modal_busca_global" onclick="if(event.target === this) fecharModalBuscaGlobal()" class="fixed inset-0 bg-slate-900/75 backdrop-blur-xs z-[90] hidden flex items-start justify-center pt-10 sm:pt-16 p-4">
+    <div class="bg-white w-full max-w-3xl rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <!-- Barra de Pesquisa -->
+      <div class="p-3.5 sm:p-4 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
+        <svg class="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <input type="text" id="input_busca_global" oninput="executarBuscaGlobal(this.value)" onkeydown="aoTeclarBuscaGlobal(event)" placeholder="Digite nome do cliente, telefone, endereço ou número do orçamento (ORC-...)..." class="flex-1 bg-transparent text-sm sm:text-base font-bold text-slate-900 placeholder-slate-400 focus:outline-none" autocomplete="off">
+        <button type="button" onclick="limparInputBuscaGlobal()" id="btn_limpar_busca_global" class="hidden px-2 py-1 text-[11px] font-bold text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200/60 transition cursor-pointer">Limpar</button>
+        <button type="button" onclick="fecharModalBuscaGlobal()" class="px-2.5 py-1 text-xs font-mono font-bold text-slate-500 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 cursor-pointer">ESC</button>
+      </div>
+
+      <!-- Filtros Rápidos de Categoria na Busca Global -->
+      <div class="px-4 py-2 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between gap-2 flex-wrap text-[11px]">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button type="button" onclick="setFiltroCategoriaBuscaGlobal('todos')" id="pill_bg_todos" class="px-2.5 py-1 rounded-lg font-bold bg-blue-600 text-white transition cursor-pointer">🔍 Tudo</button>
+          <button type="button" onclick="setFiltroCategoriaBuscaGlobal('clientes')" id="pill_bg_clientes" class="px-2.5 py-1 rounded-lg font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition cursor-pointer">👤 Clientes</button>
+          <button type="button" onclick="setFiltroCategoriaBuscaGlobal('orcamentos')" id="pill_bg_orcamentos" class="px-2.5 py-1 rounded-lg font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition cursor-pointer">📋 Orçamentos</button>
+          <button type="button" onclick="setFiltroCategoriaBuscaGlobal('fabrica')" id="pill_bg_fabrica" class="px-2.5 py-1 rounded-lg font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition cursor-pointer">🏭 Fábrica</button>
+          <button type="button" onclick="setFiltroCategoriaBuscaGlobal('financeiro')" id="pill_bg_financeiro" class="px-2.5 py-1 rounded-lg font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition cursor-pointer">💰 Saldo Pendente</button>
+        </div>
+        <span class="text-[10px] text-slate-500 hidden sm:inline">Dica: aperte <b>Enter ↵</b> para abrir o 1º resultado</span>
+      </div>
+
+      <!-- Resultados da Busca Global -->
+      <div id="resultados_busca_global" class="max-h-[68vh] overflow-y-auto p-4 space-y-4 divide-y divide-slate-100">
+        <!-- Preenchido dinamicamente por executarBuscaGlobal() -->
+      </div>
     </div>
   </div>
 
