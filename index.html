@@ -1978,12 +1978,21 @@
 
           <!-- Valor com Desconto Card -->
           <div class="p-4 rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/50 flex flex-col justify-between relative space-y-2">
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Valor com Desconto</span>
-              <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-emerald-300 shadow-xs">
-                <label for="orcamento_desconto_perc" class="text-[11px] font-bold text-emerald-900 whitespace-nowrap">% Desconto:</label>
-                <input type="number" id="orcamento_desconto_perc" value="10" min="0" max="100" step="0.5" oninput="calcularTotais()" class="w-16 text-center font-mono font-bold text-xs text-emerald-950 bg-emerald-50/60 rounded-lg border border-emerald-300 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                <span class="text-xs font-bold text-emerald-700">%</span>
+            <div class="flex items-start justify-between gap-2 flex-wrap">
+              <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider mt-1">Valor com Desconto</span>
+              <div class="flex flex-col items-end gap-1.5">
+                <!-- Campo % Desconto -->
+                <div class="flex items-center justify-end gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-emerald-300 shadow-xs w-full sm:w-auto">
+                  <label for="orcamento_desconto_perc" class="text-[11px] font-bold text-emerald-900 whitespace-nowrap">% Desconto:</label>
+                  <input type="number" id="orcamento_desconto_perc" value="10" min="0" max="100" step="0.01" oninput="calcularTotais('perc')" class="w-20 text-center font-mono font-bold text-xs text-emerald-950 bg-emerald-50/60 rounded-lg border border-emerald-300 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  <span class="text-xs font-bold text-emerald-700 w-3 text-center">%</span>
+                </div>
+                <!-- Campo Desconto em Real (R$) logo abaixo -->
+                <div class="flex items-center justify-end gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-emerald-300 shadow-xs w-full sm:w-auto">
+                  <label for="orcamento_desconto_real" class="text-[11px] font-bold text-emerald-900 whitespace-nowrap">Desconto R$:</label>
+                  <input type="number" id="orcamento_desconto_real" value="0" min="0" step="1" oninput="calcularTotais('real')" placeholder="0,00" class="w-20 text-center font-mono font-bold text-xs text-emerald-950 bg-emerald-50/60 rounded-lg border border-emerald-300 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  <span class="text-[11px] font-bold text-emerald-700 w-3 text-center">R$</span>
+                </div>
               </div>
             </div>
             <div>
@@ -3249,7 +3258,7 @@
       renderTabela();
     }
 
-    function calcularTotais() {
+    function calcularTotais(origemDesconto = null) {
       let m2Total = 0;
       let subtotalPedra = 0;
       let subtotalAcab = 0;
@@ -3267,11 +3276,29 @@
 
       const totalPrazo = subtotalPedra + subtotalAcab + subtotalCubas;
       const descInput = document.getElementById("orcamento_desconto_perc");
-      const descPerc = descInput ? (parseFloat(descInput.value) || 0) : 10;
-      const fatorDesc = Math.max(0, (100 - descPerc) / 100);
-      const totalVista = totalPrazo * fatorDesc;
+      const descRealInput = document.getElementById("orcamento_desconto_real");
+
+      let descPerc = 0;
+      let valorEconomia = 0;
+      let totalVista = totalPrazo;
+
+      if (origemDesconto === "real" && descRealInput) {
+        const descReaisDigitado = Math.max(0, Math.min(totalPrazo, parseValorNumerico(descRealInput.value)));
+        valorEconomia = descReaisDigitado;
+        totalVista = Math.max(0, totalPrazo - valorEconomia);
+        descPerc = totalPrazo > 0 ? Number(((valorEconomia / totalPrazo) * 100).toFixed(2)) : 0;
+        if (descInput) descInput.value = descPerc;
+      } else {
+        descPerc = descInput ? Math.max(0, Math.min(100, parseValorNumerico(descInput.value))) : 10;
+        const fatorDesc = Math.max(0, (100 - descPerc) / 100);
+        totalVista = totalPrazo * fatorDesc;
+        valorEconomia = Math.max(0, totalPrazo - totalVista);
+        if (descRealInput && document.activeElement !== descRealInput) {
+          descRealInput.value = valorEconomia > 0 ? Number(valorEconomia.toFixed(2)) : 0;
+        }
+      }
+
       const totalDebito = totalVista;
-      const valorEconomia = totalPrazo - totalVista;
 
       // Installments
       const entrada = parseFloat(document.getElementById("valor_entrada").value) || 0;
@@ -9844,8 +9871,10 @@
         totalPrazo += (subtotalPedra + subtotalAcab + subtotalCubas);
       });
       const descInput = document.getElementById("orcamento_desconto_perc");
+      const descRealInput = document.getElementById("orcamento_desconto_real");
       const descontoPerc = descInput ? (parseFloat(descInput.value) || 0) : 10;
-      const totalVista = totalPrazo * Math.max(0, (100 - descontoPerc) / 100);
+      const descontoReal = descRealInput ? (parseFloat(descRealInput.value) || 0) : Number((totalPrazo * (descontoPerc / 100)).toFixed(2));
+      const totalVista = Math.max(0, totalPrazo - descontoReal);
 
       const orcamentoObj = {
         id: orcamentoAtualId || ("orc_" + Date.now()),
@@ -9871,6 +9900,7 @@
         entrada,
         parcelas,
         descontoPerc,
+        descontoReal,
         totalPrazo,
         totalVista,
         m2Total,
@@ -9937,6 +9967,8 @@
         document.getElementById("orcamento_obs").value = "";
         const inpDesc = document.getElementById("orcamento_desconto_perc");
         if (inpDesc) inpDesc.value = 10;
+        const inpDescReal = document.getElementById("orcamento_desconto_real");
+        if (inpDescReal) inpDescReal.value = 0;
 
         // Reinicia com 0 peças (orçamento limpo em branco)
         itens = [];
@@ -10150,6 +10182,10 @@
       document.getElementById("num_parcelas").value = orc.parcelas || 3;
       const inpDesc = document.getElementById("orcamento_desconto_perc");
       if (inpDesc) inpDesc.value = (orc.descontoPerc !== undefined) ? orc.descontoPerc : 10;
+      const inpDescReal = document.getElementById("orcamento_desconto_real");
+      if (inpDescReal && orc.descontoReal !== undefined) {
+        inpDescReal.value = orc.descontoReal;
+      }
 
       const labelEditando = document.getElementById("label_orcamento_editando");
       if (labelEditando) labelEditando.innerText = `Editando Orçamento #${orc.numero || 'ORC'}`;
