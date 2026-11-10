@@ -12482,6 +12482,34 @@
       });
     }
 
+    function atualizarEnderecoCompleto() {
+      const inCep = document.getElementById("cliente_cep");
+      const inRua = document.getElementById("cliente_rua");
+      const inNum = document.getElementById("cliente_numero");
+      const inBairro = document.getElementById("cliente_bairro");
+      const inCid = document.getElementById("cliente_cidade");
+      const inEnd = document.getElementById("cliente_endereco");
+      if (!inEnd) return;
+
+      const rua = inRua ? inRua.value.trim() : "";
+      const num = inNum ? inNum.value.trim() : "";
+      const bairro = inBairro ? inBairro.value.trim() : "";
+      const cid = inCid ? inCid.value.trim() : "";
+      const cep = inCep ? inCep.value.trim() : "";
+
+      let partes = [];
+      if (rua) {
+        partes.push(rua + (num ? `, ${num}` : ""));
+      } else if (num) {
+        partes.push(`Nº ${num}`);
+      }
+      if (bairro) partes.push(bairro);
+      if (cid) partes.push(cid);
+      if (cep) partes.push(`(CEP ${cep})`);
+
+      inEnd.value = partes.join(" - ");
+    }
+
     function aoDigitarCepFormCliente(valor) {
       const inCep = document.getElementById("form_cliente_cep");
       if (!inCep) return;
