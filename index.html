@@ -152,9 +152,30 @@
       }
     }
 
-    /* Sidebar Retrátil & Layout Moderno */
+    /* Sidebar Retrátil & Fixa no Topo/Esquerda */
+    #sidebar_principal {
+      position: fixed !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      height: 100vh !important;
+    }
     #sidebar_principal.collapsed {
       width: 4.75rem !important;
+    }
+    @media (min-width: 768px) {
+      #conteudo_direita_wrapper {
+        margin-left: 16rem;
+        transition: margin-left 0.3s ease-in-out;
+      }
+      #sidebar_principal.collapsed ~ #conteudo_direita_wrapper {
+        margin-left: 4.75rem;
+      }
+    }
+    @media print {
+      #conteudo_direita_wrapper {
+        margin-left: 0 !important;
+      }
     }
     #sidebar_principal.collapsed .sidebar-label {
       display: none !important;
@@ -229,15 +250,15 @@
   <!-- ============================================================ -->
   <!-- WRAPPER DO SISTEMA PRINCIPAL (OCULTO ATÉ O LOGIN CORRETO)    -->
   <!-- ============================================================ -->
-  <div id="app_sistema_wrapper" class="hidden min-h-screen w-full flex flex-row overflow-x-hidden bg-slate-100/70 text-slate-800" style="display: none;">
+  <div id="app_sistema_wrapper" class="hidden min-h-screen w-full flex flex-row bg-slate-100/70 text-slate-800" style="display: none;">
 
     <!-- Mobile Backdrop Overlay -->
     <div id="sidebar_backdrop" onclick="fecharSidebarMobile()" class="fixed inset-0 bg-slate-900/75 z-40 hidden md:hidden transition-opacity"></div>
 
   <!-- ============================================================ -->
-  <!-- SIDEBAR LATERAL RETRÁTIL (MENU ESQUERDO)                     -->
+  <!-- SIDEBAR LATERAL RETRÁTIL (MENU ESQUERDO FIXO)                -->
   <!-- ============================================================ -->
-  <aside id="sidebar_principal" class="no-print fixed inset-y-0 left-0 z-50 md:sticky md:top-0 h-screen bg-slate-900 text-slate-200 flex flex-col justify-between transition-all duration-300 ease-in-out w-64 -translate-x-full md:translate-x-0 border-r border-slate-800 shadow-xl select-none shrink-0">
+  <aside id="sidebar_principal" class="no-print fixed inset-y-0 left-0 z-40 h-screen bg-slate-900 text-slate-200 flex flex-col justify-between transition-all duration-300 ease-in-out w-64 -translate-x-full md:translate-x-0 border-r border-slate-800 shadow-xl select-none shrink-0">
     
     <!-- Topo da Sidebar: Logotipo & Toggle -->
     <div class="p-3.5 border-b border-slate-800/80 flex items-center justify-between gap-2 min-h-[64px] sidebar-logo-container">
@@ -441,7 +462,7 @@
   <!-- ============================================================ -->
   <!-- CONTEÚDO PRINCIPAL (ÁREA DIREITA)                            -->
   <!-- ============================================================ -->
-  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+  <div id="conteudo_direita_wrapper" class="flex-1 flex flex-col min-w-0 min-h-screen">
 
     <!-- Topbar Slim Fixa no Topo -->
     <header id="topbar_app" class="no-print h-14 sm:h-16 px-4 md:px-6 bloco-cinza border-b border-slate-300 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
