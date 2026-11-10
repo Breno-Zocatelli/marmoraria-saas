@@ -2636,57 +2636,127 @@
     }
 
     // =================================================================
-    // GERADOR DE ESBOÇO VISUAL 2D AUTOMÁTICO DA PEÇA (CALCULADORA & O.S.)
+    // GERADOR DE ESBOÇO VISUAL 2D INTERATIVO DA PEÇA (OPÇÃO 1: 4 LADOS CLICÁVEIS)
     // =================================================================
+    function obterBordas2DPeca(item) {
+      // Se já houver configuração explícita dos 4 lados (topo, base, esq, dir), usa ela
+      const explicito = item?.configRb?.bordas2D || item?.bordas2D;
+      if (explicito && typeof explicito === "object") {
+        return {
+          topo: explicito.topo || "nenhum",
+          base: explicito.base || "nenhum",
+          esq: explicito.esq || "nenhum",
+          dir: explicito.dir || "nenhum"
+        };
+      }
+
+      const bordas = { topo: "nenhum", base: "nenhum", esq: "nenhum", dir: "nenhum" };
+      const ladosRb = item?.configRb?.ladosRb || (parseFloat(item?.rb) > 0 ? "fundo" : "nenhum");
+      const ladosSaia = item?.configRb?.ladosSaia || "nenhuma";
+      const regraAcab = item?.regraAcab || "nenhum";
+
+      // 1. Aplica Saia / Acabamento Linear
+      if (["frente", "frente_1lat", "frente_1lat_dir", "frente_1lat_esq", "frente_2lat", "ilha"].includes(ladosSaia) ||
+          ["pia_frente", "pia_2", "pia_3", "peitoril_2", "peitoril_3", "peitoril_4"].includes(regraAcab)) {
+        bordas.base = "saia";
+      }
+      if (["frente_1lat", "frente_1lat_dir", "frente_2lat", "ilha"].includes(ladosSaia) ||
+          ["pia_2", "pia_3", "peitoril_3", "peitoril_4", "laterais_2", "lateral_1"].includes(regraAcab)) {
+        bordas.dir = "saia";
+      }
+      if (["frente_1lat_esq", "frente_2lat", "ilha"].includes(ladosSaia) ||
+          ["pia_3", "peitoril_4", "laterais_2"].includes(regraAcab)) {
+        bordas.esq = "saia";
+      }
+      if (["ilha"].includes(ladosSaia) ||
+          ["peitoril_2", "peitoril_3", "peitoril_4"].includes(regraAcab)) {
+        bordas.topo = "saia";
+      }
+
+      // 2. Aplica Rodabanca (Parede) — sobrepõe na face da parede
+      if (["fundo", "fundo_1lat", "fundo_1lat_esq", "fundo_1lat_dir", "fundo_2lat", "perimetro"].includes(ladosRb)) {
+        bordas.topo = "rb";
+      }
+      if (["fundo_1lat", "fundo_1lat_esq", "fundo_2lat", "perimetro"].includes(ladosRb)) {
+        bordas.esq = "rb";
+      }
+      if (["fundo_1lat_dir", "fundo_2lat", "perimetro"].includes(ladosRb)) {
+        bordas.dir = "rb";
+      }
+      if (["perimetro"].includes(ladosRb)) {
+        bordas.base = "rb";
+      }
+
+      return bordas;
+    }
+
+    function formatarNomesLadosBordas2D(bordas, tipo) {
+      if (!bordas) return "";
+      const nomes = [];
+      if (bordas.topo === tipo) nomes.push("Fundo");
+      if (bordas.base === tipo) nomes.push("Frente");
+      if (bordas.esq === tipo) nomes.push("Esq");
+      if (bordas.dir === tipo) nomes.push("Dir");
+      return nomes.join(" + ");
+    }
+
+    function calcularMetrosBordas2D(bordas, tipo, comp, larg, qtd) {
+      if (!bordas) return 0;
+      const c = parseFloat(comp) || 0;
+      const l = parseFloat(larg) || 0;
+      const q = parseFloat(qtd) || 1;
+      let m = 0;
+      if (bordas.topo === tipo) m += c;
+      if (bordas.base === tipo) m += c;
+      if (bordas.esq === tipo) m += l;
+      if (bordas.dir === tipo) m += l;
+      return m * q;
+    }
+
     function gerarSvgEsbocoPeca2D(item, opcoes = {}) {
       const comp = Math.max(0.05, parseFloat(item?.comp) || 1.0);
       const larg = Math.max(0.05, parseFloat(item?.larg) || 0.60);
       const compacto = !!opcoes.compacto;
       const impressao = !!opcoes.impressao;
+      const interativoModal = !!opcoes.interativoModal;
+      const interativoRapido = !!opcoes.interativoRapido;
+      const interativoIndex = opcoes.interativoIndex !== undefined ? opcoes.interativoIndex : null;
+      const isInterativo = interativoModal || interativoRapido || interativoIndex !== null;
 
-      const svgW = compacto ? 168 : (impressao ? 185 : 220);
-      const svgH = compacto ? 66 : (impressao ? 78 : 96);
+      const svgW = compacto ? 176 : (impressao ? 190 : 280);
+      const svgH = compacto ? 68 : (impressao ? 80 : 126);
 
-      const padX = compacto ? 24 : 30;
-      const padY = compacto ? 14 : 18;
+      const padX = compacto ? 26 : (impressao ? 30 : 54);
+      const padY = compacto ? 14 : (impressao ? 18 : 26);
       const maxDrawW = svgW - padX * 2;
       const maxDrawH = svgH - padY * 2;
 
-      // Mantém proporção visual agradável (limitando extremos para soleiras muito finas ainda ficarem legíveis)
-      const ratio = Math.min(4.2, Math.max(0.35, comp / larg));
+      // Mantém proporção visual agradável
+      const ratio = Math.min(4.0, Math.max(0.4, comp / larg));
       let rectW = maxDrawW;
       let rectH = rectW / ratio;
       if (rectH > maxDrawH) {
         rectH = maxDrawH;
         rectW = rectH * ratio;
       }
-      rectW = Math.max(compacto ? 46 : 58, Math.min(maxDrawW, rectW));
-      rectH = Math.max(compacto ? 20 : 24, Math.min(maxDrawH, rectH));
+      rectW = Math.max(compacto ? 48 : 68, Math.min(maxDrawW, rectW));
+      rectH = Math.max(compacto ? 20 : 30, Math.min(maxDrawH, rectH));
 
       const x0 = Math.round((svgW - rectW) / 2);
       const y0 = Math.round((svgH - rectH) / 2);
       const x1 = x0 + rectW;
       const y1 = y0 + rectH;
 
-      // Determina lados com Rodabanca (Espelho na Parede) -> Linha Dupla Azul/Índigo
-      const ladosRb = item?.configRb?.ladosRb || (parseFloat(item?.rb) > 0 ? "fundo" : "nenhum");
-      const rbTop = ["fundo", "fundo_1lat", "fundo_2lat", "perimetro"].includes(ladosRb);
-      const rbLeft = ["fundo_1lat", "fundo_2lat", "perimetro"].includes(ladosRb);
-      const rbRight = ["fundo_2lat", "perimetro"].includes(ladosRb);
-      const rbBottom = ["perimetro"].includes(ladosRb);
+      const bordas = obterBordas2DPeca(item);
+      const rbTop = bordas.topo === "rb";
+      const rbBottom = bordas.base === "rb";
+      const rbLeft = bordas.esq === "rb";
+      const rbRight = bordas.dir === "rb";
 
-      // Determina lados com Saia / Acabamento Meia-Esquadria -> Linha Tracejada Laranja/Âmbar
-      const ladosSaia = item?.configRb?.ladosSaia || "nenhuma";
-      const regraAcab = item?.regraAcab || "nenhum";
-
-      const saiaBottom = ["frente", "frente_1lat", "frente_2lat", "ilha"].includes(ladosSaia) ||
-                         ["pia_frente", "pia_2", "pia_3", "peitoril_2", "peitoril_3", "peitoril_4"].includes(regraAcab);
-      const saiaRight = ["frente_1lat", "frente_2lat", "ilha"].includes(ladosSaia) ||
-                        ["pia_2", "pia_3", "peitoril_3", "peitoril_4", "laterais_2", "lateral_1"].includes(regraAcab);
-      const saiaLeft = ["frente_2lat", "ilha"].includes(ladosSaia) ||
-                       ["pia_3", "peitoril_4", "laterais_2"].includes(regraAcab);
-      const saiaTop = ["ilha"].includes(ladosSaia) ||
-                      ["peitoril_2", "peitoril_3", "peitoril_4"].includes(regraAcab);
+      const saiaTop = bordas.topo === "saia";
+      const saiaBottom = bordas.base === "saia";
+      const saiaLeft = bordas.esq === "saia";
+      const saiaRight = bordas.dir === "saia";
 
       // Verifica se tem Cuba
       const temCuba = (parseFloat(item?.cuba) > 0) ||
@@ -2698,34 +2768,35 @@
       // 1. Desenha Linha Dupla de Rodabanca (Parede)
       const corRb = impressao ? "#1e3a8a" : "#4f46e5";
       if (rbTop) {
-        linhasExtras += `<line x1="${x0}" y1="${y0 - 3}" x2="${x1}" y2="${y0 - 3}" stroke="${corRb}" stroke-width="2.2" />`;
-        linhasExtras += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="${corRb}" stroke-width="2.2" />`;
+        linhasExtras += `<line x1="${x0}" y1="${y0 - 3}" x2="${x1}" y2="${y0 - 3}" stroke="${corRb}" stroke-width="2.4" />`;
+        linhasExtras += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="${corRb}" stroke-width="2.4" />`;
       }
       if (rbLeft) {
-        linhasExtras += `<line x1="${x0 - 3}" y1="${y0}" x2="${x0 - 3}" y2="${y1}" stroke="${corRb}" stroke-width="2.2" />`;
-        linhasExtras += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y1}" stroke="${corRb}" stroke-width="2.2" />`;
+        linhasExtras += `<line x1="${x0 - 3}" y1="${y0}" x2="${x0 - 3}" y2="${y1}" stroke="${corRb}" stroke-width="2.4" />`;
+        linhasExtras += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y1}" stroke="${corRb}" stroke-width="2.4" />`;
       }
       if (rbRight) {
-        linhasExtras += `<line x1="${x1 + 3}" y1="${y0}" x2="${x1 + 3}" y2="${y1}" stroke="${corRb}" stroke-width="2.2" />`;
-        linhasExtras += `<line x1="${x1}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${corRb}" stroke-width="2.2" />`;
+        linhasExtras += `<line x1="${x1 + 3}" y1="${y0}" x2="${x1 + 3}" y2="${y1}" stroke="${corRb}" stroke-width="2.4" />`;
+        linhasExtras += `<line x1="${x1}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${corRb}" stroke-width="2.4" />`;
       }
       if (rbBottom) {
-        linhasExtras += `<line x1="${x0}" y1="${y1 + 3}" x2="${x1}" y2="${y1 + 3}" stroke="${corRb}" stroke-width="2.2" />`;
+        linhasExtras += `<line x1="${x0}" y1="${y1 + 3}" x2="${x1}" y2="${y1 + 3}" stroke="${corRb}" stroke-width="2.4" />`;
+        linhasExtras += `<line x1="${x0}" y1="${y1}" x2="${x1}" y2="${y1}" stroke="${corRb}" stroke-width="2.4" />`;
       }
 
       // 2. Desenha Linha Tracejada de Saia / Acabamento
       const corSaia = impressao ? "#b45309" : "#d97706";
       if (saiaBottom) {
-        linhasExtras += `<line x1="${x0 + 2}" y1="${y1 - 2.5}" x2="${x1 - 2}" y2="${y1 - 2.5}" stroke="${corSaia}" stroke-width="2.2" stroke-dasharray="4,2.5" />`;
+        linhasExtras += `<line x1="${x0 + 2}" y1="${y1 - 2.5}" x2="${x1 - 2}" y2="${y1 - 2.5}" stroke="${corSaia}" stroke-width="2.4" stroke-dasharray="4,2.5" />`;
       }
       if (saiaRight) {
-        linhasExtras += `<line x1="${x1 - 2.5}" y1="${y0 + 2}" x2="${x1 - 2.5}" y2="${y1 - 2}" stroke="${corSaia}" stroke-width="2.2" stroke-dasharray="4,2.5" />`;
+        linhasExtras += `<line x1="${x1 - 2.5}" y1="${y0 + 2}" x2="${x1 - 2.5}" y2="${y1 - 2}" stroke="${corSaia}" stroke-width="2.4" stroke-dasharray="4,2.5" />`;
       }
       if (saiaLeft) {
-        linhasExtras += `<line x1="${x0 + 2.5}" y1="${y0 + 2}" x2="${x0 + 2.5}" y2="${y1 - 2}" stroke="${corSaia}" stroke-width="2.2" stroke-dasharray="4,2.5" />`;
+        linhasExtras += `<line x1="${x0 + 2.5}" y1="${y0 + 2}" x2="${x0 + 2.5}" y2="${y1 - 2}" stroke="${corSaia}" stroke-width="2.4" stroke-dasharray="4,2.5" />`;
       }
-      if (saiaTop && !rbTop) {
-        linhasExtras += `<line x1="${x0 + 2}" y1="${y0 + 2.5}" x2="${x1 - 2}" y2="${y0 + 2.5}" stroke="${corSaia}" stroke-width="2.2" stroke-dasharray="4,2.5" />`;
+      if (saiaTop) {
+        linhasExtras += `<line x1="${x0 + 2}" y1="${y0 + 2.5}" x2="${x1 - 2}" y2="${y0 + 2.5}" stroke="${corSaia}" stroke-width="2.4" stroke-dasharray="4,2.5" />`;
       }
 
       // 3. Desenha Recorte de Cuba (se houver)
@@ -2738,8 +2809,8 @@
         const raloX = Math.round(cx + cw / 2);
         const raloY = Math.round(cy + ch * 0.38);
         cubaSvg = `
-          <rect x="${cx}" y="${cy}" width="${cw}" height="${ch}" rx="3" fill="${impressao ? '#e0f2fe' : '#ecfeff'}" stroke="#0284c7" stroke-width="1.4" />
-          <circle cx="${raloX}" cy="${raloY}" r="2.2" fill="none" stroke="#0369a1" stroke-width="1.1" />
+          <rect x="${cx}" y="${cy}" width="${cw}" height="${ch}" rx="3" fill="${impressao ? '#e0f2fe' : '#ecfeff'}" stroke="#0284c7" stroke-width="1.4" pointer-events="none" />
+          <circle cx="${raloX}" cy="${raloY}" r="2.2" fill="none" stroke="#0369a1" stroke-width="1.1" pointer-events="none" />
         `;
       }
 
@@ -2747,18 +2818,206 @@
       const largTxt = `${(parseFloat(item?.larg) || 0).toFixed(2)}m`;
       const fontSz = compacto ? 8.5 : 9.5;
 
+      // Indicadores de lado Esquerdo/Direito quando houver acabamento lateral (para clareza total na tela e na O.S.)
+      let badgesLadosSvg = "";
+      if (compacto || impressao) {
+        if (bordas.esq !== "nenhum") {
+          const corE = bordas.esq === "rb" ? corRb : corSaia;
+          badgesLadosSvg += `<text x="${x0 - 5}" y="${y0 + 7}" text-anchor="end" font-size="7" font-family="sans-serif" font-weight="bold" fill="${corE}">E</text>`;
+        }
+        if (bordas.dir !== "nenhum") {
+          const corD = bordas.dir === "rb" ? corRb : corSaia;
+          badgesLadosSvg += `<text x="${x1 + 5}" y="${y0 + 7}" text-anchor="start" font-size="7" font-family="sans-serif" font-weight="bold" fill="${corD}">D</text>`;
+        }
+      }
+
+      // 4. Camada Interativa de Clique nos 4 Lados (Opção 1)
+      let hitAreasSvg = "";
+      if (isInterativo) {
+        const modoStr = interativoModal ? `'modal'` : (interativoRapido ? `'rapido'` : `'item'`);
+        const idxArg = interativoIndex !== null ? interativoIndex : -1;
+
+        const badgeCor = (est) => {
+          if (est === "rb") return { bg: "#e0e7ff", stroke: "#4f46e5", txt: "#312e81", label: "RB" };
+          if (est === "saia") return { bg: "#fef3c7", stroke: "#d97706", txt: "#92400e", label: "Saia" };
+          return { bg: "#f8fafc", stroke: "#cbd5e1", txt: "#64748b", label: "Livre" };
+        };
+
+        // Zonas de clique largas nas 4 bordas
+        hitAreasSvg += `
+          <!-- Topo / Fundo -->
+          <g onclick="clicarBordaEsboco2D(event, 'topo', ${modoStr}, ${idxArg})" class="cursor-pointer group">
+            <title>Clique para alternar Topo/Fundo (Parede RB ➔ Saia/Acabamento ➔ Sem nada)</title>
+            <line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="transparent" stroke-width="14" />
+            ${interativoModal ? (() => {
+              const b = badgeCor(bordas.topo);
+              const mx = Math.round((x0 + x1) / 2);
+              return `
+                <rect x="${mx - 34}" y="${y0 - 21}" width="68" height="14" rx="4" fill="${b.bg}" stroke="${b.stroke}" stroke-width="1" />
+                <text x="${mx}" y="${y0 - 11.5}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="${b.txt}">Fundo: ${b.label}</text>
+              `;
+            })() : ''}
+          </g>
+          <!-- Base / Frente -->
+          <g onclick="clicarBordaEsboco2D(event, 'base', ${modoStr}, ${idxArg})" class="cursor-pointer group">
+            <title>Clique para alternar Frente/Base (Saia/Acabamento ➔ Parede RB ➔ Sem nada)</title>
+            <line x1="${x0}" y1="${y1}" x2="${x1}" y2="${y1}" stroke="transparent" stroke-width="14" />
+            ${interativoModal ? (() => {
+              const b = badgeCor(bordas.base);
+              const mx = Math.round((x0 + x1) / 2);
+              return `
+                <rect x="${mx - 36}" y="${y1 + 13}" width="72" height="14" rx="4" fill="${b.bg}" stroke="${b.stroke}" stroke-width="1" />
+                <text x="${mx}" y="${y1 + 22.5}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="${b.txt}">Frente: ${b.label}</text>
+              `;
+            })() : ''}
+          </g>
+          <!-- Lateral Esquerda -->
+          <g onclick="clicarBordaEsboco2D(event, 'esq', ${modoStr}, ${idxArg})" class="cursor-pointer group">
+            <title>Clique para alternar Lateral Esquerda (Parede RB ➔ Saia/Acabamento ➔ Sem nada)</title>
+            <line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y1}" stroke="transparent" stroke-width="14" />
+            ${interativoModal ? (() => {
+              const b = badgeCor(bordas.esq);
+              const my = Math.round((y0 + y1) / 2);
+              return `
+                <rect x="${x0 - 52}" y="${my - 15}" width="46" height="14" rx="4" fill="${b.bg}" stroke="${b.stroke}" stroke-width="1" />
+                <text x="${x0 - 29}" y="${my - 5.5}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="${b.txt}">Esq: ${b.label}</text>
+              `;
+            })() : ''}
+          </g>
+          <!-- Lateral Direita -->
+          <g onclick="clicarBordaEsboco2D(event, 'dir', ${modoStr}, ${idxArg})" class="cursor-pointer group">
+            <title>Clique para alternar Lateral Direita (Saia/Acabamento ➔ Parede RB ➔ Sem nada)</title>
+            <line x1="${x1}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="transparent" stroke-width="14" />
+            ${interativoModal ? (() => {
+              const b = badgeCor(bordas.dir);
+              const my = Math.round((y0 + y1) / 2);
+              return `
+                <rect x="${x1 + 6}" y="${my - 7}" width="46" height="14" rx="4" fill="${b.bg}" stroke="${b.stroke}" stroke-width="1" />
+                <text x="${x1 + 29}" y="${my + 2.5}" text-anchor="middle" font-size="8" font-family="sans-serif" font-weight="bold" fill="${b.txt}">Dir: ${b.label}</text>
+              `;
+            })() : ''}
+          </g>
+        `;
+      }
+
       return `
         <svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" class="mx-auto select-none overflow-visible">
           <!-- Corpo da Bancada / Pedra -->
           <rect x="${x0}" y="${y0}" width="${rectW}" height="${rectH}" rx="1.5" fill="${impressao ? '#f8fafc' : '#f1f5f9'}" stroke="#334155" stroke-width="1.5" />
           ${cubaSvg}
           ${linhasExtras}
+          ${badgesLadosSvg}
           <!-- Cota Comprimento (Base) -->
-          <text x="${Math.round(svgW / 2)}" y="${y1 + (compacto ? 11 : 13)}" text-anchor="middle" font-size="${fontSz}" font-family="monospace" font-weight="bold" fill="#0f172a">${compTxt}</text>
+          <text x="${Math.round(svgW / 2)}" y="${y1 + (compacto ? 11 : 10)}" text-anchor="middle" font-size="${fontSz}" font-family="monospace" font-weight="bold" fill="#0f172a" pointer-events="none">${compTxt}</text>
           <!-- Cota Largura (Lateral) -->
-          <text x="${x0 - 4}" y="${Math.round(y0 + rectH / 2 + 3)}" text-anchor="end" font-size="${fontSz - 0.5}" font-family="monospace" font-weight="bold" fill="#334155">${largTxt}</text>
+          <text x="${x0 - (interativoModal ? 6 : 4)}" y="${Math.round(y0 + rectH / 2 + (interativoModal ? 8 : 3))}" text-anchor="end" font-size="${fontSz - 0.5}" font-family="monospace" font-weight="bold" fill="#334155" pointer-events="none">${largTxt}</text>
+          ${hitAreasSvg}
         </svg>
       `;
+    }
+
+    function proximoEstadoBorda2D(atual, lado) {
+      // Para frente/direita prioriza Saia primeiro ao clicar se estiver vazio; para fundo/esquerda prioriza RB
+      if (lado === "base" || lado === "dir") {
+        if (atual === "nenhum") return "saia";
+        if (atual === "saia") return "rb";
+        return "nenhum";
+      } else {
+        if (atual === "nenhum") return "rb";
+        if (atual === "rb") return "saia";
+        return "nenhum";
+      }
+    }
+
+    function sincronizarItemComBordas2D(item, novasBordas) {
+      if (!item) return;
+      const comp = parseFloat(item.comp) || 0;
+      const larg = parseFloat(item.larg) || 0;
+      const qtd = parseFloat(item.qtd) || 1;
+
+      const altRbCm = item.configRb?.alturaRb || 10;
+      const altSaiaCm = item.configRb?.alturaSaia || 4;
+
+      const mLinRb = calcularMetrosBordas2D(novasBordas, "rb", comp, larg, qtd);
+      const mLinSaia = calcularMetrosBordas2D(novasBordas, "saia", comp, larg, qtd);
+
+      // Atualiza regraAcab proporcional aos lados com Saia/Acabamento se aplicável
+      const fatC = (novasBordas.topo === "saia" ? 1 : 0) + (novasBordas.base === "saia" ? 1 : 0);
+      const fatL = (novasBordas.esq === "saia" ? 1 : 0) + (novasBordas.dir === "saia" ? 1 : 0);
+      const regraMatch = (REGRAS_LADOS || []).find(r => r.fatC === fatC && r.fatL === fatL);
+      if (regraMatch) {
+        item.regraAcab = regraMatch.id;
+      }
+
+      // Se a peça já usava configRb ou se adicionou RB no clique, recalcula m² de RB/Saia
+      const tinhaRbConfig = !!(item.configRb || item.rb > 0 || mLinRb > 0);
+      if (tinhaRbConfig) {
+        const areaRb = mLinRb * (altRbCm / 100.0);
+        const areaSaia = (item.configRb && item.configRb.ladosSaia && item.configRb.ladosSaia !== "nenhuma")
+          ? mLinSaia * (altSaiaCm / 100.0)
+          : 0;
+        item.rb = parseFloat((areaRb + areaSaia).toFixed(3));
+
+        const nomesRb = formatarNomesLadosBordas2D(novasBordas, "rb");
+        const nomesSaia = formatarNomesLadosBordas2D(novasBordas, "saia");
+        const partes = [];
+        if (nomesRb && altRbCm > 0) partes.push(`RB ${altRbCm}cm (${nomesRb})`);
+        if (nomesSaia && areaSaia > 0 && altSaiaCm > 0) partes.push(`Saia ${altSaiaCm}cm (${nomesSaia})`);
+
+        item.configRbDesc = partes.join(" + ");
+        item.configRb = {
+          ...(item.configRb || {}),
+          ladosRb: nomesRb ? "personalizado" : "nenhum",
+          alturaRb: altRbCm,
+          ladosSaia: (nomesSaia && areaSaia > 0) ? "personalizado" : "nenhuma",
+          alturaSaia: altSaiaCm,
+          bordas2D: { ...novasBordas },
+          descricao: item.configRbDesc
+        };
+      } else {
+        item.bordas2D = { ...novasBordas };
+      }
+    }
+
+    function clicarBordaEsboco2D(event, lado, modo, index) {
+      if (event) event.stopPropagation();
+
+      if (modo === "modal") {
+        if (typeof alternarBorda2DModal === "function") {
+          alternarBorda2DModal(lado);
+        }
+        return;
+      }
+
+      if (modo === "rapido") {
+        const itemTemp = obterItemPreviewRapido();
+        const atuais = obterBordas2DPeca(itemTemp);
+        atuais[lado] = proximoEstadoBorda2D(atuais[lado], lado);
+        configRapidaCalc.bordas2D = atuais;
+        atualizarPreviewRapido2D();
+        return;
+      }
+
+      if (modo === "item" && index !== null && itens[index]) {
+        const item = itens[index];
+        const atuais = obterBordas2DPeca(item);
+        atuais[lado] = proximoEstadoBorda2D(atuais[lado], lado);
+        sincronizarItemComBordas2D(item, atuais);
+        renderTabela();
+      }
+    }
+
+    function inverterLadosEsboco2DItem(event, index) {
+      if (event) event.stopPropagation();
+      if (!itens || !itens[index]) return;
+      const item = itens[index];
+      const atuais = obterBordas2DPeca(item);
+      const temp = atuais.esq;
+      atuais.esq = atuais.dir;
+      atuais.dir = temp;
+      sincronizarItemComBordas2D(item, atuais);
+      renderTabela();
+      mostrarToast("Lados Esquerdo ↔ Direito invertidos na peça!", "⇄");
     }
 
     // Configuração temporária para a Barra de Lançamento Rápido
@@ -2768,7 +3027,8 @@
       ladosRb: "nenhum",
       alturaRb: 0,
       ladosSaia: "nenhuma",
-      alturaSaia: 0
+      alturaSaia: 0,
+      bordas2D: null
     };
 
     function popularSelectRapidoCalc() {
@@ -2787,7 +3047,7 @@
       const inpComp = document.getElementById("rapido_comp");
       if (inpDesc) inpDesc.value = desc;
       if (inpLarg && largPadrao) inpLarg.value = largPadrao.toFixed(2);
-      configRapidaCalc = { regraAcab, cubaId, ladosRb, alturaRb, ladosSaia, alturaSaia };
+      configRapidaCalc = { regraAcab, cubaId, ladosRb, alturaRb, ladosSaia, alturaSaia, bordas2D: null };
       atualizarPreviewRapido2D();
       if (inpComp) {
         inpComp.focus();
@@ -2814,11 +3074,13 @@
         cubaId: cubaObj.id,
         cubaNome: cubaObj.nome,
         cuba: cubaObj.preco || 0,
+        bordas2D: configRapidaCalc.bordas2D ? { ...configRapidaCalc.bordas2D } : null,
         configRb: {
           ladosRb: configRapidaCalc.ladosRb || "nenhum",
           alturaRb: configRapidaCalc.alturaRb || 0,
           ladosSaia: configRapidaCalc.ladosSaia || "nenhuma",
-          alturaSaia: configRapidaCalc.alturaSaia || 0
+          alturaSaia: configRapidaCalc.alturaSaia || 0,
+          bordas2D: configRapidaCalc.bordas2D ? { ...configRapidaCalc.bordas2D } : null
         }
       };
     }
@@ -2827,7 +3089,7 @@
       const box = document.getElementById("preview_esboco_rapido_2d");
       if (!box) return;
       const itemTemp = obterItemPreviewRapido();
-      box.innerHTML = gerarSvgEsbocoPeca2D(itemTemp, { compacto: true });
+      box.innerHTML = gerarSvgEsbocoPeca2D(itemTemp, { compacto: true, interativoRapido: true });
     }
 
     function aoTeclarInputRapidoCalc(event, campo) {
@@ -2871,28 +3133,23 @@
       const primeiroAcab = TIPOS_ACABAMENTO[0] || { id: "boleado", precoM: 20.0 };
       const cubaObj = (CUBAS || []).find(c => c.id === configRapidaCalc.cubaId) || { id: "nenhuma", nome: "Sem Cuba", preco: 0 };
 
-      // Calcula R.B. e Saia se o kit tiver configurado
+      const itemPreview = obterItemPreviewRapido();
+      const bordas = obterBordas2DPeca(itemPreview);
+
       const ladosRb = configRapidaCalc.ladosRb || "nenhum";
-      const altRbCm = parseFloat(configRapidaCalc.alturaRb) || 0;
+      const altRbCm = parseFloat(configRapidaCalc.alturaRb) || (bordas.topo === "rb" || bordas.esq === "rb" || bordas.dir === "rb" || bordas.base === "rb" ? 10 : 0);
       const ladosSaia = configRapidaCalc.ladosSaia || "nenhuma";
       const altSaiaCm = parseFloat(configRapidaCalc.alturaSaia) || 0;
 
-      let mLinRb = 0;
-      if (ladosRb === "fundo") mLinRb = compVal * qtd;
-      else if (ladosRb === "fundo_1lat") mLinRb = (compVal + largVal) * qtd;
-      else if (ladosRb === "fundo_2lat") mLinRb = (compVal + 2 * largVal) * qtd;
-      else if (ladosRb === "perimetro") mLinRb = (2 * compVal + 2 * largVal) * qtd;
-
-      let mLinSaia = 0;
-      if (ladosSaia === "frente") mLinSaia = compVal * qtd;
-      else if (ladosSaia === "frente_1lat") mLinSaia = (compVal + largVal) * qtd;
-      else if (ladosSaia === "frente_2lat") mLinSaia = (compVal + 2 * largVal) * qtd;
-      else if (ladosSaia === "ilha") mLinSaia = (2 * compVal + 2 * largVal) * qtd;
+      const mLinRb = calcularMetrosBordas2D(bordas, "rb", compVal, largVal, qtd);
+      const mLinSaia = (ladosSaia !== "nenhuma" && altSaiaCm > 0) ? calcularMetrosBordas2D(bordas, "saia", compVal, largVal, qtd) : 0;
 
       const totalRb = parseFloat(((mLinRb * (altRbCm / 100.0)) + (mLinSaia * (altSaiaCm / 100.0))).toFixed(3));
       const partesRb = [];
-      if (ladosRb !== "nenhum" && altRbCm > 0) partesRb.push(`RB ${altRbCm}cm`);
-      if (ladosSaia !== "nenhuma" && altSaiaCm > 0) partesRb.push(`Saia ${altSaiaCm}cm`);
+      const nomesRb = formatarNomesLadosBordas2D(bordas, "rb");
+      const nomesSaia = formatarNomesLadosBordas2D(bordas, "saia");
+      if (mLinRb > 0 && altRbCm > 0) partesRb.push(`RB ${altRbCm}cm (${nomesRb})`);
+      if (mLinSaia > 0 && altSaiaCm > 0) partesRb.push(`Saia ${altSaiaCm}cm (${nomesSaia})`);
 
       itens.push({
         id: Date.now(),
@@ -2903,12 +3160,14 @@
         comp: compVal,
         larg: largVal,
         rb: totalRb,
+        bordas2D: { ...bordas },
         configRbDesc: partesRb.join(" + "),
         configRb: (partesRb.length > 0) ? {
           ladosRb,
           alturaRb: altRbCm,
           ladosSaia,
           alturaSaia: altSaiaCm,
+          bordas2D: { ...bordas },
           descricao: partesRb.join(" + ")
         } : null,
         tipoAcabamentoId: primeiroAcab.id,
@@ -3094,11 +3353,14 @@
                 ` : ''}
               </div>
 
-              <!-- Esboço 2D Dinâmico da Peça na Linha -->
-              <div onclick="abrirModalRb(${index})" class="flex items-center gap-2 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs cursor-pointer hover:border-indigo-400 transition" title="Esboço 2D da Peça (Clique para configurar Rodabanca e Saia)">
+              <!-- Esboço 2D Dinâmico e Clicável da Peça na Linha -->
+              <div onclick="abrirModalRb(${index})" class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-xl border border-slate-200 shadow-2xs cursor-pointer hover:border-indigo-400 transition" title="Clique nas 4 bordas da pedra para alternar RB/Saia ou no centro para abrir o Configurador">
                 <div id="esboco_peca_2d_${index}" class="shrink-0">
-                  ${gerarSvgEsbocoPeca2D(item, { compacto: true })}
+                  ${gerarSvgEsbocoPeca2D(item, { compacto: true, interativoIndex: index })}
                 </div>
+                <button type="button" onclick="inverterLadosEsboco2DItem(event, ${index})" class="px-1.5 py-1 text-[10px] font-bold rounded-lg bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-800 border border-slate-200 transition cursor-pointer shrink-0" title="Inverter Lado Esquerdo ↔ Direito no desenho 2D">
+                  ⇄ Esq/Dir
+                </button>
               </div>
             </div>
           </td>
@@ -3137,8 +3399,13 @@
         itens[index][campo] = valor;
       }
 
-      // Atualiza valores calculados na linha correspondente diretamente no DOM sem recriar os inputs
+      // Se mudou comprimento, largura ou qtd e tinha configRb com bordas2D, recalcula área de RB/Saia automaticamente
       const item = itens[index];
+      if (['comp', 'larg', 'qtd'].includes(campo) && item.configRb && item.configRb.bordas2D) {
+        sincronizarItemComBordas2D(item, item.configRb.bordas2D);
+      }
+
+      // Atualiza valores calculados na linha correspondente diretamente no DOM sem recriar os inputs
       const qtd = parseFloat(item.qtd) || 1;
       const comp = parseFloat(item.comp) || 0;
       const larg = parseFloat(item.larg) || 0;
@@ -3163,7 +3430,7 @@
       if (elTotal) elTotal.innerText = `R$ ${totalItem.toFixed(2)}`;
 
       const elEsboco = document.getElementById(`esboco_peca_2d_${index}`);
-      if (elEsboco) elEsboco.innerHTML = gerarSvgEsbocoPeca2D(item, { compacto: true });
+      if (elEsboco) elEsboco.innerHTML = gerarSvgEsbocoPeca2D(item, { compacto: true, interativoIndex: index });
 
       calcularTotais();
     }
@@ -3192,7 +3459,14 @@
         renderTabela();
         return;
       }
-      itens[index].regraAcab = valor;
+      if (itens[index]) {
+        itens[index].regraAcab = valor;
+        // Limpa bordas2D avulso para refletir a nova regra selecionada (mantendo RB se houver)
+        delete itens[index].bordas2D;
+        if (itens[index].configRb) {
+          delete itens[index].configRb.bordas2D;
+        }
+      }
       atualizarItem(index, 'regraAcab', valor);
     }
 
@@ -10539,16 +10813,20 @@
         const acabObj = TIPOS_ACABAMENTO.find(a => a.id === it.tipoAcabamentoId) || { nome: it.tipoAcabamentoId || '-' };
         const ladoObj = REGRAS_LADOS.find(r => r.id === it.regraAcab) || { nome: it.regraAcab || '-' };
 
-        // Detalhes de Rodabanca e Saia
+        // Detalhes de Rodabanca e Saia (com lados exatos do desenho 2D)
+        const bordasPeca = typeof obterBordas2DPeca === "function" ? obterBordas2DPeca(it) : { topo: "nenhum", base: "nenhum", esq: "nenhum", dir: "nenhum" };
+        const nomesRbFicha = typeof formatarNomesLadosBordas2D === "function" ? formatarNomesLadosBordas2D(bordasPeca, "rb") : "";
+        const nomesSaiaFicha = typeof formatarNomesLadosBordas2D === "function" ? formatarNomesLadosBordas2D(bordasPeca, "saia") : "";
+
         let detalhesRbSaia = [];
-        if (it.configRb && it.configRb.ladosRb !== "nenhum") {
-          detalhesRbSaia.push(`<b>Espelho:</b> Alt. ${it.configRb.alturaRb}cm (${it.configRb.ladosRb})`);
-        } else if (it.rb > 0) {
+        if (it.configRb && it.configRb.ladosRb !== "nenhum" && (it.configRb.alturaRb || 0) > 0 && nomesRbFicha) {
+          detalhesRbSaia.push(`<b>Espelho:</b> Alt. ${it.configRb.alturaRb}cm (${nomesRbFicha})`);
+        } else if (it.rb > 0 && !it.configRb) {
           detalhesRbSaia.push(`<b>R.B. Extra:</b> ${(Number(it.rb) || 0).toFixed(3)} m²`);
         }
 
-        if (it.configRb && it.configRb.ladosSaia !== "nenhuma") {
-          detalhesRbSaia.push(`<b>Saia 45°:</b> Alt. ${it.configRb.alturaSaia}cm (${it.configRb.ladosSaia})`);
+        if (it.configRb && it.configRb.ladosSaia !== "nenhuma" && (it.configRb.alturaSaia || 0) > 0 && nomesSaiaFicha) {
+          detalhesRbSaia.push(`<b>Saia 45°:</b> Alt. ${it.configRb.alturaSaia}cm (${nomesSaiaFicha})`);
         }
 
         const rbSaiaTexto = detalhesRbSaia.length > 0 ? detalhesRbSaia.join("<br>") : "<span class='text-slate-400'>Nenhum</span>";
@@ -10578,7 +10856,7 @@
             </td>
             <td class="py-2.5 px-2.5 text-[11px] leading-tight">
               <span class="font-bold block">${acabObj.nome}</span>
-              <span class="text-slate-600 block">${ladoObj.nome}</span>
+              <span class="text-slate-600 block">${nomesSaiaFicha ? `${ladoObj.nome} (${nomesSaiaFicha})` : ladoObj.nome}</span>
               <span class="text-slate-500 font-mono font-bold block">${metrosAcab}m linear</span>
             </td>
             <td class="py-2.5 px-2 text-center font-mono text-[10px] space-y-1">
@@ -11006,9 +11284,127 @@
     });
 
     // -----------------------------------------------------------------
-    // MODAL DE CONFIGURAÇÃO DE RODABANCA (ESPELHO) E SAIA
+    // MODAL DE CONFIGURAÇÃO DE RODABANCA (ESPELHO) E SAIA (INTERATIVO 2D)
     // -----------------------------------------------------------------
     let itemModalIndex = null;
+    let bordas2DModal = { topo: "rb", base: "saia", esq: "rb", dir: "nenhum" };
+
+    function inferirSelectsDeBordas2DModal(bordas) {
+      // 1. Infire valor do select de Rodabanca (RB)
+      const rTop = bordas.topo === "rb";
+      const rBot = bordas.base === "rb";
+      const rEsq = bordas.esq === "rb";
+      const rDir = bordas.dir === "rb";
+      const qtdRb = (rTop ? 1 : 0) + (rBot ? 1 : 0) + (rEsq ? 1 : 0) + (rDir ? 1 : 0);
+
+      let selRb = "personalizado";
+      if (qtdRb === 0) selRb = "nenhum";
+      else if (rTop && !rBot && !rEsq && !rDir) selRb = "fundo";
+      else if (rTop && rEsq && !rBot && !rDir) selRb = "fundo_1lat";
+      else if (rTop && rDir && !rBot && !rEsq) selRb = "fundo_1lat_dir";
+      else if (rTop && rEsq && rDir && !rBot) selRb = "fundo_2lat";
+      else if (rTop && rBot && rEsq && rDir) selRb = "perimetro";
+
+      // 2. Infere valor do select de Saia
+      const sTop = bordas.topo === "saia";
+      const sBot = bordas.base === "saia";
+      const sEsq = bordas.esq === "saia";
+      const sDir = bordas.dir === "saia";
+      const qtdSaia = (sTop ? 1 : 0) + (sBot ? 1 : 0) + (sEsq ? 1 : 0) + (sDir ? 1 : 0);
+
+      let selSaia = "personalizado";
+      if (qtdSaia === 0) selSaia = "nenhuma";
+      else if (sBot && !sTop && !sEsq && !sDir) selSaia = "frente";
+      else if (sBot && sDir && !sTop && !sEsq) selSaia = "frente_1lat";
+      else if (sBot && sEsq && !sTop && !sDir) selSaia = "frente_1lat_esq";
+      else if (sBot && sEsq && sDir && !sTop) selSaia = "frente_2lat";
+      else if (sTop && sBot && sEsq && sDir) selSaia = "ilha";
+
+      return { selRb, selSaia };
+    }
+
+    function aplicarSelectNoBordas2DModal(qualSelect) {
+      const valRb = document.getElementById("modal_lados_rb")?.value || "nenhum";
+      const valSaia = document.getElementById("modal_lados_saia")?.value || "nenhuma";
+
+      if (qualSelect === "rb" && valRb !== "personalizado") {
+        // Limpa RB anterior nas bordas e aplica os novos lados de RB
+        ["topo", "base", "esq", "dir"].forEach(l => {
+          if (bordas2DModal[l] === "rb") bordas2DModal[l] = "nenhum";
+        });
+        if (valRb === "fundo") {
+          bordas2DModal.topo = "rb";
+        } else if (valRb === "fundo_1lat") {
+          bordas2DModal.topo = "rb";
+          bordas2DModal.esq = "rb";
+        } else if (valRb === "fundo_1lat_dir") {
+          bordas2DModal.topo = "rb";
+          bordas2DModal.dir = "rb";
+        } else if (valRb === "fundo_2lat") {
+          bordas2DModal.topo = "rb";
+          bordas2DModal.esq = "rb";
+          bordas2DModal.dir = "rb";
+        } else if (valRb === "perimetro") {
+          bordas2DModal = { topo: "rb", base: "rb", esq: "rb", dir: "rb" };
+        }
+      } else if (qualSelect === "saia" && valSaia !== "personalizado") {
+        // Limpa Saia anterior nas bordas e aplica os novos lados de Saia
+        ["topo", "base", "esq", "dir"].forEach(l => {
+          if (bordas2DModal[l] === "saia") bordas2DModal[l] = "nenhum";
+        });
+        if (valSaia === "frente") {
+          bordas2DModal.base = "saia";
+        } else if (valSaia === "frente_1lat") {
+          bordas2DModal.base = "saia";
+          bordas2DModal.dir = "saia";
+        } else if (valSaia === "frente_1lat_esq") {
+          bordas2DModal.base = "saia";
+          bordas2DModal.esq = "saia";
+        } else if (valSaia === "frente_2lat") {
+          bordas2DModal.base = "saia";
+          bordas2DModal.esq = "saia";
+          bordas2DModal.dir = "saia";
+        } else if (valSaia === "ilha") {
+          bordas2DModal = { topo: "saia", base: "saia", esq: "saia", dir: "saia" };
+        }
+      }
+
+      const sync = inferirSelectsDeBordas2DModal(bordas2DModal);
+      const elRb = document.getElementById("modal_lados_rb");
+      const elSaia = document.getElementById("modal_lados_saia");
+      if (elRb) elRb.value = sync.selRb;
+      if (elSaia) elSaia.value = sync.selSaia;
+
+      recalcularModalRb();
+    }
+
+    function alternarBorda2DModal(lado) {
+      if (!bordas2DModal || !lado) return;
+      bordas2DModal[lado] = proximoEstadoBorda2D(bordas2DModal[lado], lado);
+
+      const sync = inferirSelectsDeBordas2DModal(bordas2DModal);
+      const elRb = document.getElementById("modal_lados_rb");
+      const elSaia = document.getElementById("modal_lados_saia");
+      if (elRb) elRb.value = sync.selRb;
+      if (elSaia) elSaia.value = sync.selSaia;
+
+      recalcularModalRb();
+    }
+
+    function inverterLadosEsboco2DModal() {
+      if (!bordas2DModal) return;
+      const temp = bordas2DModal.esq;
+      bordas2DModal.esq = bordas2DModal.dir;
+      bordas2DModal.dir = temp;
+
+      const sync = inferirSelectsDeBordas2DModal(bordas2DModal);
+      const elRb = document.getElementById("modal_lados_rb");
+      const elSaia = document.getElementById("modal_lados_saia");
+      if (elRb) elRb.value = sync.selRb;
+      if (elSaia) elSaia.value = sync.selSaia;
+
+      recalcularModalRb();
+    }
 
     function abrirModalRb(index) {
       itemModalIndex = index;
@@ -11025,10 +11421,23 @@
         alturaSaia: 4
       };
 
-      document.getElementById("modal_lados_rb").value = conf.ladosRb || "nenhum";
-      document.getElementById("modal_altura_rb").value = conf.alturaRb || 10;
-      document.getElementById("modal_lados_saia").value = conf.ladosSaia || "nenhuma";
-      document.getElementById("modal_altura_saia").value = conf.alturaSaia || 4;
+      document.getElementById("modal_altura_rb").value = conf.alturaRb !== undefined ? conf.alturaRb : 15;
+      document.getElementById("modal_altura_saia").value = conf.alturaSaia !== undefined ? conf.alturaSaia : 4;
+
+      if (conf.bordas2D) {
+        bordas2DModal = { ...conf.bordas2D };
+      } else if (item.bordas2D) {
+        bordas2DModal = { ...item.bordas2D };
+      } else {
+        bordas2DModal = obterBordas2DPeca({
+          ...item,
+          configRb: conf
+        });
+      }
+
+      const sync = inferirSelectsDeBordas2DModal(bordas2DModal);
+      document.getElementById("modal_lados_rb").value = sync.selRb;
+      document.getElementById("modal_lados_saia").value = sync.selSaia;
 
       recalcularModalRb();
       document.getElementById("modal_rb").classList.remove("hidden");
@@ -11056,56 +11465,47 @@
       const larg = item.larg || 0;
       const qtd = item.qtd || 1;
 
-      // 1. Rodabanca
-      const ladosRb = document.getElementById("modal_lados_rb").value;
       const altRbCm = parseFloat(document.getElementById("modal_altura_rb").value) || 0;
-      const altRbM = altRbCm / 100.0; // cm para metros
+      const altRbM = altRbCm / 100.0;
+      const altSaiaCm = parseFloat(document.getElementById("modal_altura_saia").value) || 0;
+      const altSaiaM = altSaiaCm / 100.0;
 
-      let mLinRb = 0;
-      if (ladosRb === "fundo") mLinRb = comp * qtd;
-      else if (ladosRb === "fundo_1lat") mLinRb = (comp + larg) * qtd;
-      else if (ladosRb === "fundo_2lat") mLinRb = (comp + 2 * larg) * qtd;
-      else if (ladosRb === "perimetro") mLinRb = (2 * comp + 2 * larg) * qtd;
-
+      // Calcula metros lineares exatos a partir dos lados ativos no bordas2DModal
+      const mLinRb = calcularMetrosBordas2D(bordas2DModal, "rb", comp, larg, qtd);
       const areaRb = mLinRb * altRbM;
 
-      // 2. Saia
-      const ladosSaia = document.getElementById("modal_lados_saia").value;
-      const altSaiaCm = parseFloat(document.getElementById("modal_altura_saia").value) || 0;
-      const altSaiaM = altSaiaCm / 100.0; // cm para metros
-
-      let mLinSaia = 0;
-      if (ladosSaia === "frente") mLinSaia = comp * qtd;
-      else if (ladosSaia === "frente_1lat") mLinSaia = (comp + larg) * qtd;
-      else if (ladosSaia === "frente_2lat") mLinSaia = (comp + 2 * larg) * qtd;
-      else if (ladosSaia === "ilha") mLinSaia = (2 * comp + 2 * larg) * qtd;
-
+      const mLinSaia = calcularMetrosBordas2D(bordas2DModal, "saia", comp, larg, qtd);
       const areaSaia = mLinSaia * altSaiaM;
 
       const totalM2Rb = areaRb + areaSaia;
 
+      const nomesRb = formatarNomesLadosBordas2D(bordas2DModal, "rb");
+      const nomesSaia = formatarNomesLadosBordas2D(bordas2DModal, "saia");
+
       // Atualiza visualização no modal
-      document.getElementById("modal_calc_m_rb").innerText = `${mLinRb.toFixed(2)}m linear`;
+      document.getElementById("modal_calc_m_rb").innerText = `${mLinRb.toFixed(2)}m linear${nomesRb ? ` (${nomesRb})` : ''}`;
       document.getElementById("modal_calc_m2_rb").innerText = `${areaRb.toFixed(3)} m²`;
 
-      document.getElementById("modal_calc_m_saia").innerText = `${mLinSaia.toFixed(2)}m linear`;
+      document.getElementById("modal_calc_m_saia").innerText = `${mLinSaia.toFixed(2)}m linear${nomesSaia ? ` (${nomesSaia})` : ''}`;
       document.getElementById("modal_calc_m2_saia").innerText = `${areaSaia.toFixed(3)} m²`;
 
       document.getElementById("modal_calc_total").innerText = `${totalM2Rb.toFixed(3)} m²`;
 
-      // Atualiza esboço visual 2D em tempo real no modal
+      // Atualiza esboço visual 2D interativo em tempo real no modal
       const boxEsbocoModal = document.getElementById("modal_rb_esboco_2d");
       if (boxEsbocoModal && typeof gerarSvgEsbocoPeca2D === "function") {
         const itemPreviewModal = {
           ...item,
+          bordas2D: { ...bordas2DModal },
           configRb: {
-            ladosRb,
+            ladosRb: document.getElementById("modal_lados_rb").value,
             alturaRb: altRbCm,
-            ladosSaia,
-            alturaSaia: altSaiaCm
+            ladosSaia: document.getElementById("modal_lados_saia").value,
+            alturaSaia: altSaiaCm,
+            bordas2D: { ...bordas2DModal }
           }
         };
-        boxEsbocoModal.innerHTML = gerarSvgEsbocoPeca2D(itemPreviewModal, { compacto: false });
+        boxEsbocoModal.innerHTML = gerarSvgEsbocoPeca2D(itemPreviewModal, { compacto: false, interativoModal: true });
       }
     }
 
@@ -11121,38 +11521,42 @@
       const ladosSaia = document.getElementById("modal_lados_saia").value;
       const altSaiaCm = parseFloat(document.getElementById("modal_altura_saia").value) || 0;
 
-      let mLinRb = 0;
-      if (ladosRb === "fundo") mLinRb = comp * qtd;
-      else if (ladosRb === "fundo_1lat") mLinRb = (comp + larg) * qtd;
-      else if (ladosRb === "fundo_2lat") mLinRb = (comp + 2 * larg) * qtd;
-      else if (ladosRb === "perimetro") mLinRb = (2 * comp + 2 * larg) * qtd;
-
-      let mLinSaia = 0;
-      if (ladosSaia === "frente") mLinSaia = comp * qtd;
-      else if (ladosSaia === "frente_1lat") mLinSaia = (comp + larg) * qtd;
-      else if (ladosSaia === "frente_2lat") mLinSaia = (comp + 2 * larg) * qtd;
-      else if (ladosSaia === "ilha") mLinSaia = (2 * comp + 2 * larg) * qtd;
+      const mLinRb = calcularMetrosBordas2D(bordas2DModal, "rb", comp, larg, qtd);
+      const mLinSaia = calcularMetrosBordas2D(bordas2DModal, "saia", comp, larg, qtd);
 
       const areaRb = mLinRb * (altRbCm / 100.0);
       const areaSaia = mLinSaia * (altSaiaCm / 100.0);
       const totalRb = parseFloat((areaRb + areaSaia).toFixed(3));
 
-      // Gera descrição resumida
+      const nomesRb = formatarNomesLadosBordas2D(bordas2DModal, "rb");
+      const nomesSaia = formatarNomesLadosBordas2D(bordas2DModal, "saia");
+
+      // Gera descrição resumida com indicação exata dos lados (ex: Fundo + Esq / Frente + Dir)
       const partes = [];
-      if (ladosRb !== "nenhum" && altRbCm > 0) {
-        partes.push(`RB ${altRbCm}cm`);
+      if (mLinRb > 0 && altRbCm > 0) {
+        partes.push(`RB ${altRbCm}cm (${nomesRb})`);
       }
-      if (ladosSaia !== "nenhuma" && altSaiaCm > 0) {
-        partes.push(`Saia ${altSaiaCm}cm`);
+      if (mLinSaia > 0 && altSaiaCm > 0) {
+        partes.push(`Saia ${altSaiaCm}cm (${nomesSaia})`);
+      }
+
+      // Sincroniza a regra de lados do acabamento linear se houver saia/acabamento marcado
+      const fatC = (bordas2DModal.topo === "saia" ? 1 : 0) + (bordas2DModal.base === "saia" ? 1 : 0);
+      const fatL = (bordas2DModal.esq === "saia" ? 1 : 0) + (bordas2DModal.dir === "saia" ? 1 : 0);
+      const regraMatch = (REGRAS_LADOS || []).find(r => r.fatC === fatC && r.fatL === fatL);
+      if (regraMatch) {
+        item.regraAcab = regraMatch.id;
       }
 
       item.rb = totalRb;
+      item.bordas2D = { ...bordas2DModal };
       item.configRbDesc = partes.join(" + ");
       item.configRb = {
-        ladosRb,
+        ladosRb: mLinRb > 0 ? ladosRb : "nenhum",
         alturaRb: altRbCm,
-        ladosSaia,
+        ladosSaia: mLinSaia > 0 ? ladosSaia : "nenhuma",
         alturaSaia: altSaiaCm,
+        bordas2D: { ...bordas2DModal },
         descricao: item.configRbDesc
       };
 
@@ -11166,6 +11570,7 @@
       item.rb = 0.0;
       item.configRbDesc = "";
       item.configRb = null;
+      delete item.bordas2D;
 
       fecharModalRb();
       renderTabela();
@@ -14570,12 +14975,14 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Onde tem parede?</label>
-            <select id="modal_lados_rb" onchange="recalcularModalRb()" class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white font-medium focus:ring-1 focus:ring-indigo-500">
+            <select id="modal_lados_rb" onchange="aplicarSelectNoBordas2DModal('rb')" class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white font-medium focus:ring-1 focus:ring-indigo-500">
               <option value="nenhum">Nenhuma Rodabanca</option>
               <option value="fundo">1 Lado (Apenas Fundo / C)</option>
-              <option value="fundo_1lat" selected>2 Lados em L (Fundo + 1 Lateral)</option>
+              <option value="fundo_1lat" selected>2 Lados em L (Fundo + Lat. Esquerda)</option>
+              <option value="fundo_1lat_dir">2 Lados em L (Fundo + Lat. Direita)</option>
               <option value="fundo_2lat">3 Lados em U (Fundo + 2 Laterais)</option>
               <option value="perimetro">4 Lados (Perímetro Completo)</option>
+              <option value="personalizado">👆 Personalizado (Clicado no Desenho 2D)</option>
             </select>
           </div>
           <div>
@@ -14607,12 +15014,14 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Onde tem saia?</label>
-            <select id="modal_lados_saia" onchange="recalcularModalRb()" class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white font-medium focus:ring-1 focus:ring-blue-500">
+            <select id="modal_lados_saia" onchange="aplicarSelectNoBordas2DModal('saia')" class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white font-medium focus:ring-1 focus:ring-blue-500">
               <option value="nenhuma">Nenhuma Saia</option>
               <option value="frente" selected>1 Lado (Apenas Frente / C)</option>
-              <option value="frente_1lat">2 Lados em L (Frente + 1 Lateral)</option>
+              <option value="frente_1lat">2 Lados em L (Frente + Lat. Direita)</option>
+              <option value="frente_1lat_esq">2 Lados em L (Frente + Lat. Esquerda)</option>
               <option value="frente_2lat">3 Lados Livres (Frente + 2 Laterais)</option>
               <option value="ilha">4 Lados (Ilha Completa)</option>
+              <option value="personalizado">👆 Personalizado (Clicado no Desenho 2D)</option>
             </select>
           </div>
           <div>
@@ -14633,13 +15042,18 @@
         </div>
       </div>
 
-      <!-- Esboço Visual 2D em Tempo Real da Peça no Modal R.B./Saia -->
-      <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1.5">
-        <div class="flex items-center justify-between text-[10px] font-bold text-slate-600 uppercase">
-          <span>📐 Esboço Técnico 2D da Peça (Em Tempo Real)</span>
-          <span class="text-slate-400 font-normal">══ Parede/RB • -- Saia/Borda</span>
+      <!-- Esboço Visual 2D Interativo em Tempo Real da Peça no Modal R.B./Saia -->
+      <div class="p-3 rounded-xl border border-indigo-200/80 bg-indigo-50/20 space-y-2">
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="text-[10px] font-bold text-slate-700 uppercase">📐 Esboço 2D Interativo (Clique nos 4 Lados)</span>
+          <button type="button" onclick="inverterLadosEsboco2DModal()" class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs transition cursor-pointer flex items-center gap-1">
+            <span>⇄</span> <span>Inverter Esq ↔ Dir</span>
+          </button>
         </div>
-        <div id="modal_rb_esboco_2d" class="flex items-center justify-center bg-white rounded-lg border border-slate-200 py-2 min-h-[110px]">
+        <p class="text-[10px] text-slate-500 leading-tight">
+          👆 Clique nas etiquetas <b>Fundo</b>, <b>Frente</b>, <b>Esq</b> ou <b>Dir</b> (ou nas bordas do desenho) para alternar entre <b class="text-indigo-700">══ Parede/RB</b>, <b class="text-amber-700">-- Saia/Borda</b> e <b>Livre</b>.
+        </p>
+        <div id="modal_rb_esboco_2d" class="flex items-center justify-center bg-white rounded-lg border border-slate-200 py-2 min-h-[130px]">
           <!-- Renderizado dinamicamente por recalcularModalRb() -->
         </div>
       </div>
