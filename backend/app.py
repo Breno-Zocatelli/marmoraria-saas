@@ -212,6 +212,10 @@ def init_tenant_db_schema(conn, tenant_id: str = "marmobraz", tenant_name: str =
         id TEXT PRIMARY KEY,
         nome TEXT NOT NULL,
         fone TEXT,
+        cep TEXT,
+        rua TEXT,
+        numero TEXT,
+        bairro TEXT,
         endereco TEXT,
         ponto_ref TEXT,
         cidade TEXT,
@@ -222,12 +226,23 @@ def init_tenant_db_schema(conn, tenant_id: str = "marmobraz", tenant_name: str =
     );
     """)
 
+    for col_cli in ("cep", "rua", "numero", "bairro"):
+        try:
+            cursor.execute(f"ALTER TABLE clientes ADD COLUMN {col_cli} TEXT;")
+        except Exception:
+            pass
+
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS agenda (
         id TEXT PRIMARY KEY,
         orcamento_id TEXT,
         cliente_nome TEXT NOT NULL,
         cliente_fone TEXT,
+        cep TEXT,
+        rua TEXT,
+        numero TEXT,
+        bairro TEXT,
+        cidade TEXT,
         endereco TEXT,
         ponto_referencia TEXT,
         tipo TEXT NOT NULL,
@@ -241,10 +256,11 @@ def init_tenant_db_schema(conn, tenant_id: str = "marmobraz", tenant_name: str =
     );
     """)
 
-    try:
-        cursor.execute("ALTER TABLE agenda ADD COLUMN ponto_referencia TEXT;")
-    except Exception:
-        pass
+    for col_age in ("ponto_referencia", "cep", "rua", "numero", "bairro", "cidade"):
+        try:
+            cursor.execute(f"ALTER TABLE agenda ADD COLUMN {col_age} TEXT;")
+        except Exception:
+            pass
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS bancos (
@@ -568,6 +584,10 @@ def salvar_cliente(cliente: Dict[str, Any] = Body(...)):
         raise HTTPException(status_code=400, detail="Nome do cliente é obrigatório")
     
     fone = str(cliente.get("fone") or "").strip()
+    cep = str(cliente.get("cep") or "").strip()
+    rua = str(cliente.get("rua") or "").strip()
+    numero = str(cliente.get("numero") or "").strip()
+    bairro = str(cliente.get("bairro") or "").strip()
     endereco = str(cliente.get("endereco") or "").strip()
     ponto_ref = str(cliente.get("pontoRef") or cliente.get("ponto_ref") or "").strip()
     cidade = str(cliente.get("cidade") or "").strip()
@@ -582,23 +602,34 @@ def salvar_cliente(cliente: Dict[str, Any] = Body(...)):
     created_at = existente["created_at"] if existente else agora_iso
     
     cursor.execute("""
-    INSERT INTO clientes (id, nome, fone, endereco, ponto_ref, cidade, tipo, observacoes, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO clientes (id, nome, fone, cep, rua, numero, bairro, endereco, ponto_ref, cidade, tipo, observacoes, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
         nome = excluded.nome,
         fone = excluded.fone,
+        cep = excluded.cep,
+        rua = excluded.rua,
+        numero = excluded.numero,
+        bairro = excluded.bairro,
         endereco = excluded.endereco,
         ponto_ref = excluded.ponto_ref,
         cidade = excluded.cidade,
         tipo = excluded.tipo,
         observacoes = excluded.observacoes,
         updated_at = excluded.updated_at;
-    """, (c_id, nome, fone, endereco, ponto_ref, cidade, tipo, observacoes, created_at, agora_iso))
+    """, (c_id, nome, fone, cep, rua, numero, bairro, endereco, ponto_ref, cidade, tipo, observacoes, created_at, agora_iso))
     
     conn.commit()
     conn.close()
     
     cliente["id"] = c_id
+    cliente["cep"] = cep
+    cliente["rua"] = rua
+    cliente["numero"] = numero
+    cliente["bairro"] = bairro
+    cliente["cidade"] = cidade
+    cliente["endereco"] = endereco
+    cliente["ponto_ref"] = ponto_ref
     cliente["createdAt"] = created_at
     cliente["updatedAt"] = agora_iso
     return cliente
@@ -630,6 +661,11 @@ def listar_agenda(status: Optional[str] = None):
         d["clienteNome"] = d.get("cliente_nome") or ""
         d["clienteFone"] = d.get("cliente_fone") or ""
         d["orcamentoId"] = d.get("orcamento_id") or ""
+        d["cep"] = d.get("cep") or ""
+        d["rua"] = d.get("rua") or ""
+        d["numero"] = d.get("numero") or ""
+        d["bairro"] = d.get("bairro") or ""
+        d["cidade"] = d.get("cidade") or ""
         d["pontoReferencia"] = d.get("ponto_referencia") or ""
         d["ponto_referencia"] = d.get("ponto_referencia") or ""
         d["createdAt"] = d.get("created_at") or ""
@@ -646,6 +682,11 @@ def salvar_evento_agenda(evento: Dict[str, Any] = Body(...)):
         raise HTTPException(status_code=400, detail="Nome do cliente é obrigatório")
     
     cliente_fone = str(evento.get("clienteFone") or evento.get("cliente_fone") or "").strip()
+    cep = str(evento.get("cep") or "").strip()
+    rua = str(evento.get("rua") or "").strip()
+    numero = str(evento.get("numero") or "").strip()
+    bairro = str(evento.get("bairro") or "").strip()
+    cidade = str(evento.get("cidade") or "").strip()
     endereco = str(evento.get("endereco") or "").strip()
     ponto_referencia = str(evento.get("pontoReferencia") or evento.get("ponto_referencia") or "").strip()
     tipo = str(evento.get("tipo") or "medicao").strip()
@@ -663,12 +704,17 @@ def salvar_evento_agenda(evento: Dict[str, Any] = Body(...)):
     created_at = existente["created_at"] if existente else agora_iso
     
     cursor.execute("""
-    INSERT INTO agenda (id, orcamento_id, cliente_nome, cliente_fone, endereco, ponto_referencia, tipo, data, turno, responsavel, status, observacoes, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO agenda (id, orcamento_id, cliente_nome, cliente_fone, cep, rua, numero, bairro, cidade, endereco, ponto_referencia, tipo, data, turno, responsavel, status, observacoes, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
         orcamento_id = excluded.orcamento_id,
         cliente_nome = excluded.cliente_nome,
         cliente_fone = excluded.cliente_fone,
+        cep = excluded.cep,
+        rua = excluded.rua,
+        numero = excluded.numero,
+        bairro = excluded.bairro,
+        cidade = excluded.cidade,
         endereco = excluded.endereco,
         ponto_referencia = excluded.ponto_referencia,
         tipo = excluded.tipo,
@@ -678,7 +724,7 @@ def salvar_evento_agenda(evento: Dict[str, Any] = Body(...)):
         status = excluded.status,
         observacoes = excluded.observacoes,
         updated_at = excluded.updated_at;
-    """, (e_id, orc_id, cliente_nome, cliente_fone, endereco, ponto_referencia, tipo, data, turno, responsavel, status, observacoes, created_at, agora_iso))
+    """, (e_id, orc_id, cliente_nome, cliente_fone, cep, rua, numero, bairro, cidade, endereco, ponto_referencia, tipo, data, turno, responsavel, status, observacoes, created_at, agora_iso))
     
     conn.commit()
     conn.close()
@@ -690,6 +736,12 @@ def salvar_evento_agenda(evento: Dict[str, Any] = Body(...)):
     evento["cliente_fone"] = cliente_fone
     evento["orcamentoId"] = orc_id
     evento["orcamento_id"] = orc_id
+    evento["cep"] = cep
+    evento["rua"] = rua
+    evento["numero"] = numero
+    evento["bairro"] = bairro
+    evento["cidade"] = cidade
+    evento["endereco"] = endereco
     evento["pontoReferencia"] = ponto_referencia
     evento["ponto_referencia"] = ponto_referencia
     evento["createdAt"] = created_at
@@ -860,68 +912,140 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
         c_nome = (cli.get("nome") or "").strip()
         if not c_id or c_nome in SAMPLE_CLIENT_NAMES:
             continue
-        cursor.execute("SELECT id FROM clientes WHERE id = ?;", (c_id,))
-        if not cursor.fetchone():
-            agora = datetime.now().isoformat()
+        cursor.execute("SELECT id, created_at, updated_at FROM clientes WHERE id = ?;", (c_id,))
+        existente_cli = cursor.fetchone()
+        agora = datetime.now().isoformat()
+        cli_updated = str(cli.get("updatedAt") or cli.get("updated_at") or "").strip()
+        if not existente_cli:
             cursor.execute("""
-            INSERT INTO clientes (id, nome, fone, endereco, ponto_ref, cidade, tipo, observacoes, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            INSERT INTO clientes (id, nome, fone, cep, rua, numero, bairro, endereco, ponto_ref, cidade, tipo, observacoes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             """, (
                 c_id,
                 c_nome,
                 cli.get("fone", ""),
+                cli.get("cep", ""),
+                cli.get("rua", ""),
+                cli.get("numero", ""),
+                cli.get("bairro", ""),
                 cli.get("endereco", ""),
                 cli.get("pontoRef", "") or cli.get("ponto_ref", ""),
                 cli.get("cidade", ""),
                 cli.get("tipo", "consumidor"),
                 cli.get("observacoes", ""),
-                agora,
-                agora
+                cli.get("createdAt") or cli.get("created_at") or agora,
+                cli_updated or agora
+            ))
+        elif cli_updated and cli_updated > str(existente_cli["updated_at"] or ""):
+            cursor.execute("""
+            UPDATE clientes SET
+                nome = ?, fone = ?, cep = ?, rua = ?, numero = ?, bairro = ?,
+                endereco = ?, ponto_ref = ?, cidade = ?, tipo = ?, observacoes = ?, updated_at = ?
+            WHERE id = ?;
+            """, (
+                c_nome,
+                cli.get("fone", ""),
+                cli.get("cep", ""),
+                cli.get("rua", ""),
+                cli.get("numero", ""),
+                cli.get("bairro", ""),
+                cli.get("endereco", ""),
+                cli.get("pontoRef", "") or cli.get("ponto_ref", ""),
+                cli.get("cidade", ""),
+                cli.get("tipo", "consumidor"),
+                cli.get("observacoes", ""),
+                cli_updated,
+                c_id
             ))
     
+    # 4. Processa exclusões e sincroniza compromissos de agenda sem sobrescrever edições mais recentes
+    agenda_excluidos = payload.get("agenda_excluidos") or []
+    for a_del in agenda_excluidos:
+        cursor.execute("DELETE FROM agenda WHERE id = ?;", (a_del,))
+
     SAMPLE_AGENDA_NAMES = {"Dra. Camila Vasconcelos", "Eng. Ricardo Prado"}
     agenda_locais = payload.get("agenda") or []
     for item in agenda_locais:
         a_id = item.get("id")
         c_nome = (item.get("clienteNome") or item.get("cliente_nome") or "").strip()
-        if not a_id or c_nome in SAMPLE_AGENDA_NAMES or str(a_id).startswith("age_179224"):
+        if not a_id or a_id in agenda_excluidos or c_nome in SAMPLE_AGENDA_NAMES or str(a_id).startswith("age_179224"):
             continue
-        cursor.execute("SELECT created_at FROM agenda WHERE id = ?;", (a_id,))
+        cursor.execute("SELECT created_at, updated_at FROM agenda WHERE id = ?;", (a_id,))
         existente = cursor.fetchone()
         agora = datetime.now().isoformat()
-        created_at = existente["created_at"] if existente else agora
-        cursor.execute("""
-        INSERT INTO agenda (id, orcamento_id, cliente_nome, cliente_fone, endereco, ponto_referencia, tipo, data, turno, responsavel, status, observacoes, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET
-            orcamento_id = excluded.orcamento_id,
-            cliente_nome = excluded.cliente_nome,
-            cliente_fone = excluded.cliente_fone,
-            endereco = excluded.endereco,
-            ponto_referencia = excluded.ponto_referencia,
-            tipo = excluded.tipo,
-            data = excluded.data,
-            turno = excluded.turno,
-            responsavel = excluded.responsavel,
-            status = excluded.status,
-            observacoes = excluded.observacoes,
-            updated_at = excluded.updated_at;
-        """, (
-            a_id,
-            item.get("orcamentoId") or item.get("orcamento_id") or "",
-            c_nome,
-            item.get("clienteFone") or item.get("cliente_fone") or "",
-            item.get("endereco") or "",
-            item.get("pontoReferencia") or item.get("ponto_referencia") or "",
-            item.get("tipo") or "medicao",
-            item.get("data") or agora[:10],
-            item.get("turno") or "comercial",
-            item.get("responsavel") or "",
-            item.get("status") or "agendado",
-            item.get("observacoes") or "",
-            created_at,
-            agora
-        ))
+        item_updated = str(item.get("updatedAt") or item.get("updated_at") or "").strip()
+
+        if not existente:
+            created_at = item.get("createdAt") or item.get("created_at") or agora
+            updated_at_val = item_updated or agora
+            cursor.execute("""
+            INSERT INTO agenda (id, orcamento_id, cliente_nome, cliente_fone, cep, rua, numero, bairro, cidade, endereco, ponto_referencia, tipo, data, turno, responsavel, status, observacoes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """, (
+                a_id,
+                item.get("orcamentoId") or item.get("orcamento_id") or "",
+                c_nome,
+                item.get("clienteFone") or item.get("cliente_fone") or "",
+                item.get("cep") or "",
+                item.get("rua") or "",
+                item.get("numero") or "",
+                item.get("bairro") or "",
+                item.get("cidade") or "",
+                item.get("endereco") or "",
+                item.get("pontoReferencia") or item.get("ponto_referencia") or "",
+                item.get("tipo") or "medicao",
+                item.get("data") or agora[:10],
+                item.get("turno") or "comercial",
+                item.get("responsavel") or "",
+                item.get("status") or "agendado",
+                item.get("observacoes") or "",
+                created_at,
+                updated_at_val
+            ))
+        else:
+            db_updated = str(existente["updated_at"] or "").strip()
+            # Só atualiza no sync se o registro local tiver um timestamp estritamente mais novo que o banco
+            if item_updated and item_updated > db_updated:
+                cursor.execute("""
+                UPDATE agenda SET
+                    orcamento_id = ?,
+                    cliente_nome = ?,
+                    cliente_fone = ?,
+                    cep = ?,
+                    rua = ?,
+                    numero = ?,
+                    bairro = ?,
+                    cidade = ?,
+                    endereco = ?,
+                    ponto_referencia = ?,
+                    tipo = ?,
+                    data = ?,
+                    turno = ?,
+                    responsavel = ?,
+                    status = ?,
+                    observacoes = ?,
+                    updated_at = ?
+                WHERE id = ?;
+                """, (
+                    item.get("orcamentoId") or item.get("orcamento_id") or "",
+                    c_nome,
+                    item.get("clienteFone") or item.get("cliente_fone") or "",
+                    item.get("cep") or "",
+                    item.get("rua") or "",
+                    item.get("numero") or "",
+                    item.get("bairro") or "",
+                    item.get("cidade") or "",
+                    item.get("endereco") or "",
+                    item.get("pontoReferencia") or item.get("ponto_referencia") or "",
+                    item.get("tipo") or "medicao",
+                    item.get("data") or agora[:10],
+                    item.get("turno") or "comercial",
+                    item.get("responsavel") or "",
+                    item.get("status") or "agendado",
+                    item.get("observacoes") or "",
+                    item_updated,
+                    a_id
+                ))
             
     # 5. Processa exclusões e sincroniza contas bancárias
     bancos_excluidos = payload.get("bancos_excluidos") or []
@@ -999,10 +1123,17 @@ def sincronizar_dados(payload: Dict[str, Any] = Body(...)):
     cursor.execute("SELECT * FROM agenda ORDER BY data ASC, created_at ASC;")
     todos_age = []
     for r in cursor.fetchall():
+        if r["id"] in agenda_excluidos:
+            continue
         d = dict(r)
         d["clienteNome"] = d.get("cliente_nome") or ""
         d["clienteFone"] = d.get("cliente_fone") or ""
         d["orcamentoId"] = d.get("orcamento_id") or ""
+        d["cep"] = d.get("cep") or ""
+        d["rua"] = d.get("rua") or ""
+        d["numero"] = d.get("numero") or ""
+        d["bairro"] = d.get("bairro") or ""
+        d["cidade"] = d.get("cidade") or ""
         d["pontoReferencia"] = d.get("ponto_referencia") or ""
         d["ponto_referencia"] = d.get("ponto_referencia") or ""
         d["createdAt"] = d.get("created_at") or ""
